@@ -12,20 +12,19 @@
     "title": "ใบส่งสินค้าชั่วคราว",
     "number": {
       "label": "เลขที่",
-      "format": "TN{BE_YY}/{running_no}",
-      "example": "TN69/403643"
+      "format": "TN{BE_YY}/{running_no}"
     },
     "fields": [
-      { "key": "date", "label": "วันที่", "type": "date", "format": "DD/MM/BBBB", "example": "27/08/2569" },
-      { "key": "due_date", "label": "กำหนดชำระ", "type": "date", "format": "DD/MM/BBBB", "example": "27/08/2569" },
+      { "key": "date", "label": "วันที่", "type": "date", "format": "DD/MM/BBBB" },
+      { "key": "due_date", "label": "กำหนดชำระ", "type": "date", "format": "DD/MM/BBBB" },
       { "key": "payment_term", "label": "เงื่อนไขการชำระเงิน", "type": "select", "options": ["เงินสด", "โอน", "เครดิต 15 วัน", "เครดิต 20 วัน", "เครดิต 30 วัน", "รับเช็ค 30 วัน"], "example": "เงินสด" },
-      { "key": "salesperson", "label": "พนักงานขาย", "type": "text", "example": "ณัฐกาญจน์" }
+      { "key": "salesperson", "label": "พนักงานขาย", "type": "text" }
     ]
   },
   "customer": {
     "fields": [
       { "key": "customer_name", "label": "ลูกค้า", "type": "text" },
-      { "key": "customer_code", "label": "รหัส", "type": "text", "example": "59223" },
+      { "key": "customer_code", "label": "รหัส", "type": "text" },
       { "key": "address", "label": "ที่อยู่", "type": "multiline_text" },
       { "key": "phone", "label": "TEL.", "type": "text" }
     ]
