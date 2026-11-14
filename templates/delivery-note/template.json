@@ -1,0 +1,65 @@
+{
+  "name": "ใบส่งสินค้าชั่วคราว (Havan Cosmetic)",
+  "description": "แม่แบบใบส่งสินค้าชั่วคราวที่ออกให้ลูกค้าตอนส่งของ ยังไม่ใช่ใบกำกับภาษี ราคาในใบยังไม่รวม VAT",
+  "reference_image": "blank-template.png",
+  "company": {
+    "name": "หจก.ฮาแวน คอสเมติค",
+    "bank": "ธนาคารกรุงไทย 029-1-42575-5",
+    "phones": ["02-460-1668", "02-875-7977-8", "02-875-8621 (โทรสาร)"],
+    "social": ["LINE: HAVANCOSMETIC", "Facebook: HAVANCOSMETICTHAILAND"]
+  },
+  "document": {
+    "title": "ใบส่งสินค้าชั่วคราว",
+    "number": {
+      "label": "เลขที่",
+      "format": "TN{BE_YY}/{running_no}",
+      "example": "TN69/403643"
+    },
+    "fields": [
+      { "key": "date", "label": "วันที่", "type": "date", "format": "DD/MM/BBBB", "example": "27/08/2569" },
+      { "key": "due_date", "label": "กำหนดชำระ", "type": "date", "format": "DD/MM/BBBB", "example": "27/08/2569" },
+      { "key": "payment_term", "label": "เงื่อนไขการชำระเงิน", "type": "select", "options": ["เงินสด", "โอน", "เครดิต 15 วัน", "เครดิต 20 วัน", "เครดิต 30 วัน", "รับเช็ค 30 วัน"], "example": "เงินสด" },
+      { "key": "salesperson", "label": "พนักงานขาย", "type": "text", "example": "ณัฐกาญจน์" }
+    ]
+  },
+  "customer": {
+    "fields": [
+      { "key": "customer_name", "label": "ลูกค้า", "type": "text" },
+      { "key": "customer_code", "label": "รหัส", "type": "text", "example": "59223" },
+      { "key": "address", "label": "ที่อยู่", "type": "multiline_text" },
+      { "key": "phone", "label": "TEL.", "type": "text" }
+    ]
+  },
+  "items": {
+    "max_rows_on_page": 14,
+    "columns": [
+      { "key": "line", "label": "ลำดับ (Item)", "type": "integer", "auto": true },
+      { "key": "product_code", "label": "รหัสสินค้า (Product Code)", "type": "text", "example": "BLUK-1028 หรือ 0013" },
+      { "key": "description", "label": "รายการ (Description)", "type": "text" },
+      { "key": "quantity", "label": "จำนวน (Quantity)", "type": "text", "example": "1 แกลลอน, 2 ใบ, 1 รายการ", "note": "เก็บเป็นตัวเลข + หน่วยแยกกัน" },
+      { "key": "unit_price", "label": "หน่วยละ (Unit Price)", "type": "money" },
+      { "key": "amount", "label": "จำนวนเงิน (Amount)", "type": "money", "formula": "quantity * unit_price" }
+    ]
+  },
+  "totals": {
+    "fields": [
+      { "key": "subtotal", "label": "ราคาสินค้าไม่รวมภาษีมูลค่าเพิ่ม", "type": "money", "formula": "sum(items.amount)" },
+      { "key": "discount", "label": "ส่วนลดพิเศษ", "type": "money", "default": 0 },
+      { "key": "grand_total", "label": "รวมทั้งสิ้น", "type": "money", "formula": "subtotal - discount" },
+      { "key": "grand_total_text", "label": "ตัวอักษร", "type": "thai_baht_text", "formula": "baht_text(grand_total)" }
+    ]
+  },
+  "signatures": ["ผู้รับสินค้า", "ผู้ส่งสินค้า", "ผู้รับเงิน", "ผู้ตรวจสอบ"],
+  "footer_notes": [
+    "(ถอดความจากภาพโดยประมาณ ควรตรวจกับต้นฉบับก่อนใช้งานจริง) สินค้าในใบส่งสินค้า หากไม่รับมอบให้แจ้งกลับบริษัทฯ ภายใน 3 วัน มิฉะนั้นทางบริษัทฯ ถือว่าได้รับสินค้าไว้ถูกต้องและสภาพดี และเป็นหนี้ของท่านตามใบส่งสินค้าชั่วคราวนี้",
+    "หมายเหตุ: กรุณาชำระเงินให้ตรงกับวันที่และชำระเงินให้เฉพาะกับพนักงานที่ออกบิลเท่านั้น หากชำระเงินเกินกว่ากำหนดจะต้องเสียค่าเบี้ยปรับ โดยปรับครั้งละ 50 บาท"
+  ],
+  "rules_seen_in_sample": [
+    "ยอดรวมเท่ากับผลรวม จำนวนเงินของทุกบรรทัด (ตัวอย่าง 285 + 750 + 70 + 100 = 1,205)",
+    "ค่าส่งสินค้า (รหัส 0010) และค่าแกลลอน (รหัส 0013) เป็นบรรทัดแยก รหัส 0010 ตรงกับตาราง products ในชีต A แต่ 0013 ยังไม่ได้ตรวจ",
+    "รูปแบบรหัสสินค้าในใบ (เช่น BLUK-1028) ไม่ตรงกับรหัสตัวเลข 4 หลักในชีต A (เช่น 4043, 5043) ต้องทำตารางแมปรหัสก่อนให้แอปใช้",
+    "ไม่มีการคิด VAT ในใบนี้ (แสดงเป็นราคาไม่รวม VAT)",
+    "ถ้าต้องการใบกำกับภาษี ให้ออกใบกำกับภายหลังเมื่อลูกค้าสั่งซื้อและรับสินค้าแล้ว"
+  ],
+  "sample_data_privacy": "ตัวอย่างข้อมูลลูกค้าจริงถูกตัดออกจากไฟล์นี้ เก็บเฉพาะโครงสร้างและรูปแบบ"
+}
