@@ -1,0 +1,33 @@
+name: Deploy CRM to Firebase Hosting
+
+# Runs when this branch changes, or when started by hand from the Actions tab.
+on:
+  push:
+    branches:
+      - claude/laughing-newton-5qpbwv
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Publish only the app page. The data folder is never copied.
+      - name: Prepare hosting folder
+        run: |
+          mkdir -p crm/firebase/hosting
+          cp crm/index.html crm/firebase/hosting/index.html
+          test ! -e crm/firebase/hosting/data || (echo "data folder must not be published" && exit 1)
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ACRM_HAVAN }}
+          projectId: acrm-havan
+          entryPoint: crm/firebase
+          channelId: live
