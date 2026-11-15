@@ -147,5 +147,47 @@ def main():
     print(f"customers={len(customers)} bills={len(bills)} products={len(catalog)} -> {OUT}")
 
 
+DEMO_OUT = os.path.join(DATA, "..", "demo", "index.html")
+
+
+def anonymize(out):
+    """Replace personal fields so the data can be shared for testing."""
+    order = {c["id"]: i + 1 for i, c in enumerate(out["customers"])}
+    blank = ["email", "lineId", "keepNote", "customerNote", "taxName", "taxAddress",
+             "taxBranch", "taxId", "contactName", "specialConditions"]
+    for c in out["customers"]:
+        n = order[c["id"]]
+        c["name"] = "ลูกค้าทดสอบ %04d" % n
+        c["address"] = "ที่อยู่ทดสอบ เขต %d" % (n % 50 + 1)
+        c["phone"] = "081-000-%04d" % n if c["phone"] else ""
+        for k in blank:
+            c[k] = ""
+        if c["lat"] is not None:
+            c["lat"], c["lng"] = 13.7563 + (n % 50) * 0.002, 100.5018 + (n % 50) * 0.002
+    for b in out["bills"]:
+        b["customerName"] = "ลูกค้าทดสอบ %04d" % order.get(b["customerId"], 0)
+    return out
+
+
+def build_demo(out):
+    """Write one self-contained HTML file (anonymized data inlined)."""
+    anon = anonymize(json.loads(json.dumps(out)))
+    with open(os.path.join(HERE, "..", "index.html"), encoding="utf-8") as f:
+        html = f.read()
+    tag = '<script src="data/data.js"></script>'
+    if tag not in html:
+        raise SystemExit("index.html no longer loads data/data.js; update build_demo")
+    payload = "<script>window.CRM_DATA = " + json.dumps(anon, ensure_ascii=False) + ";</script>"
+    os.makedirs(os.path.dirname(DEMO_OUT), exist_ok=True)
+    with open(DEMO_OUT, "w", encoding="utf-8") as f:
+        f.write(html.replace(tag, payload))
+    print("demo ->", os.path.normpath(DEMO_OUT))
+
+
 if __name__ == "__main__":
+    import sys
     main()
+    if "--demo" in sys.argv:
+        with open(OUT, encoding="utf-8") as f:
+            text = f.read()
+        build_demo(json.loads(text[len("window.CRM_DATA = "):].rstrip().rstrip(";")))

@@ -14,7 +14,6 @@
   body { margin:0; font-family:system-ui,"Sarabun","Noto Sans Thai",sans-serif; background:var(--bg); color:var(--text); font-size:16px; }
   header { position:sticky; top:0; z-index:5; background:var(--brand); color:#fff; padding:12px 16px; display:flex; align-items:center; gap:12px; }
   header h1 { font-size:18px; margin:0; flex:1; }
-  header a { color:#fff; text-decoration:none; font-size:14px; }
   nav { display:flex; background:var(--card); border-bottom:1px solid var(--line); position:sticky; top:52px; z-index:4; }
   nav a { flex:1; text-align:center; padding:10px 4px; color:var(--muted); text-decoration:none; font-size:14px; }
   nav a.on { color:var(--brand); font-weight:600; border-bottom:2px solid var(--brand); }
@@ -28,11 +27,13 @@
   @media (prefers-color-scheme: dark) { .tag.warn{background:#4a3a14;color:#ffd58a} .tag.bad{background:#4a1d1d;color:#ffb3b3} .tag.ok{background:#15382a;color:#9be3b8} }
   input, select, textarea { width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font-size:16px; background:var(--card); color:var(--text); font-family:inherit; }
   textarea { min-height:70px; }
-  button, .btn { appearance:none; border:0; border-radius:10px; padding:11px 16px; font-size:16px; background:var(--brand); color:#fff; text-decoration:none; display:inline-block; cursor:pointer; font-family:inherit; }
+  label.f { display:block; color:var(--muted); font-size:14px; margin:10px 0 4px; }
+  button, .btn { appearance:none; border:0; border-radius:10px; padding:11px 16px; font-size:16px; background:var(--brand); color:#fff; text-decoration:none; display:inline-block; cursor:pointer; font-family:inherit; text-align:center; }
+  button:disabled { opacity:.45; cursor:default; }
   button.ghost, .btn.ghost { background:transparent; color:var(--brand); border:1px solid var(--brand); }
   button.danger { background:var(--bad); }
-  button.small { padding:6px 10px; font-size:14px; }
-  .list a.item { display:block; text-decoration:none; color:inherit; background:var(--card); border:1px solid var(--line); border-radius:var(--r); padding:12px; margin-bottom:8px; }
+  button.small, .btn.small { padding:6px 10px; font-size:14px; }
+  .list a.item, .item { display:block; text-decoration:none; color:inherit; background:var(--card); border:1px solid var(--line); border-radius:var(--r); padding:12px; margin-bottom:8px; }
   .chips { display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; margin-bottom:8px; }
   .chip { white-space:nowrap; padding:6px 12px; border-radius:999px; border:1px solid var(--line); background:var(--card); color:var(--text); font-size:14px; cursor:pointer; }
   .chip.on { background:var(--brand); color:#fff; border-color:var(--brand); }
@@ -40,8 +41,9 @@
   td, th { padding:6px 4px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
   td.num, th.num { text-align:right; white-space:nowrap; }
   .actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:10px 0; }
-  .actions .btn, .actions button { text-align:center; }
   .empty { text-align:center; color:var(--muted); padding:24px 0; }
+  .kv { display:flex; justify-content:space-between; gap:12px; border-bottom:1px solid var(--line); padding:6px 0; }
+  .kv > span:last-child { text-align:right; }
   .toast { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); background:#222; color:#fff; padding:10px 16px; border-radius:10px; font-size:14px; display:none; z-index:20; }
   #print { display:none; }
   @media print {
@@ -54,7 +56,7 @@
 <body>
 <header>
   <h1 id="title">CRM ภาคสนาม</h1>
-  <span class="muted" id="whoami" style="color:#dfe7ff;font-size:13px"></span>
+  <span id="whoami" style="color:#dfe7ff;font-size:13px"></span>
 </header>
 <nav>
   <a href="#/" data-nav="list">ลูกค้า</a>
@@ -77,106 +79,106 @@
     });
   };
   var money = function (n) { return Number(n || 0).toLocaleString("th-TH", { minimumFractionDigits: 0, maximumFractionDigits: 2 }); };
-  var todayStr = function () {
-    var d = new Date();
-    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-  };
-  var addDays = function (iso, n) {
-    var d = new Date(iso + "T00:00:00"); d.setDate(d.getDate() + n);
-    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-  };
+  var pad = function (n) { return String(n).padStart(2, "0"); };
+  var isoDay = function (d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); };
+  var todayStr = function () { return isoDay(new Date()); };
+  var addDays = function (iso, n) { var d = new Date(iso + "T00:00:00"); d.setDate(d.getDate() + n); return isoDay(d); };
+  var daysBetween = function (a, b) { return Math.round((new Date(b + "T00:00:00") - new Date(a + "T00:00:00")) / 86400000); };
   var uid = function (p) { return p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); };
   var toast = function (msg) {
     var t = $("#toast"); t.textContent = msg; t.style.display = "block";
     clearTimeout(toast._t); toast._t = setTimeout(function () { t.style.display = "none"; }, 1800);
   };
+  var enc = encodeURIComponent;
 
-  // ---------- local storage (per device, never throws) ----------
+  // ---------- local storage (per browser; never throws) ----------
   var KEY = "crm.prototype.state";
-  var emptyState = { customers: {}, visits: [], tasks: [], orders: [], settings: { defaultCycle: 30, user: "" } };
+  var emptyState = function () { return { customers: {}, visits: [], tasks: [], orders: [], settings: { defaultCycle: 30, user: "" } }; };
   var state;
   function loadState() {
     try {
-      var raw = localStorage.getItem(KEY);
-      var s = raw ? JSON.parse(raw) : null;
-      if (!s) return JSON.parse(JSON.stringify(emptyState));
-      s.customers = s.customers || {}; s.visits = s.visits || []; s.tasks = s.tasks || [];
-      s.orders = s.orders || []; s.settings = Object.assign({ defaultCycle: 30, user: "" }, s.settings || {});
+      var s = JSON.parse(localStorage.getItem(KEY) || "null");
+      if (!s) return emptyState();
+      s.customers = s.customers || {}; s.visits = s.visits || []; s.tasks = s.tasks || []; s.orders = s.orders || [];
+      s.settings = Object.assign({ defaultCycle: 30, user: "" }, s.settings || {});
       return s;
-    } catch (e) { return JSON.parse(JSON.stringify(emptyState)); }
+    } catch (e) { return emptyState(); }
   }
   function saveState() {
     try { localStorage.setItem(KEY, JSON.stringify(state)); }
     catch (e) { toast("บันทึกในเครื่องไม่ได้ ข้อมูลอาจหายเมื่อปิดหน้า"); }
   }
 
-  // ---------- data access ----------
+  // ---------- data (built from the Sheet by tools/build_data.py) ----------
   var DATA = window.CRM_DATA || { customers: [], bills: [], products: [] };
   var CUST = {}; DATA.customers.forEach(function (c) { CUST[c.id] = c; });
   var BILLS_BY_CUST = {};
   DATA.bills.forEach(function (b) { (BILLS_BY_CUST[b.customerId] = BILLS_BY_CUST[b.customerId] || []).push(b); });
   Object.keys(BILLS_BY_CUST).forEach(function (k) { BILLS_BY_CUST[k].reverse(); }); // newest first
+  var PAY_OPTIONS = ["เงินสด", "โอน", "เครดิต 15 วัน", "เครดิต 20 วัน", "เครดิต 30 วัน", "รับเช็ค 30 วัน"];
+  var VISIT_OUTCOMES = ["สั่งแล้ว", "ไม่สั่ง (สินค้ายังเหลือ)", "ติดตามต่อ", "ไม่พบเจ้าของร้าน", "ร้านปิด", "อื่นๆ"];
+  // Text fields the app lets users edit. Anything not listed stays read-only from the Sheet.
+  var TEXT_FIELDS = [
+    ["name", "ชื่อลูกค้า / ร้าน"], ["type", "ประเภท"], ["address", "ที่อยู่"], ["phone", "เบอร์โทร"],
+    ["contactName", "ชื่อผู้ติดต่อ"], ["owner", "ผู้ดูแล (เซลล์)"], ["billClerk", "ผู้ออกบิลเดิม"],
+    ["lineId", "LINE ID"], ["email", "อีเมล"], ["storeHours", "เวลาทำการ"],
+    ["specialConditions", "เงื่อนไขพิเศษ"], ["customerNote", "หมายเหตุลูกค้า"], ["keepNote", "หมายเหตุภายใน"],
+    ["taxName", "ชื่อในใบกำกับภาษี"], ["taxAddress", "ที่อยู่ใบกำกับภาษี"], ["taxBranch", "สาขา"], ["taxId", "เลขผู้เสียภาษี"],
+    ["taxInvoiceRequired", "ต้องการใบกำกับภาษี"], ["receiptRequired", "ต้องการใบเสร็จ"]
+  ];
 
+  // Merged view: sheet data + this device's edits (only changed fields are stored as edits).
   function customer(id) {
     var base = CUST[id]; if (!base) return null;
-    var o = state.customers[id] || {};
-    return Object.assign({}, base, o); // overrides: owner, phone, lat, lng, visitCycleDays, activeFlag
+    return Object.assign({}, base, state.customers[id] || {});
   }
+  function visitDay(v) { return v.day || v.at.slice(0, 10); }
   function lastVisit(id) {
     var v = state.visits.filter(function (x) { return x.cid === id; });
-    v.sort(function (a, b) { return a.at < b.at ? 1 : -1; });
+    v.sort(function (a, b) { return visitDay(a) < visitDay(b) ? 1 : -1; });
     return v[0] || null;
   }
   function cycleOf(c) { return c.visitCycleDays || state.settings.defaultCycle; }
   function dueStatus(c) {
     var lv = lastVisit(c.id);
-    var base = lv ? lv.at.slice(0, 10) : c.lastBillDate;
-    if (!base) return { due: false, label: "ยังไม่เคยซื้อ" };
+    var base = lv ? visitDay(lv) : c.lastBillDate;
+    if (!base) return { due: false, nextDate: null };
     var nextDate = addDays(base, cycleOf(c));
     return { due: nextDate <= todayStr(), nextDate: nextDate };
   }
-  function days(iso) {
-    if (!iso) return null;
-    var a = new Date(iso + "T00:00:00"), b = new Date(todayStr() + "T00:00:00");
-    return Math.round((b - a) / 86400000);
-  }
+
   // ---------- routing ----------
   function route() {
-    var h = location.hash.replace(/^#/, "") || "/";
-    var parts = h.split("/").filter(Boolean);
-    document.querySelectorAll("nav a").forEach(function (a) { a.classList.remove("on"); });
-    if (!parts.length) { navOn("list"); return viewList(); }
-    if (parts[0] === "c" && parts[1]) { navOn("list"); return viewCustomer(decodeURIComponent(parts[1])); }
-    if (parts[0] === "visit" && parts[1]) { navOn("list"); return viewVisit(decodeURIComponent(parts[1])); }
-    if (parts[0] === "order" && parts[1]) { navOn("list"); return viewOrder(decodeURIComponent(parts[1])); }
-    if (parts[0] === "bill" && parts[1]) { navOn("list"); return viewBill(decodeURIComponent(parts[1])); }
-    if (parts[0] === "tasks") { navOn("tasks"); return viewTasks(); }
-    if (parts[0] === "settings") { navOn("settings"); return viewSettings(); }
-    navOn("list"); viewList();
-  }
-  function navOn(name) {
-    var a = document.querySelector('nav a[data-nav="' + name + '"]'); if (a) a.classList.add("on");
+    var parts = (location.hash.replace(/^#/, "") || "/").split("/").filter(Boolean).map(function (p) { return decodeURIComponent(p); });
+    var nav = parts[0] === "tasks" ? "tasks" : parts[0] === "settings" ? "settings" : "list";
+    document.querySelectorAll("nav a").forEach(function (a) { a.classList.toggle("on", a.getAttribute("data-nav") === nav); });
+    var k = parts[0], id = parts[1];
+    if (!k) return viewList();
+    if (k === "c" && id) return viewCustomer(id);
+    if (k === "edit" && id === "c" && parts[2]) return viewEditCustomer(parts[2]);
+    if (k === "visit" && id) return viewVisit(id, parts[2] || null);
+    if (k === "order" && id) return viewOrder(id, parts[2] || null);
+    if (k === "bill" && id) return viewBill(id);
+    if (k === "task" && id) return viewTask(id);
+    if (k === "tasks") return viewTasks();
+    if (k === "settings") return viewSettings();
+    viewList();
   }
   function setTitle(t) { $("#title").textContent = t; document.title = t + " · CRM"; }
   function app(html) { $("#app").innerHTML = html; window.scrollTo(0, 0); }
-  function go(h) { location.hash = h; }
+  function notFound(what) { setTitle("ไม่พบข้อมูล"); app('<div class="empty">ไม่พบ' + esc(what) + '</div><a class="btn ghost" href="#/">กลับหน้าลูกค้า</a>'); }
 
-  // ---------- views ----------
-  var listFilter = "all";
-  var listQuery = "";
+  // ---------- customer list ----------
+  var listFilter = "all", listQuery = "";
   function viewList() {
     setTitle("ลูกค้า");
-    var filters = [
-      ["all", "ทั้งหมด"], ["due", "ถึงรอบเยี่ยม"], ["noOwner", "ยังไม่มีเจ้าของ"],
-      ["lapsed", "ไม่ซื้อ > 90 วัน"], ["noGps", "ไม่มีพิกัด"]
-    ];
+    var filters = [["all", "ทั้งหมด"], ["due", "ถึงรอบเยี่ยม"], ["noOwner", "ยังไม่มีเจ้าของ"], ["lapsed", "ไม่ซื้อ > 90 วัน"], ["noGps", "ไม่มีพิกัด"]];
     app(
       '<input id="q" placeholder="ค้นหาชื่อ / เบอร์ / ทำเล / รหัส" value="' + esc(listQuery) + '" style="margin-bottom:8px">' +
       '<div class="chips">' + filters.map(function (f) {
         return '<button class="chip' + (listFilter === f[0] ? " on" : "") + '" data-f="' + f[0] + '">' + f[1] + "</button>";
       }).join("") + "</div>" +
-      '<div id="count" class="muted" style="margin-bottom:6px"></div>' +
-      '<div id="items" class="list"></div>'
+      '<div id="count" class="muted" style="margin-bottom:6px"></div><div id="items"></div>'
     );
     $("#q").addEventListener("input", function (e) { listQuery = e.target.value; renderItems(); });
     document.querySelectorAll(".chip").forEach(function (b) {
@@ -186,8 +188,7 @@
   }
   function renderItems() {
     var q = listQuery.trim().toLowerCase();
-    var out = DATA.customers.filter(function (base) {
-      var c = customer(base.id);
+    var all = DATA.customers.map(function (base) { return customer(base.id); }).filter(function (c) {
       if (listFilter === "due" && !dueStatus(c).due) return false;
       if (listFilter === "noOwner" && c.owner) return false;
       if (listFilter === "noGps" && c.lat != null) return false;
@@ -195,174 +196,236 @@
       if (!q) return true;
       return (c.name + " " + c.address + " " + c.phone + " " + c.id + " " + c.contactName).toLowerCase().indexOf(q) >= 0;
     });
-    $("#count").textContent = "พบ " + out.length + " ราย" + (out.length > 100 ? " (แสดง 100 แรก พิมพ์ค้นหาเพื่อแคบลง)" : "");
-    var html = out.slice(0, 100).map(function (base) {
-      var c = customer(base.id);
-      var ds = dueStatus(c);
-      var tags = [];
+    $("#count").textContent = "พบ " + all.length + " ราย" + (all.length > 100 ? " (แสดง 100 แรก พิมพ์ค้นหาเพื่อแคบลง)" : "");
+    $("#items").innerHTML = all.slice(0, 100).map(function (c) {
+      var ds = dueStatus(c), tags = [];
       if (ds.due) tags.push('<span class="tag warn">ถึงรอบ</span>');
       if (!c.owner) tags.push('<span class="tag bad">ไม่มีเจ้าของ</span>');
       if (c.lat == null) tags.push('<span class="tag">ไม่มีพิกัด</span>');
       var last = c.daysSinceLastBill == null ? "ยังไม่มีบิล" : "ซื้อล่าสุด " + c.daysSinceLastBill + " วันก่อน";
-      return '<a class="item" href="#/c/' + encodeURIComponent(c.id) + '">' +
-        '<div><b>' + esc(c.name) + '</b></div>' +
-        '<div class="muted">' + esc(c.type) + " · " + esc(c.id) + " · " + last + "</div>" +
+      return '<a class="item" href="#/c/' + enc(c.id) + '"><div><b>' + esc(c.name) + "</b></div>" +
+        '<div class="muted">' + esc(c.type) + " · " + esc(c.id) + " · " + last + '</div>' +
         '<div style="margin-top:4px">' + tags.join("") + "</div></a>";
-    }).join("");
-    $("#items").innerHTML = html || '<div class="empty">ไม่พบลูกค้า</div>';
+    }).join("") || '<div class="empty">ไม่พบลูกค้า</div>';
   }
 
-  function field(label, value, extra) {
-    return '<div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding:6px 0">' +
-      '<span class="muted">' + esc(label) + "</span><span style='text-align:right'>" + (value ? esc(value) : '<span class="tag warn">ยังไม่มีข้อมูล</span>') + (extra || "") + "</span></div>";
+  // ---------- customer detail ----------
+  function kv(label, value) {
+    return '<div class="kv"><span class="muted">' + esc(label) + "</span><span>" +
+      (value ? esc(value) : '<span class="tag warn">ยังไม่มีข้อมูล</span>') + "</span></div>";
   }
-
   function viewCustomer(id) {
-    var c = customer(id);
-    if (!c) return app('<div class="empty">ไม่พบลูกค้ารหัส ' + esc(id) + '</div>');
+    var c = customer(id); if (!c) return notFound("ลูกค้ารหัส " + id);
     setTitle(c.name.length > 26 ? c.name.slice(0, 26) + "…" : c.name);
     var ds = dueStatus(c);
-    var lv = lastVisit(id);
     var bills = (BILLS_BY_CUST[id] || []).slice(0, 10);
-    var visits = state.visits.filter(function (v) { return v.cid === id; }).slice(-5).reverse();
+    var visits = state.visits.filter(function (v) { return v.cid === id; }).sort(function (a, b) { return visitDay(a) < visitDay(b) ? 1 : -1; }).slice(0, 8);
+    var orders = state.orders.filter(function (o) { return o.cid === id; });
+    var tasks = state.tasks.filter(function (t) { return t.cid === id && !t.done; });
     var mapHref = c.lat != null
       ? "https://www.google.com/maps/search/?api=1&query=" + c.lat + "," + c.lng
-      : "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(c.address);
+      : "https://www.google.com/maps/search/?api=1&query=" + enc(c.address || c.name);
     app(
       '<div class="card">' +
         '<div style="font-size:18px;font-weight:600">' + esc(c.name) + "</div>" +
         '<div class="muted">' + esc(c.type) + " · รหัส " + esc(c.id) + "</div>" +
         '<div style="margin-top:8px">' +
-          (ds.due ? '<span class="tag warn">ถึงรอบเยี่ยมแล้ว</span>' : (ds.nextDate ? '<span class="tag ok">เยี่ยมครั้งถัดไป ' + ds.nextDate + "</span>" : "")) +
+          (ds.due ? '<span class="tag warn">ถึงรอบเยี่ยมแล้ว</span>' : ds.nextDate ? '<span class="tag ok">เยี่ยมครั้งถัดไป ' + ds.nextDate + "</span>" : "") +
           (!c.owner ? '<span class="tag bad">ยังไม่มีเจ้าของ</span>' : "") +
           (c.lat == null ? '<span class="tag">ไม่มีพิกัด</span>' : "") +
         "</div>" +
       "</div>" +
       '<div class="actions">' +
-        '<a class="btn" href="#/visit/' + encodeURIComponent(id) + '">บันทึกการเยี่ยม</a>' +
-        '<a class="btn" href="#/order/' + encodeURIComponent(id) + '">สั่งของ / ออกใบ</a>' +
+        '<a class="btn" href="#/visit/' + enc(id) + '">บันทึกการเยี่ยม</a>' +
+        '<a class="btn" href="#/order/' + enc(id) + '">สั่งของ / ออกใบ</a>' +
         (c.phone ? '<a class="btn ghost" href="tel:' + esc(c.phone.replace(/[^0-9+]/g, "")) + '">โทร ' + esc(c.phone) + "</a>" : '<button class="ghost" disabled>ไม่มีเบอร์</button>') +
         '<a class="btn ghost" target="_blank" rel="noopener" href="' + mapHref + '">นำทาง</a>' +
+        '<a class="btn ghost" href="#/edit/c/' + enc(id) + '" style="grid-column:1/-1">แก้ไขข้อมูลลูกค้า</a>' +
       "</div>" +
-      '<div class="card">' +
-        '<h2 style="margin-top:0">ข้อมูล</h2>' +
-        field("ที่อยู่", c.address) +
-        field("ผู้ติดต่อ", c.contactName) +
-        field("เบอร์โทร", c.phone, ' <button class="ghost small" data-edit="phone">แก้</button>') +
-        field("ผู้ดูแล (เซลล์)", c.owner, ' <button class="ghost small" data-edit="owner">' + (c.owner ? "เปลี่ยน" : "มอบหมาย") + "</button>") +
-        field("รอบเยี่ยม (วัน)", c.visitCycleDays ? String(c.visitCycleDays) : "", ' <button class="ghost small" data-edit="cycle">ตั้ง</button>') +
-        field("พิกัด GPS", c.lat != null ? c.lat.toFixed(5) + ", " + c.lng.toFixed(5) : "", ' <button class="ghost small" data-edit="gps">จับจากเครื่อง</button>') +
-        field("เงื่อนไขชำระ", c.paymentTerm) +
-        field("ผู้ออกบิลเดิม", c.billClerk) +
-        field("สถานะใช้งาน", c.activeFlag === "FALSE" ? "ไม่ใช้งาน" : "ใช้งาน (ค่าเริ่มต้น)") +
-        (c.specialConditions ? field("เงื่อนไขพิเศษ", c.specialConditions) : "") +
-        (c.customerNote ? field("หมายเหตุลูกค้า", c.customerNote) : "") +
+      '<div class="card"><h2 style="margin-top:0">ข้อมูล</h2>' +
+        kv("ที่อยู่", c.address) + kv("ผู้ติดต่อ", c.contactName) + kv("เบอร์โทร", c.phone) +
+        kv("ผู้ดูแล (เซลล์)", c.owner) + kv("รอบเยี่ยม (วัน)", c.visitCycleDays ? String(c.visitCycleDays) : "") +
+        kv("พิกัด GPS", c.lat != null ? c.lat.toFixed(5) + ", " + c.lng.toFixed(5) : "") +
+        kv("เงื่อนไขชำระ", c.paymentTerm) + kv("สถานะ", c.activeFlag === "FALSE" ? "ไม่ใช้งาน" : "ใช้งาน") +
+        (c.specialConditions ? kv("เงื่อนไขพิเศษ", c.specialConditions) : "") +
+        (c.customerNote ? kv("หมายเหตุลูกค้า", c.customerNote) : "") +
       "</div>" +
       '<div class="card"><h2 style="margin-top:0">สรุปการซื้อ</h2>' +
-        '<div class="muted">บิลทั้งหมด ' + c.billCount + " ใบ · ยอดขายรวม " + money(c.totalSales) + " บาท" +
+        '<div class="muted">บิลจากระบบ ' + c.billCount + " ใบ · ยอดขายรวม " + money(c.totalSales) + " บาท" +
         (c.daysSinceLastBill != null ? " · ซื้อล่าสุด " + c.lastBillDate + " (" + c.daysSinceLastBill + " วันก่อน)" : "") + "</div></div>" +
-      '<div class="card"><h2 style="margin-top:0">บิลล่าสุด 10 ใบ</h2>' +
+      '<div class="card"><h2 style="margin-top:0">ร่างบิลในเครื่องนี้</h2>' +
+        (orders.length ? orders.map(function (o) {
+          return '<div class="kv"><span>' + esc(o.date) + " · " + o.lines.length + " รายการ · " + money(o.total) + ' บาท</span>' +
+            '<span><a class="btn ghost small" href="#/order/' + enc(id) + "/" + enc(o.id) + '">แก้</a> ' +
+            '<button class="danger small" data-del-order="' + esc(o.id) + '">ลบ</button></span></div>';
+        }).join("") : '<div class="muted">ยังไม่มีร่าง</div>') +
+      "</div>" +
+      '<div class="card"><h2 style="margin-top:0">บิลล่าสุด 10 ใบ (จากระบบ, อ่านอย่างเดียว)</h2>' +
         (bills.length ? '<table><tr><th>วันที่</th><th>เลขที่</th><th>ประเภท</th><th class="num">ยอด</th></tr>' +
           bills.map(function (b) {
-            return '<tr><td>' + esc(b.date) + '</td><td><a href="#/bill/' + encodeURIComponent(b.no) + '">' + esc(b.no) + "</a></td><td>" + esc(b.type) + '</td><td class="num">' + money(b.total) + "</td></tr>";
+            return '<tr><td>' + esc(b.date) + '</td><td><a href="#/bill/' + enc(b.no) + '">' + esc(b.no) + "</a></td><td>" + esc(b.type) + '</td><td class="num">' + money(b.total) + "</td></tr>";
           }).join("") + "</table>" : '<div class="muted">ยังไม่มีบิล</div>') +
       "</div>" +
-      '<div class="card"><h2 style="margin-top:0">การเยี่ยมล่าสุด</h2>' +
+      '<div class="card"><h2 style="margin-top:0">การเยี่ยม</h2>' +
         (visits.length ? visits.map(function (v) {
-          return '<div style="border-bottom:1px solid var(--line);padding:6px 0"><div>' + esc(v.at.slice(0, 10)) + " · <b>" + esc(v.outcome) + "</b></div>" +
-            (v.note ? '<div class="muted">' + esc(v.note) + "</div>" : "") + "</div>";
+          return '<div class="kv" style="align-items:flex-start"><span><b>' + esc(visitDay(v)) + "</b> · " + esc(v.outcome) +
+            (v.note ? '<div class="muted">' + esc(v.note) + "</div>" : "") + "</span>" +
+            '<a class="btn ghost small" href="#/visit/' + enc(id) + "/" + enc(v.id) + '">แก้</a></div>';
         }).join("") : '<div class="muted">ยังไม่มีบันทึกการเยี่ยมในเครื่องนี้</div>') +
+      "</div>" +
+      '<div class="card"><h2 style="margin-top:0">งานติดตามที่ค้าง</h2>' +
+        (tasks.length ? tasks.map(function (t) {
+          return '<div class="kv"><span>' + esc(t.due) + " · " + esc(t.title) + '</span><a class="btn ghost small" href="#/task/' + enc(t.id) + '">แก้</a></div>';
+        }).join("") : '<div class="muted">ไม่มีงานค้าง</div>') +
       "</div>"
     );
-    bindCustomerEdits(id);
-  }
-
-  function bindCustomerEdits(id) {
-    document.querySelectorAll("[data-edit]").forEach(function (b) {
+    document.querySelectorAll("[data-del-order]").forEach(function (b) {
       b.addEventListener("click", function () {
-        var what = b.getAttribute("data-edit");
-        var cur = state.customers[id] || (state.customers[id] = {});
-        if (what === "phone") {
-          var p = prompt("เบอร์โทรลูกค้า", customer(id).phone || ""); if (p == null) return;
-          cur.phone = p.trim();
-        } else if (what === "owner") {
-          var o = prompt("ชื่อเซลล์ผู้ดูแลลูกค้า", customer(id).owner || state.settings.user || ""); if (o == null) return;
-          cur.owner = o.trim();
-        } else if (what === "cycle") {
-          var n = prompt("รอบเยี่ยม (วัน) ปล่อยว่างเพื่อใช้ค่าเริ่มต้น " + state.settings.defaultCycle, customer(id).visitCycleDays || "");
-          if (n == null) return;
-          cur.visitCycleDays = n.trim() === "" ? null : Math.max(1, parseInt(n, 10) || state.settings.defaultCycle);
-        } else if (what === "gps") {
-          if (!navigator.geolocation) return toast("เครื่องนี้ไม่รองรับ GPS");
-          navigator.geolocation.getCurrentPosition(function (pos) {
-            cur.lat = pos.coords.latitude; cur.lng = pos.coords.longitude; saveState(); toast("บันทึกพิกัดแล้ว"); viewCustomer(id);
-          }, function () { toast("ไม่ได้รับสิทธิ์ตำแหน่ง"); });
-          return;
-        }
-        saveState(); toast("บันทึกแล้ว"); viewCustomer(id);
+        if (!confirm("ลบร่างบิลนี้ ?")) return;
+        var oid = b.getAttribute("data-del-order");
+        state.orders = state.orders.filter(function (o) { return o.id !== oid; });
+        saveState(); toast("ลบร่างแล้ว"); viewCustomer(id);
       });
     });
   }
 
-  function viewVisit(id) {
-    var c = customer(id); if (!c) return app('<div class="empty">ไม่พบลูกค้า</div>');
-    setTitle("บันทึกการเยี่ยม");
+  // ---------- edit customer (all editable fields) ----------
+  function viewEditCustomer(id) {
+    var base = CUST[id]; if (!base) return notFound("ลูกค้ารหัส " + id);
+    var c = customer(id);
+    setTitle("แก้ไขข้อมูลลูกค้า");
+    var payOpts = PAY_OPTIONS.slice(); if (c.paymentTerm && payOpts.indexOf(c.paymentTerm) < 0) payOpts.unshift(c.paymentTerm);
     app(
-      '<div class="card"><b>' + esc(c.name) + '</b><div class="muted">' + esc(c.address) + "</div></div>" +
+      '<div class="card"><div class="muted">รหัส ' + esc(id) + " · แก้แล้วจะถูกเก็บในเครื่องนี้ ช่องที่ไม่แก้ยังตามข้อมูลจากชีต</div></div>" +
       '<div class="card">' +
-        '<label class="muted">ผลการเยี่ยม</label>' +
-        '<select id="outcome" style="margin:6px 0 12px">' +
-          ["สั่งแล้ว", "ไม่สั่ง (สินค้ายังเหลือ)", "ติดตามต่อ", "ไม่พบเจ้าของร้าน", "ร้านปิด", "อื่นๆ"].map(function (o) { return "<option>" + esc(o) + "</option>"; }).join("") +
-        "</select>" +
-        '<label class="muted">หมายเหตุ</label><textarea id="note" placeholder="เช่น ขาดแชมพูอโวคาโด้ ลูกค้าขอให้โทรก่อนเข้า"></textarea>' +
-        '<label class="muted" style="display:block;margin-top:12px">นัดติดตามวันที่ (ไม่บังคับ)</label>' +
-        '<input id="followup" type="date" value="' + addDays(todayStr(), 3) + '">' +
+        TEXT_FIELDS.map(function (f) {
+          return '<label class="f">' + esc(f[1]) + '</label><input data-k="' + f[0] + '" value="' + esc(c[f[0]] || "") + '">';
+        }).join("") +
+        '<label class="f">เงื่อนไขการชำระเงิน</label><select data-k="paymentTerm">' +
+          payOpts.map(function (o) { return '<option' + (o === c.paymentTerm ? " selected" : "") + ">" + esc(o) + "</option>"; }).join("") + "</select>" +
+        '<label class="f">สถานะลูกค้า</label><select data-k="activeFlag">' +
+          '<option value=""' + (c.activeFlag !== "FALSE" ? " selected" : "") + ">ใช้งาน</option>" +
+          '<option value="FALSE"' + (c.activeFlag === "FALSE" ? " selected" : "") + ">ไม่ใช้งาน</option></select>" +
+        '<label class="f">รอบเยี่ยม (วัน) ว่างไว้ = ใช้ค่าเริ่มต้น ' + state.settings.defaultCycle + ' วัน</label>' +
+        '<input data-k="visitCycleDays" type="number" min="1" value="' + (c.visitCycleDays || "") + '">' +
+        '<label class="f">ละติจูด</label><input data-k="lat" inputmode="decimal" value="' + (c.lat != null ? c.lat : "") + '">' +
+        '<label class="f">ลองจิจูด</label><input data-k="lng" inputmode="decimal" value="' + (c.lng != null ? c.lng : "") + '">' +
+        '<div class="row" style="margin-top:8px"><button class="ghost" id="gps">จับพิกัดจากเครื่องนี้</button></div>' +
       "</div>" +
-      '<div class="actions"><button id="save">บันทึก</button><a class="btn ghost" href="#/c/' + encodeURIComponent(id) + '">ยกเลิก</a></div>'
+      '<div class="actions"><button id="save">บันทึก</button><a class="btn ghost" href="#/c/' + enc(id) + '">ยกเลิก</a></div>' +
+      '<div class="actions"><button class="ghost" id="revert">คืนค่าเดิมจากชีตทั้งหมด</button><span></span></div>'
+    );
+    $("#gps").addEventListener("click", function () {
+      if (!navigator.geolocation) return toast("เครื่องนี้ไม่รองรับ GPS");
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        document.querySelector('[data-k="lat"]').value = pos.coords.latitude.toFixed(6);
+        document.querySelector('[data-k="lng"]').value = pos.coords.longitude.toFixed(6);
+        toast("ได้พิกัดแล้ว กดบันทึกเพื่อเก็บ");
+      }, function () { toast("ไม่ได้รับสิทธิ์ตำแหน่ง"); });
+    });
+    $("#save").addEventListener("click", function () {
+      var edits = {}, error = null;
+      document.querySelectorAll("[data-k]").forEach(function (el) {
+        if (error) return;
+        var k = el.getAttribute("data-k"), raw = el.value.trim(), val;
+        if (k === "lat" || k === "lng") {
+          val = raw === "" ? null : parseFloat(raw);
+          if (val !== null && isNaN(val)) { error = (k === "lat" ? "ละติจูด" : "ลองจิจูด") + "ไม่ถูกต้อง"; return; }
+        } else if (k === "visitCycleDays") {
+          val = raw === "" ? null : Math.max(1, parseInt(raw, 10) || 0) || null;
+        } else {
+          val = raw;
+        }
+        var baseVal = (k === "lat" || k === "lng" || k === "visitCycleDays")
+          ? (base[k] == null ? null : base[k])
+          : String(base[k] == null ? "" : base[k]);
+        if (val !== baseVal) edits[k] = val;
+      });
+      if (error) return toast(error);
+      if (Object.keys(edits).length) state.customers[id] = edits; else delete state.customers[id];
+      saveState(); toast("บันทึกแล้ว"); go("/c/" + enc(id));
+    });
+    $("#revert").addEventListener("click", function () {
+      if (!confirm("คืนค่าทุกช่องของลูกค้านี้เป็นข้อมูลเดิมจากชีต ?")) return;
+      delete state.customers[id]; saveState(); toast("คืนค่าแล้ว"); go("/c/" + enc(id));
+    });
+  }
+  function go(h) { location.hash = h; }
+
+  // ---------- visit log (create / edit / delete) ----------
+  function viewVisit(cid, vid) {
+    var c = customer(cid); if (!c) return notFound("ลูกค้า");
+    var v = vid ? state.visits.filter(function (x) { return x.id === vid; })[0] : null;
+    setTitle(v ? "แก้ไขการเยี่ยม" : "บันทึกการเยี่ยม");
+    var opts = VISIT_OUTCOMES.slice(); if (v && opts.indexOf(v.outcome) < 0) opts.unshift(v.outcome);
+    app(
+      '<div class="card"><b>' + esc(c.name) + '</b><div class="muted">' + esc(c.address || "-") + "</div></div>" +
+      '<div class="card">' +
+        '<label class="f">ผลการเยี่ยม</label><select id="outcome">' +
+          opts.map(function (o) { return '<option' + (v && v.outcome === o ? " selected" : "") + ">" + esc(o) + "</option>"; }).join("") + "</select>" +
+        '<label class="f">วันที่เยี่ยม</label><input id="day" type="date" value="' + esc(v ? visitDay(v) : todayStr()) + '">' +
+        '<label class="f">หมายเหตุ</label><textarea id="note" placeholder="เช่น ขาดแชมพูอโวคาโด้ ลูกค้าขอให้โทรก่อนเข้า">' + esc(v ? v.note : "") + "</textarea>" +
+        (v ? "" : '<label class="f">นัดติดตามวันที่ (ไม่บังคับ)</label><input id="followup" type="date" value="' + addDays(todayStr(), 3) + '">') +
+      "</div>" +
+      '<div class="actions"><button id="save">' + (v ? "บันทึกการแก้ไข" : "บันทึก") + '</button><a class="btn ghost" href="#/c/' + enc(cid) + '">ยกเลิก</a></div>' +
+      (v ? '<div class="actions"><button class="danger" id="del">ลบการเยี่ยมนี้</button><span></span></div>' : "")
     );
     $("#save").addEventListener("click", function () {
-      var v = { id: uid("v"), cid: id, at: new Date().toISOString(), outcome: $("#outcome").value, note: $("#note").value.trim(), by: state.settings.user || "" };
-      state.visits.push(v);
-      var fu = $("#followup").value;
-      if (fu) state.tasks.push({ id: uid("t"), cid: id, due: fu, title: "ติดตาม " + c.name, note: v.note, done: false });
-      saveState(); toast("บันทึกการเยี่ยมแล้ว"); go("/c/" + encodeURIComponent(id));
+      var day = $("#day").value || todayStr();
+      if (v) {
+        v.outcome = $("#outcome").value; v.note = $("#note").value.trim(); v.day = day;
+      } else {
+        state.visits.push({ id: uid("v"), cid: cid, day: day, at: new Date().toISOString(), outcome: $("#outcome").value, note: $("#note").value.trim(), by: state.settings.user || "" });
+        var fu = $("#followup") && $("#followup").value;
+        if (fu) state.tasks.push({ id: uid("t"), cid: cid, due: fu, title: "ติดตาม " + c.name, note: $("#note").value.trim(), done: false });
+      }
+      saveState(); toast("บันทึกแล้ว"); go("/c/" + enc(cid));
+    });
+    if (v) $("#del").addEventListener("click", function () {
+      if (!confirm("ลบบันทึกการเยี่ยมนี้ ?")) return;
+      state.visits = state.visits.filter(function (x) { return x.id !== v.id; });
+      saveState(); toast("ลบแล้ว"); go("/c/" + enc(cid));
     });
   }
 
-  // ----- order / delivery note -----
-  var cart = {}; // cid -> {lines:[]}
+  // ---------- order / delivery note (create / edit draft) ----------
+  var cart = {}; // cid -> { lines: [] } ; in-progress draft per customer
   var prodQuery = "";
-  function viewOrder(id) {
-    var c = customer(id); if (!c) return app('<div class="empty">ไม่พบลูกค้า</div>');
-    setTitle("สั่งของ");
-    cart[id] = cart[id] || { lines: [] };
+  function orderTotal(lines) { return lines.reduce(function (s, l) { return s + l.qty * l.price; }, 0); }
+  function viewOrder(cid, oid) {
+    var c = customer(cid); if (!c) return notFound("ลูกค้า");
+    var editing = oid ? state.orders.filter(function (o) { return o.id === oid; })[0] : null;
+    if (editing) cart[cid] = { lines: editing.lines.map(function (l) { return Object.assign({}, l); }) };
+    else cart[cid] = cart[cid] || { lines: [] };
+    setTitle(editing ? "แก้ไขร่างบิล" : "สั่งของ");
     app(
-      '<div class="card"><b>' + esc(c.name) + '</b><div class="muted">' + esc(c.paymentTerm || "เงินสด (ค่าเริ่มต้น)") + "</div></div>" +
+      '<div class="card"><b>' + esc(c.name) + '</b><div class="muted">เงื่อนไข: ' + esc(c.paymentTerm || "เงินสด (ค่าเริ่มต้น)") + "</div></div>" +
       '<input id="pq" placeholder="ค้นหาสินค้า รหัส หรือชื่อ" value="' + esc(prodQuery) + '" style="margin-bottom:8px">' +
-      '<div id="pres" class="list" style="max-height:260px;overflow:auto"></div>' +
+      '<div id="pres" style="max-height:260px;overflow:auto"></div>' +
       '<h2>รายการ</h2><div id="cart"></div>' +
-      '<div class="actions"><button id="saveOrder">บันทึกเป็นร่าง</button><button class="ghost" id="printBtn">พิมพ์ใบส่งสินค้า</button></div>'
+      '<div class="actions"><button id="saveOrder">' + (editing ? "บันทึกการแก้ไขร่าง" : "บันทึกเป็นร่าง") + '</button><button class="ghost" id="printBtn">พิมพ์ใบส่งสินค้า</button></div>'
     );
-    $("#pq").addEventListener("input", function (e) { prodQuery = e.target.value; renderProducts(); });
-    renderProducts(); renderCart(id);
+    $("#pq").addEventListener("input", function (e) { prodQuery = e.target.value; renderProducts(cid); });
+    renderProducts(cid); renderCart(cid);
     $("#saveOrder").addEventListener("click", function () {
-      var lines = cart[id].lines; if (!lines.length) return toast("ยังไม่มีรายการสินค้า");
-      state.orders.push({ id: uid("o"), cid: id, date: todayStr(), lines: lines, total: orderTotal(lines), status: "ร่าง" });
-      cart[id] = { lines: [] }; saveState(); toast("บันทึกร่างแล้ว"); go("/c/" + encodeURIComponent(id));
+      var lines = cart[cid].lines; if (!lines.length) return toast("ยังไม่มีรายการสินค้า");
+      if (editing) {
+        editing.lines = lines; editing.total = orderTotal(lines);
+      } else {
+        state.orders.push({ id: uid("o"), cid: cid, date: todayStr(), lines: lines, total: orderTotal(lines), status: "ร่าง" });
+      }
+      cart[cid] = { lines: [] }; saveState(); toast("บันทึกร่างแล้ว"); go("/c/" + enc(cid));
     });
     $("#printBtn").addEventListener("click", function () {
-      var lines = cart[id].lines; if (!lines.length) return toast("ยังไม่มีรายการสินค้า");
+      var lines = cart[cid].lines; if (!lines.length) return toast("ยังไม่มีรายการสินค้า");
       printDeliveryNote(c, lines);
     });
   }
-  function orderTotal(lines) { return lines.reduce(function (s, l) { return s + l.qty * l.price; }, 0); }
-  function renderProducts() {
+  function renderProducts(cid) {
     var q = prodQuery.trim().toLowerCase();
-    var list = DATA.products.filter(function (p) {
-      return !q || (p.code + " " + p.name).toLowerCase().indexOf(q) >= 0;
-    }).slice(0, 25);
+    var list = DATA.products.filter(function (p) { return !q || (p.code + " " + p.name).toLowerCase().indexOf(q) >= 0; }).slice(0, 25);
     $("#pres").innerHTML = list.length ? list.map(function (p) {
-      return '<div class="item" style="display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:6px">' +
+      return '<div class="item" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px;margin-bottom:6px">' +
         '<div><div>' + esc(p.name) + '</div><div class="muted">' + esc(p.code) + " · ราคาล่าสุด " + money(p.lastPrice) + "</div></div>" +
         '<button class="small" data-add="' + esc(p.code) + '">+ เพิ่ม</button></div>';
     }).join("") : '<div class="empty">ไม่พบสินค้า</div>';
@@ -370,10 +433,8 @@
       b.addEventListener("click", function () {
         var code = b.getAttribute("data-add");
         var p = DATA.products.filter(function (x) { return x.code === code; })[0];
-        var cid = location.hash.split("/")[2] && decodeURIComponent(location.hash.split("/")[2]);
-        var existing = cart[cid].lines.filter(function (l) { return l.code === code; })[0];
-        if (existing) existing.qty += 1;
-        else cart[cid].lines.push({ code: p.code, name: p.name, qty: 1, price: p.lastPrice });
+        var line = cart[cid].lines.filter(function (l) { return l.code === code; })[0];
+        if (line) line.qty += 1; else cart[cid].lines.push({ code: p.code, name: p.name, qty: 1, price: p.lastPrice });
         renderCart(cid);
       });
     });
@@ -404,10 +465,10 @@
   function printDeliveryNote(c, lines) {
     var total = orderTotal(lines);
     $("#print").innerHTML =
-      '<div style="display:flex;justify-content:space-between"><div><b style="font-size:20px">Havan COSMETIC</b><div>หจก.ฮาแวน คอสเมติค</div><div>โทร 02-460-1668, 02-875-7977-8</div></div>' +
+      '<div style="display:flex;justify-content:space-between"><div><b style="font-size:20px">หจก.ฮาแวน คอสเมติค</b><div>โทร 02-460-1668, 02-875-7977-8</div></div>' +
       '<div style="text-align:right"><b style="font-size:16px">ใบส่งสินค้าชั่วคราว</b><div>เลขที่: (ร่าง)</div><div>วันที่: ' + esc(todayStr()) + "</div></div></div>" +
       '<div style="border:1px solid #000;padding:8px;margin:10px 0"><div>ลูกค้า: ' + esc(c.name) + " รหัส " + esc(c.id) + "</div>" +
-      "<div>" + esc(c.address) + "</div><div>TEL. " + esc(c.phone || "-") + "</div>" +
+      "<div>" + esc(c.address || "-") + "</div><div>TEL. " + esc(c.phone || "-") + "</div>" +
       "<div>เงื่อนไขการชำระเงิน: " + esc(c.paymentTerm || "-") + " · พนักงานขาย: " + esc(state.settings.user || "-") + "</div></div>" +
       '<table><tr><th>ลำดับ</th><th>รหัส</th><th>รายการ</th><th class="num">จำนวน</th><th class="num">หน่วยละ</th><th class="num">จำนวนเงิน</th></tr>' +
       lines.map(function (l, i) {
@@ -418,9 +479,10 @@
     window.print();
   }
 
+  // ---------- bill (read-only, from the Sheet) ----------
   function viewBill(no) {
     var b = DATA.bills.filter(function (x) { return x.no === no; })[0];
-    if (!b) return app('<div class="empty">ไม่พบบิล ' + esc(no) + "</div>");
+    if (!b) return notFound("บิล " + no);
     setTitle("บิล " + no);
     app(
       '<div class="card"><div><b>' + esc(b.no) + "</b> · " + esc(b.date) + ' · <span class="tag">' + esc(b.type) + "</span></div>" +
@@ -431,25 +493,27 @@
         return "<tr><td>" + esc(i.code) + "</td><td>" + esc(i.name) + '</td><td class="num">' + i.qty + '</td><td class="num">' + money(i.price) + '</td><td class="num">' + money(i.amount) + "</td></tr>";
       }).join("") +
       '<tr><td colspan="4" class="num"><b>รวม</b></td><td class="num"><b>' + money(b.total) + "</b></td></tr></table></div>" +
-      '<a class="btn ghost" href="#/c/' + encodeURIComponent(b.customerId) + '">กลับไปหน้าลูกค้า</a>'
+      '<a class="btn ghost" href="#/c/' + enc(b.customerId) + '">กลับไปหน้าลูกค้า</a>'
     );
   }
 
+  // ---------- follow-up tasks (list / edit / delete) ----------
   function viewTasks() {
     setTitle("งานติดตาม");
     var t0 = todayStr();
     var open = state.tasks.filter(function (t) { return !t.done; }).sort(function (a, b) { return a.due < b.due ? -1 : 1; });
     var done = state.tasks.filter(function (t) { return t.done; }).slice(-10).reverse();
     app(
-      '<h2>ค้าง / วันนี้</h2>' +
+      "<h2>ค้าง / วันนี้</h2>" +
       (open.length ? open.map(function (t) {
-        var over = t.due < t0;
         var c = customer(t.cid);
-        return '<div class="card"><div><b>' + esc(t.title) + "</b> " + (over ? '<span class="tag bad">เลยกำหนด</span>' : (t.due === t0 ? '<span class="tag warn">วันนี้</span>' : "")) + "</div>" +
+        return '<div class="card"><div><b>' + esc(t.title) + "</b> " +
+          (t.due < t0 ? '<span class="tag bad">เลยกำหนด</span>' : t.due === t0 ? '<span class="tag warn">วันนี้</span>' : "") + "</div>" +
           '<div class="muted">กำหนด ' + esc(t.due) + (c ? " · " + esc(c.phone || "ไม่มีเบอร์") : "") + "</div>" +
           (t.note ? '<div class="muted">' + esc(t.note) + "</div>" : "") +
-          '<div class="row" style="margin-top:8px"><a class="btn ghost small" href="#/c/' + encodeURIComponent(t.cid) + '">เปิดลูกค้า</a>' +
-          '<button class="small" data-done="' + t.id + '">เสร็จแล้ว</button></div></div>';
+          '<div class="row" style="margin-top:8px"><a class="btn ghost small" href="#/c/' + enc(t.cid) + '">เปิดลูกค้า</a>' +
+          '<a class="btn ghost small" href="#/task/' + enc(t.id) + '">แก้ไข</a>' +
+          '<button class="small" data-done="' + esc(t.id) + '">เสร็จแล้ว</button></div></div>';
       }).join("") : '<div class="empty">ไม่มีงานค้าง</div>') +
       "<h2>เสร็จแล้วล่าสุด</h2>" +
       (done.length ? done.map(function (t) { return '<div class="muted" style="padding:4px 0">' + esc(t.due) + " · " + esc(t.title) + "</div>"; }).join("") : '<div class="muted">ยังไม่มี</div>')
@@ -462,23 +526,49 @@
       });
     });
   }
+  function viewTask(id) {
+    var t = state.tasks.filter(function (x) { return x.id === id; })[0];
+    if (!t) return notFound("งานนี้");
+    setTitle("แก้ไขงาน");
+    app(
+      '<div class="card">' +
+        '<label class="f">ชื่องาน</label><input id="title2" value="' + esc(t.title) + '">' +
+        '<label class="f">กำหนดวันที่</label><input id="due" type="date" value="' + esc(t.due) + '">' +
+        '<label class="f">หมายเหตุ</label><textarea id="tnote">' + esc(t.note || "") + "</textarea>" +
+        '<label class="row" style="margin-top:10px"><input id="tdone" type="checkbox" style="width:auto"' + (t.done ? " checked" : "") + '> เสร็จแล้ว</label>' +
+      "</div>" +
+      '<div class="actions"><button id="save">บันทึก</button><a class="btn ghost" href="#/tasks">ยกเลิก</a></div>' +
+      '<div class="actions"><button class="danger" id="del">ลบงานนี้</button><span></span></div>'
+    );
+    $("#save").addEventListener("click", function () {
+      t.title = $("#title2").value.trim() || t.title; t.due = $("#due").value || t.due;
+      t.note = $("#tnote").value.trim(); t.done = $("#tdone").checked;
+      saveState(); toast("บันทึกแล้ว"); go("/tasks");
+    });
+    $("#del").addEventListener("click", function () {
+      if (!confirm("ลบงานนี้ ?")) return;
+      state.tasks = state.tasks.filter(function (x) { return x.id !== id; });
+      saveState(); toast("ลบแล้ว"); go("/tasks");
+    });
+  }
 
+  // ---------- settings ----------
   function viewSettings() {
     setTitle("ตั้งค่า");
     app(
       '<div class="card">' +
-        '<label class="muted">ชื่อเซลล์ที่ใช้งานอยู่</label>' +
-        '<input id="user" value="' + esc(state.settings.user) + '" style="margin:6px 0 12px">' +
-        '<label class="muted">รอบเยี่ยมเริ่มต้น (วัน) ใช้เมื่อลูกค้าไม่ได้ตั้งรอบเอง</label>' +
-        '<input id="cycle" type="number" min="1" value="' + state.settings.defaultCycle + '" style="margin:6px 0 12px">' +
-        '<button id="saveSet">บันทึกการตั้งค่า</button>' +
+        '<label class="f">ชื่อเซลล์ที่ใช้งานอยู่</label><input id="user" value="' + esc(state.settings.user) + '">' +
+        '<label class="f">รอบเยี่ยมเริ่มต้น (วัน) ใช้เมื่อลูกค้าไม่ได้ตั้งรอบเอง</label>' +
+        '<input id="cycle" type="number" min="1" value="' + state.settings.defaultCycle + '">' +
+        '<div class="row" style="margin-top:12px"><button id="saveSet">บันทึกการตั้งค่า</button></div>' +
       "</div>" +
       '<div class="card">' +
-        '<div class="muted">ข้อมูลที่เซลล์บันทึกในเครื่องนี้: การเยี่ยม ' + state.visits.length + " · งาน " + state.tasks.length + " · ร่างบิล " + state.orders.length + "</div>" +
+        '<div class="muted">ข้อมูลที่บันทึกในเครื่องนี้: การเยี่ยม ' + state.visits.length + " · งาน " + state.tasks.length +
+        " · ร่างบิล " + state.orders.length + " · ลูกค้าที่แก้ไข " + Object.keys(state.customers).length + "</div>" +
         '<div class="row" style="margin-top:10px"><button class="ghost" id="exp">ส่งออกข้อมูลที่บันทึกใหม่ (JSON)</button>' +
         '<button class="danger" id="reset">ล้างข้อมูลที่บันทึกในเครื่อง</button></div>' +
       "</div>" +
-      '<div class="card muted">ข้อมูลลูกค้าและบิลมาจากไฟล์ data/data.js ที่สร้างจากชีต A ด้วย tools/build_data.py. ต้นแบบนี้ยังไม่ซิงก์กับชีตหรือเซิร์ฟเวอร์</div>'
+      '<div class="card muted">ข้อมูลลูกค้าและบิลมาจากไฟล์ data/data.js ที่สร้างจากชีต A ด้วย tools/build_data.py ต้นแบบนี้ยังไม่ซิงก์กับชีตหรือเซิร์ฟเวอร์</div>'
     );
     $("#saveSet").addEventListener("click", function () {
       state.settings.user = $("#user").value.trim();
@@ -492,7 +582,7 @@
     });
     $("#reset").addEventListener("click", function () {
       if (!confirm("ล้างการเยี่ยม งาน ร่างบิล และการแก้ไขลูกค้าทั้งหมดในเครื่องนี้ ?")) return;
-      state = JSON.parse(JSON.stringify(emptyState)); saveState(); whoami(); toast("ล้างแล้ว"); viewSettings();
+      state = emptyState(); saveState(); whoami(); toast("ล้างแล้ว"); viewSettings();
     });
   }
 
