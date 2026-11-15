@@ -93,13 +93,14 @@
 
   // ---------- local storage (per browser; never throws) ----------
   var KEY = "crm.prototype.state";
-  var emptyState = function () { return { customers: {}, visits: [], tasks: [], orders: [], settings: { defaultCycle: 30, user: "" } }; };
+  var emptyState = function () { return { customers: {}, newCustomers: {}, visits: [], tasks: [], orders: [], settings: { defaultCycle: 30, user: "" } }; };
   var state;
   function loadState() {
     try {
       var s = JSON.parse(localStorage.getItem(KEY) || "null");
       if (!s) return emptyState();
-      s.customers = s.customers || {}; s.visits = s.visits || []; s.tasks = s.tasks || []; s.orders = s.orders || [];
+      s.customers = s.customers || {}; s.newCustomers = s.newCustomers || {};
+      s.visits = s.visits || []; s.tasks = s.tasks || []; s.orders = s.orders || [];
       s.settings = Object.assign({ defaultCycle: 30, user: "" }, s.settings || {});
       return s;
     } catch (e) { return emptyState(); }
@@ -128,9 +129,26 @@
   ];
 
   // Merged view: sheet data + this device's edits (only changed fields are stored as edits).
+  // Customers created on this device are kept in state.newCustomers with the same shape as sheet rows.
+  function baseRecord(id) { return CUST[id] || state.newCustomers[id] || null; }
+  function allBaseRecords() {
+    return DATA.customers.concat(Object.keys(state.newCustomers).map(function (k) { return state.newCustomers[k]; }));
+  }
+  // Merged view: base + this device's edits. Day counts are computed now, not at build time.
   function customer(id) {
-    var base = CUST[id]; if (!base) return null;
-    return Object.assign({}, base, state.customers[id] || {});
+    var base = baseRecord(id); if (!base) return null;
+    var c = Object.assign({}, base, state.customers[id] || {});
+    c.daysSinceLastBill = c.lastBillDate ? daysBetween(c.lastBillDate, todayStr()) : null;
+    return c;
+  }
+  function blankCustomer(id, name) {
+    return {
+      id: id, name: name, type: "", address: "", phone: "", contactName: "", paymentTerm: "เงินสด",
+      billClerk: "", owner: "", activeFlag: "", lat: null, lng: null, visitCycleDays: null,
+      lineId: "", email: "", keepNote: "", customerNote: "", specialConditions: "", storeHours: "",
+      taxInvoiceRequired: "", taxName: "", taxAddress: "", taxBranch: "", taxId: "", receiptRequired: "",
+      billCount: 0, totalSales: 0, lastBillDate: null, daysSinceLastBill: null, isNew: true
+    };
   }
   function visitDay(v) { return v.day || v.at.slice(0, 10); }
   function lastVisit(id) {
@@ -160,6 +178,7 @@
     if (k === "order" && id) return viewOrder(id, parts[2] || null);
     if (k === "bill" && id) return viewBill(id);
     if (k === "task" && id) return viewTask(id);
+    if (k === "new") return viewNewCustomer();
     if (k === "tasks") return viewTasks();
     if (k === "settings") return viewSettings();
     viewList();
@@ -174,7 +193,7 @@
     setTitle("ลูกค้า");
     var filters = [["all", "ทั้งหมด"], ["due", "ถึงรอบเยี่ยม"], ["noOwner", "ยังไม่มีเจ้าของ"], ["lapsed", "ไม่ซื้อ > 90 วัน"], ["noGps", "ไม่มีพิกัด"]];
     app(
-      '<input id="q" placeholder="ค้นหาชื่อ / เบอร์ / ทำเล / รหัส" value="' + esc(listQuery) + '" style="margin-bottom:8px">' +
+      '<div class="row" style="margin-bottom:8px"><input id="q" placeholder="ค้นหาชื่อ / เบอร์ / ทำเล / รหัส" value="' + esc(listQuery) + '" style="flex:1"><a class="btn small" href="#/new">+ ลูกค้าใหม่</a></div>' +
       '<div class="chips">' + filters.map(function (f) {
         return '<button class="chip' + (listFilter === f[0] ? " on" : "") + '" data-f="' + f[0] + '">' + f[1] + "</button>";
       }).join("") + "</div>" +
@@ -188,7 +207,7 @@
   }
   function renderItems() {
     var q = listQuery.trim().toLowerCase();
-    var all = DATA.customers.map(function (base) { return customer(base.id); }).filter(function (c) {
+    var all = allBaseRecords().map(function (base) { return customer(base.id); }).filter(function (c) {
       if (listFilter === "due" && !dueStatus(c).due) return false;
       if (listFilter === "noOwner" && c.owner) return false;
       if (listFilter === "noGps" && c.lat != null) return false;
@@ -291,7 +310,7 @@
 
   // ---------- edit customer (all editable fields) ----------
   function viewEditCustomer(id) {
-    var base = CUST[id]; if (!base) return notFound("ลูกค้ารหัส " + id);
+    var base = baseRecord(id); if (!base) return notFound("ลูกค้ารหัส " + id);
     var c = customer(id);
     setTitle("แก้ไขข้อมูลลูกค้า");
     var payOpts = PAY_OPTIONS.slice(); if (c.paymentTerm && payOpts.indexOf(c.paymentTerm) < 0) payOpts.unshift(c.paymentTerm);
@@ -351,6 +370,61 @@
     });
   }
   function go(h) { location.hash = h; }
+
+  // ---------- new customer (created in the field) ----------
+  function viewNewCustomer() {
+    setTitle("ลูกค้าใหม่");
+    app(
+      '<div class="card"><div class="muted">ลูกค้าที่เพิ่มในเครื่องนี้จะมีรหัสขึ้นต้นด้วย N และยังไม่มีในชีต A จนกว่าจะนำเข้าภายหลัง</div></div>' +
+      '<div class="card">' +
+        '<label class="f">ชื่อลูกค้า / ร้าน (จำเป็น)</label><input id="nname" placeholder="เช่น ร้าน ตัดผม ABC (สาขา ...)">' +
+        '<label class="f">ประเภท</label><input id="ntype" placeholder="เช่น ตัดขน, นวด/สปา, คาร์แคร์">' +
+        '<label class="f">ที่อยู่</label><input id="naddr">' +
+        '<label class="f">เบอร์โทร</label><input id="nphone" inputmode="tel">' +
+        '<label class="f">ชื่อผู้ติดต่อ</label><input id="ncontact">' +
+        '<label class="f">ผู้ดูแล (เซลล์)</label><input id="nowner" value="' + esc(state.settings.user) + '">' +
+        '<label class="f">เงื่อนไขการชำระเงิน</label><select id="npay">' +
+          PAY_OPTIONS.map(function (o) { return "<option>" + esc(o) + "</option>"; }).join("") + "</select>" +
+      "</div>" +
+      '<div class="actions"><button id="nsave">บันทึกลูกค้าใหม่</button><a class="btn ghost" href="#/">ยกเลิก</a></div>'
+    );
+    $("#nsave").addEventListener("click", function () {
+      var name = $("#nname").value.trim();
+      if (!name) return toast("กรุณาใส่ชื่อลูกค้า");
+      var id = "N" + Date.now().toString(36).toUpperCase();
+      var c = blankCustomer(id, name);
+      c.type = $("#ntype").value.trim(); c.address = $("#naddr").value.trim();
+      c.phone = $("#nphone").value.trim(); c.contactName = $("#ncontact").value.trim();
+      c.owner = $("#nowner").value.trim(); c.paymentTerm = $("#npay").value;
+      state.newCustomers[id] = c; saveState();
+      toast("เพิ่มลูกค้าแล้ว"); go("/c/" + enc(id));
+    });
+  }
+
+  // ---------- restore from an exported JSON file ----------
+  function importRecords(file) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var incoming = JSON.parse(reader.result);
+        var mergeById = function (list, add) {
+          var seen = {}; list.forEach(function (x) { seen[x.id] = true; });
+          (add || []).forEach(function (x) { if (x && x.id && !seen[x.id]) list.push(x); });
+        };
+        mergeById(state.visits, incoming.visits);
+        mergeById(state.tasks, incoming.tasks);
+        mergeById(state.orders, incoming.orders);
+        Object.keys(incoming.newCustomers || {}).forEach(function (k) {
+          if (!state.newCustomers[k]) state.newCustomers[k] = incoming.newCustomers[k];
+        });
+        Object.keys(incoming.customers || {}).forEach(function (k) {
+          state.customers[k] = Object.assign({}, state.customers[k] || {}, incoming.customers[k]);
+        });
+        saveState(); toast("นำเข้าแล้ว (ไม่ทับรายการที่มีอยู่)"); viewSettings();
+      } catch (e) { toast("ไฟล์นี้ไม่ใช่ข้อมูล CRM ที่ส่งออก"); }
+    };
+    reader.readAsText(file);
+  }
 
   // ---------- visit log (create / edit / delete) ----------
   function viewVisit(cid, vid) {
@@ -567,6 +641,8 @@
         " · ร่างบิล " + state.orders.length + " · ลูกค้าที่แก้ไข " + Object.keys(state.customers).length + "</div>" +
         '<div class="row" style="margin-top:10px"><button class="ghost" id="exp">ส่งออกข้อมูลที่บันทึกใหม่ (JSON)</button>' +
         '<button class="danger" id="reset">ล้างข้อมูลที่บันทึกในเครื่อง</button></div>' +
+        '<label class="f">นำเข้าไฟล์ JSON ที่เคยส่งออก (เพิ่มเฉพาะรายการที่ยังไม่มี)</label>' +
+        '<input id="imp" type="file" accept="application/json,.json">' +
       "</div>" +
       '<div class="card muted">ข้อมูลลูกค้าและบิลมาจากไฟล์ data/data.js ที่สร้างจากชีต A ด้วย tools/build_data.py ต้นแบบนี้ยังไม่ซิงก์กับชีตหรือเซิร์ฟเวอร์</div>'
     );
@@ -579,6 +655,9 @@
       var blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
       var a = document.createElement("a"); a.href = URL.createObjectURL(blob);
       a.download = "crm-records-" + todayStr() + ".json"; a.click();
+    });
+    $("#imp").addEventListener("change", function (e) {
+      if (e.target.files && e.target.files[0]) importRecords(e.target.files[0]);
     });
     $("#reset").addEventListener("click", function () {
       if (!confirm("ล้างการเยี่ยม งาน ร่างบิล และการแก้ไขลูกค้าทั้งหมดในเครื่องนี้ ?")) return;
