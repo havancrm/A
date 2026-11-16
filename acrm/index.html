@@ -105,6 +105,8 @@ function money(n){return Number(n||0).toLocaleString('en-US',{minimumFractionDig
 function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function digits(s){return String(s||'').replace(/\D/g,'')}
+// จัดรูปแบบเบอร์ไทยเพื่อแสดงผล: 02-XXX-XXXX · 0XX-XXX-XXX (บ้านต่างจังหวัด) · 0XX-XXX-XXXX (มือถือ) · อื่น ๆ คงเดิม
+function fmtTel(s){var d=digits(s),t=String(s||'').trim();if(d.charAt(0)!=='0')return t;if(d.length===9)return d.slice(0,2)==='02'?d.slice(0,2)+'-'+d.slice(2,5)+'-'+d.slice(5):d.slice(0,3)+'-'+d.slice(3,6)+'-'+d.slice(6);if(d.length===10)return d.slice(0,3)+'-'+d.slice(3,6)+'-'+d.slice(6);return t}
 function by(k,desc){return function(a,b){var x=a[k],y=b[k];return (x<y?-1:x>y?1:0)*(desc?-1:1)}}
 function one(list,k,v){for(var i=0;i<list.length;i++)if(list[i][k]===v)return list[i];return null}
 
@@ -424,8 +426,8 @@ function build(T,first){applySets(T.sets);var keepLocal=function(list,key,fresh)
  var ph={},lb={},gp={};T.phones.forEach(function(r){if(r[0]&&r[2])(ph[r[0]]=ph[r[0]]||[]).push([+r[1]||0,r[2]])});T.labels.forEach(function(r){if(r[0]&&r[2])(lb[r[0]]=lb[r[0]]||[]).push(r[2])});
  T.gps.forEach(function(r){if(r[1]&&r[3]&&r[4]&&(!gp[r[1]]||String(r[2])>gp[r[1]].at))gp[r[1]]={at:String(r[2]),lat:+r[3],lng:+r[4]}});
  var dirty={};DB.customers.forEach(function(c){if(c._local)dirty[c.id]=c});
- var cs=T.customers.filter(function(r){return r[0]&&r[0]!=='000'}).map(function(r){var id=String(r[0]),g=gp[id],P=(ph[id]||[]).sort(function(a,b){return a[0]-b[0]}).map(function(x){return x[1]});
-  if(!P.length&&r[4])P=String(r[4]).split(/\s*[,/]\s*/).filter(Boolean);
+ var cs=T.customers.filter(function(r){return r[0]&&r[0]!=='000'}).map(function(r){var id=String(r[0]),g=gp[id],P=(ph[id]||[]).sort(function(a,b){return a[0]-b[0]}).map(function(x){return fmtTel(x[1])});
+  if(!P.length&&r[4])P=String(r[4]).split(/\s*[,/]\s*/).filter(Boolean).map(fmtTel);
   return{id:id,name:r[1]||'',type:r[2]||'',addr:r[3]||'',ph:P,owner:r[5]||'',pay:r[6]||'เงินสด',clerk:r[7]||'',status:String(r[8]).toUpperCase()==='FALSE'?'closed':'active',
    lat:r[9]?+r[9]:(g?g.lat:''),lng:r[10]?+r[10]:(g?g.lng:''),alias:r[13]||'',note:r[16]||r[15]||'',closed:r[18]||'',visitCycle:+r[19]||0,vat:/^(true|ใช่|y)/i.test(r[20]||'')?VATMAP.VAT_IN:VATMAP.NONE,area:r[31]||'',lineId:r[12]||'',birthday:r[37]||'',taxName:r[21]||'',taxAddr:r[22]||'',taxBranch:r[23]||'',taxId:r[24]||'',rcpt:/^(true|ใช่|y)/i.test(r[25]||''),docNote:r[26]||'',tags:lb[id]||[],src:''}});
  cs=cs.map(function(c){return dirty[c.id]||c});var seen={};cs.forEach(function(c){seen[c.id]=1});Object.keys(dirty).forEach(function(k){if(!seen[k])cs.unshift(dirty[k])});DB.customers=cs;
