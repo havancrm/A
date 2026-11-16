@@ -4,7 +4,7 @@
  * ติดตั้ง (ครั้งเดียว)
  * 1) เปิดชีต A > Extensions > Apps Script > วางโค้ดนี้ทับของเดิม
  * 2) เมนูซ้าย "Services" (+) > เลือก "Google Sheets API" > Add   (ต้องเปิด เพื่อเขียนค่าแบบ RAW ไม่ให้เลขศูนย์หน้าเบอร์/รหัสหาย)
- * 3) Project Settings > Script properties > เพิ่ม  API_TOKEN = รหัสลับที่คุณตั้งเอง
+ * 3) (ไม่บังคับ) Project Settings > Script properties > เพิ่ม API_TOKEN ถ้าอยากมีรหัสกันคนอื่น · ไม่ตั้ง = ไม่ใช้รหัส
  * 4) Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > Deploy (กดอนุญาตสิทธิ์)
  * 5) คัดลอก URL ที่ลงท้าย /exec ไปใส่ในแอป: ตั้งค่า > เชื่อมชีต A
  *
@@ -18,7 +18,8 @@ function out_(o) {
 }
 function authOk_(t) {
   var k = PropertiesService.getScriptProperties().getProperty('API_TOKEN');
-  return !!k && t === k;
+  if (!k) return true;                 // ไม่ได้ตั้ง API_TOKEN = ไม่ตรวจรหัส (ใครมี URL ก็ใช้ได้)
+  return t === k;
 }
 function sheetOf_(range) {            // "customers!A:A" หรือ "'my tab'!A1:B2" -> ชื่อแท็บ
   var m = String(range).match(/^'?([^'!]+)'?!/);
