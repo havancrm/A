@@ -741,8 +741,8 @@ R.checkin=function(){var N=nearby().slice(0,5);
 // 24) แจ้งยอดทาง LINE
 // =====================================================================
 R.stmt=function(a){var c=cust(a[0]);if(!c)return go('customers',true);var ms=monthsOf(c.id),m=ms.indexOf(R.stmt.m)>-1?R.stmt.m:ms[0],tx=m?stmtText(c,m):'';
- page({back:'cust/'+c.id,bl:'ร้าน',title:'แจ้งยอดทาง LINE',sub:c.id+' · '+E(c.name),body:ms.length?chips(ms.map(function(x){return[x,ymLabel(x)]}),m,'mon',true)+'<div class="pre">'+E(tx)+'</div>':'<div class="c">'+empty('ร้านนี้ยังไม่มีบิล')+'</div>',
-  foot:ms.length?lnk('ส่งทาง LINE','chat',lineUrl(tx),'',true)+btn('คัดลอก','copy','copy','st','o'):'',txt:{st:tx},
+ page({back:'cust/'+c.id,bl:'ร้าน',title:'แจ้งยอดทาง LINE',sub:c.id+' · '+E(c.name),body:(c.lineId?'<div class="row" style="padding:6px 2px"><span class="grow">ID LINE ร้านนี้ <b>'+E(c.lineId)+'</b></span>'+btn('คัดลอก ID','copy','copy','ln','o sm')+'</div>':'')+(ms.length?chips(ms.map(function(x){return[x,ymLabel(x)]}),m,'mon',true)+'<div class="pre">'+E(tx)+'</div>':'<div class="c">'+empty('ร้านนี้ยังไม่มีบิล')+'</div>'),
+  foot:ms.length?lnk('ส่งทาง LINE','chat',lineUrl(tx),'',true)+btn('คัดลอก','copy','copy','st','o'):'',txt:{st:tx,ln:c.lineId||''},
  on:{mon:function(v){R.stmt.m=v;route()}}})};
 
 // =====================================================================
