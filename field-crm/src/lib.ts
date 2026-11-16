@@ -65,8 +65,8 @@ export type Settings = {
 }
 const SKEY = 'field-crm-settings-v1'
 export const defaultSettings: Settings = {
-  sheetUrl: '', sheetToken: '', months: 12, companyName: 'ชื่อบริษัทของคุณ', companyAddress: 'ที่อยู่บริษัท', companyPhone: '',
-  companyTaxId: '', bankInfo: '', salesName: '', billBase: '',
+  sheetUrl: '', sheetToken: '', months: 12, companyName: 'หจก.ฮาแวน คอสเมติค', companyAddress: '', companyPhone: '02-460-1668, 02-875-7977-8',
+  companyTaxId: '', bankInfo: 'ธนาคารกรุงไทย 029-1-42575-5', salesName: '', billBase: '',
 }
 export function loadSettings(): Settings {
   try { const s = localStorage.getItem(SKEY); if (s) return { ...defaultSettings, ...JSON.parse(s) } } catch { /* ignore */ }
@@ -75,12 +75,12 @@ export function loadSettings(): Settings {
 export function saveSettings(s: Settings) { try { localStorage.setItem(SKEY, JSON.stringify(s)) } catch { /* ignore */ } }
 
 /* ---------- ลิงก์หน้าบิล (ข้อมูลฝังใน URL ไม่ต้องมีเซิร์ฟเวอร์) ---------- */
-export type SharedBill = { n: string; d: string; c: string; i: [string, number, number][]; v?: string; p?: string; co: string; ph?: string; tx?: string; bk?: string }
+export type SharedBill = { n: string; d: string; c: string; cc?: string; ad?: string; cp?: string; sl?: string; i: [string, number, number, string?, string?][]; v?: string; p?: string; co: string; ph?: string; tx?: string; bk?: string }
 const b64e = (s: string) => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 const b64d = (s: string) => decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/'))))
 export function billLink(b: Bill, cust: Customer | undefined, s: Settings) {
   const data: SharedBill = {
-    n: b.no, d: b.date, c: cust ? cname(cust) : [b.customerId, b.customerName].filter(Boolean).join(' · '), i: b.items.map(i => [i.name, i.qty, i.price]), v: b.vatMode, p: b.paymentTerm || cust?.paymentTerm,
+    n: b.no, d: b.date, c: cust?.name || b.customerName || '', cc: cust?.id || b.customerId, ad: cust?.address, cp: [cust?.phone, cust?.contactName].filter(Boolean).join(' '), sl: b.salesperson || s.salesName, i: b.items.map(i => [i.name, i.qty, i.price, i.code, i.unit]), v: b.vatMode, p: b.paymentTerm || cust?.paymentTerm,
     co: s.companyName, ph: s.companyPhone, tx: s.companyTaxId, bk: s.bankInfo,
   }
   const base = s.billBase || location.origin + location.pathname
@@ -171,3 +171,27 @@ const idb = (): Promise<IDBDatabase> => new Promise((res, rej) => {
 })
 export async function putPhoto(id: string, dataUrl: string) { const db = await idb(); await new Promise<void>((res, rej) => { const t = db.transaction('p', 'readwrite'); t.objectStore('p').put(dataUrl, id); t.oncomplete = () => res(); t.onerror = () => rej(t.error) }) }
 export async function getPhoto(id: string): Promise<string | undefined> { try { const db = await idb(); return await new Promise(res => { const r = db.transaction('p').objectStore('p').get(id); r.onsuccess = () => res(r.result); r.onerror = () => res(undefined) }) } catch { return undefined } }
+
+/** อ่านจำนวนเงินเป็นตัวหนังสือภาษาไทย เช่น 10600 → หนึ่งหมื่นหกร้อยบาทถ้วน */
+export function bahtText(n: number): string {
+  const D = ['', 'หนึ่ง', 'สอง', 'สาม', 'สี่', 'ห้า', 'หก', 'เจ็ด', 'แปด', 'เก้า'], P = ['', 'สิบ', 'ร้อย', 'พัน', 'หมื่น', 'แสน']
+  const six = (str: string): string => {
+    let out = ''; const L = str.length
+    for (let i = 0; i < L; i++) {
+      const d = +str[i], p = L - i - 1; if (!d) continue
+      if (p === 1) out += d === 1 ? 'สิบ' : d === 2 ? 'ยี่สิบ' : D[d] + 'สิบ'
+      else if (p === 0) out += d === 1 && L > 1 ? 'เอ็ด' : D[d]
+      else out += D[d] + P[p]
+    }
+    return out
+  }
+  const read = (str: string): string => { str = str.replace(/^0+/, ''); if (!str) return ''; return str.length > 6 ? read(str.slice(0, -6)) + 'ล้าน' + six(str.slice(-6)) : six(str) }
+  const [b, s] = (Math.round(n * 100) / 100).toFixed(2).split('.')
+  return (read(b) || 'ศูนย์') + 'บาท' + (s === '00' ? 'ถ้วน' : six(String(+s)) + 'สตางค์')
+}
+/** dd/mm/yyyy (พ.ศ.) */
+export const fmtTH = (d: string) => { const [y, m, dd] = d.slice(0, 10).split('-'); return `${dd}/${m}/${+y + 543}` }
+export const dueDate = (date: string, term?: string) => {
+  const n = +(term?.match(/(\d+)\s*วัน/)?.[1] || 0); if (!n) return date
+  const [y, m, d] = date.split('-').map(Number); return ymd(new Date(y, m - 1, d + n))
+}

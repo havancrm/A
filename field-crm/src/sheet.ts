@@ -29,7 +29,7 @@ export async function syncFromSheet(url: string, token: string, months: number, 
     .map(c => ({ ...c, ...(cur.patches?.[c.id] || {}) }))
 
   const items: Record<string, Bill['items']> = {}
-  rowsOf(j.bill_items).forEach(r => { (items[r.billNo] ||= []).push({ code: r.code, name: r.name, qty: num(r.qty) || 0, price: num(r.price) || 0 }) })
+  rowsOf(j.bill_items).forEach(r => { (items[r.billNo] ||= []).push({ code: r.code, name: r.name, qty: num(r.qty) || 0, price: num(r.price) || 0, unit: r.unit || undefined }) })
   const bills: Bill[] = rowsOf(j.bills).filter(r => r.no && items[r.no]).map(r => ({
     no: r.no, date: normDate(r.date) || r.date, customerId: r.customerId, customerName: r.customerName, items: items[r.no],
     vatMode: (r.vatMode as Bill['vatMode']) || 'NONE', salesperson: r.salesperson, paymentTerm: r.paymentTerm, src: 'sheet' as const,
