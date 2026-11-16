@@ -810,10 +810,35 @@ R.sales=function(){var yr=TD.slice(0,4),m=[],SM=R.sales.m||'all';for(var i=0;i<1
 // =====================================================================
 // 27) หลังบ้าน
 // =====================================================================
+// =====================================================================
+// รายงานรายเดือน: เลื่อนเดือน · การ์ดสรุป (แตะดูรายการ) · วันนี้ควรทำ · กราฟ 6 เดือน
+// =====================================================================
+function addMon(ym,d){var t=new Date(+ym.slice(0,4),+ym.slice(5,7)-1+d,1);return t.getFullYear()+'-'+p2(t.getMonth()+1)}
+function monShops(ym,maxDay){var sh={};DB.bills.forEach(function(b){if(b.d.slice(0,7)!==ym||(maxDay&&+b.d.slice(8,10)>maxDay))return;var o=sh[b.cid]=sh[b.cid]||{id:b.cid,v:0,n:0,last:''};o.v+=bt(b);o.n++;if(b.d>o.last)o.last=b.d});return sh}
+function monList(title,html){modal('<div class="row" style="align-items:center;padding:4px 0 10px"><b class="grow" style="font-size:var(--fs5)">'+title+'</b><button type="button" class="b o sm" data-a="close">ปิด</button></div>'+html,true)}
+R.month=function(a){var lb=DB.bills.map(function(b){return b.d}).sort().pop()||TD,ym=/^\d{4}-\d\d$/.test(a[0]||'')?a[0]:lb.slice(0,7),pm=addMon(ym,-1),nm=addMon(ym,1),
+ partial=ym===lb.slice(0,7)&&+lb.slice(8,10)<new Date(+ym.slice(0,4),+ym.slice(5,7),0).getDate(),dn=partial?+lb.slice(8,10):0,
+ cur=monShops(ym),prv=monShops(pm),prvTo=partial?monShops(pm,dn):prv,
+ SL=Object.keys(cur).map(function(k){return cur[k]}).sort(function(x,y){return y.v-x.v}),bs=DB.bills.filter(function(b){return b.d.slice(0,7)===ym}).sort(by('d',true)),
+ tot=bs.reduce(function(s,b){return s+bt(b)},0),reg=SL.filter(function(x){return prv[x.id]}).length,
+ over=DB.customers.filter(function(c){if(c.status==='closed')return false;var y=cyc(c.id);return y.m&&y.since>=y.m}).length,
+ drop=Object.keys(prvTo).map(function(k){return prvTo[k]}).filter(function(x){var c=cur[x.id];return x.v>0&&(c?c.v:0)<x.v*0.5}).map(function(x){return{id:x.id,was:x.v,now:cur[x.id]?cur[x.id].v:0}}).sort(function(x,y){return y.was-x.was}),
+ wait=DB.orders.filter(function(o){return o.st==='รอส่ง'}).length,
+ six=[];for(var i=5;i>=0;i--){var k=addMon(ym,-i);six.push({k:k,v:salesOf(k)})}var mx=Math.max.apply(null,six.map(function(x){return x.v}))||1,
+ row=function(l,n,u,attr){return '<a class="kv" '+attr+' style="cursor:pointer"><span>'+l+'</span><b>'+n+' '+u+'</b></a>'},
+ shopRows=function(L){return L.map(function(x){var c=cust(x.id);return '<a class="li" href="#cust/'+x.id+'" onclick="closeModal()"><span class="grow"><b>'+x.id+' · '+E(c?c.name:x.id)+'</b><span class="t">'+(x.n?x.n+' บิล · ล่าสุด '+dt(x.last):'ลดลงจาก '+money(x.was)+' เหลือ '+money(x.now))+'</span></span><b>'+money(x.v!=null?x.v:x.now)+'</b></a>'}).join('')};
+ page({title:'รายงานรายเดือน',back:'back',bl:'หลังบ้าน',body:'<div class="row" style="align-items:center;margin-bottom:8px"><a class="b o sm" href="#month/'+pm+'">‹ '+MTH[+pm.slice(5)-1]+'</a><b class="grow" style="text-align:center;font-size:var(--fs4)">'+ymLabel(ym)+'</b><a class="b o sm" href="#month/'+nm+'">'+MTH[+nm.slice(5)-1]+' ›</a></div>'
+  +'<div class="g2"><a class="c" data-a="mb" style="text-align:center;cursor:pointer"><b class="big">฿'+fm(Math.round(tot))+'</b><div class="t">ยอดขายเดือนนี้ · '+bs.length+' บิล</div></a><a class="c" data-a="ms" style="text-align:center;cursor:pointer"><b class="big">'+SL.length+'</b><div class="t">ร้านที่ซื้อ · ประจำ '+reg+'</div></a></div>'
+  +'<div class="c" style="border-left:4px solid var(--amb)"><b style="font-size:var(--fs4)">วันนี้ควรทำ 3 อย่าง</b>'+row('โทรตามร้านที่เลยรอบซื้อ',over,'ร้าน','href="#cycle"')+row('ติดตามร้านที่ยอดลดลงเกิน 50%',drop.length,'ร้าน','data-a="md"')+row('ส่งออเดอร์ที่รอส่ง',wait,'รายการ','href="#orders"')+'</div>'
+  +'<div class="c"><b style="font-size:var(--fs4)">ยอดขาย 6 เดือน</b>'+six.map(function(x){var last=x.k===ym;return '<a class="kv" href="#month/'+x.k+'"><span style="width:44px;color:var(--mu)">'+MTH[+x.k.slice(5)-1]+'</span><span style="flex:1;height:12px;background:var(--ln2);border-radius:6px;overflow:hidden;margin:0 8px"><i style="display:block;height:100%;width:'+Math.round(x.v/mx*100)+'%;background:var(--n)"></i></span><b style="min-width:84px;text-align:right">฿'+fm(Math.round(x.v))+'</b></a>'}).join('')+(partial?'<div class="t" style="margin-top:6px">'+MTH[+ym.slice(5)-1]+' นับถึงวันที่ '+dn+' · ยังไม่เต็มเดือน</div>':'')+'</div>'
+  +'<div class="t">ประจำ = ร้านที่ซื้อทั้งเดือนนี้และเดือนก่อน · ยอดลดลง'+(partial?' เทียบเดือนก่อนช่วงวันที่ 1–'+dn:' เทียบเดือนก่อน')+' · นับเฉพาะบิลปกติ</div>',
+ on:{mb:function(){monList('บิล · '+ymLabel(ym),'<div class="t">'+bs.length+' บิล · รวม ฿'+fm(Math.round(tot))+'</div>'+bs.slice(0,200).map(function(b){return billCard(b,true)}).join(''))},
+  ms:function(){monList('ร้านที่ซื้อ · '+ymLabel(ym),'<div class="t">'+SL.length+' ร้าน</div><div class="sec">'+shopRows(SL.slice(0,300))+'</div>')},
+  md:function(){monList('ยอดลดลงเกิน 50%','<div class="t">'+drop.length+' ร้าน</div><div class="sec">'+(drop.length?shopRows(drop.slice(0,300)):empty('ไม่มีร้านที่ยอดลดลง'))+'</div>')}}})};
 function menu(list){return '<div class="sec">'+list.map(function(x){return '<a class="li" href="#'+x[0]+'">'+ic(x[3])+'<span class="grow"><b>'+x[1]+'</b><span class="t">'+x[2]+'</span></span>'+ic('chev')+'</a>'}).join('')+'</div>'}
 R.back=function(){var s=Sync.state();
  page({body:'<div class="g4">'+[['ลูกค้า',DB.customers.length],['บิล',DB.bills.length],['ออเดอร์',DB.orders.length],['เข้าพบ',DB.visits.filter(function(v){return v.done}).length]].map(function(x){return '<div class="kp" style="cursor:default"><b>'+x[1]+'</b>'+x[0]+'</div>'}).join('')+'</div>'
-  +'<div class="tl">ข้อมูล</div>'+menu([['sales','ยอดขาย','ยอดปี · รายเดือน · คอม '+DB.rules.comm+'%','chart'],['bills','บิลขาย',DB.bills.length+' บิล','doc'],['products','สินค้า',DB.products.length+' รายการ · หน่วย · ราคา','box'],['contacts','สมุดโทร','รายชื่อ · เบอร์ · ผู้ติดต่อ · โทรทันที','phone'],['check','ตรวจข้อมูล','เบอร์ซ้ำ · ร้านไม่มีเบอร์/พิกัด · ยอดบิล','check'],['ttx','นำเข้า TTX','บิล · รายชื่อลูกค้า · ตรวจและแก้ไขก่อนนำเข้า','up']])
+  +'<div class="tl">ข้อมูล</div>'+menu([['month','รายงานรายเดือน','ยอดเดือน · ร้านที่ซื้อ · วันนี้ควรทำ · กราฟ 6 เดือน','chart'],['sales','ยอดขาย','ยอดปี · รายเดือน · คอม '+DB.rules.comm+'%','chart'],['bills','บิลขาย',DB.bills.length+' บิล','doc'],['products','สินค้า',DB.products.length+' รายการ · หน่วย · ราคา','box'],['contacts','สมุดโทร','รายชื่อ · เบอร์ · ผู้ติดต่อ · โทรทันที','phone'],['check','ตรวจข้อมูล','เบอร์ซ้ำ · ร้านไม่มีเบอร์/พิกัด · ยอดบิล','check'],['ttx','นำเข้า TTX','บิล · รายชื่อลูกค้า · ตรวจและแก้ไขก่อนนำเข้า','up']])
   +'<div class="tl">ระบบ</div>'+menu([['sync','ซิงก์','<i class="dot '+s.dot+'"></i> '+s.lbl+(DB.cfg.lastSync?' · ล่าสุด '+dt(DB.cfg.lastSync)+' '+hm(DB.cfg.lastSync):''),'cloud'],['backup','สำรอง / กู้คืน','ล่าสุด '+(DB.cfg.lastBackup?dt(DB.cfg.lastBackup)+' '+hm(DB.cfg.lastBackup):'ยังไม่มี'),'db'],['audit','ประวัติการแก้ไข',DB.audit.length+' รายการ','clock'],['settings','ตั้งค่า','ตัวเลือกในฟอร์ม · กติกา · บัญชี','gear']])})};
 
 
