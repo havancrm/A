@@ -876,7 +876,7 @@ R.ttx=function(){var K=txCounts(),T=TX.tab,L=T==='b'?TX.bills:TX.custs,k=K[T],fl
    body+='<div class="sec">'+show.slice(0,cap).map(function(p){return T==='b'?txBillRow(p[0],p[1]):txCustRow(p[0],p[1])}).join('')+'</div>'+(show.length>cap?'<div class="t">แสดง '+cap+' แรกจาก '+show.length+' · ใช้ตัวกรองเพื่อดูส่วนที่เหลือ</div>':'');
    body+='<div class="act" style="position:sticky;bottom:0;background:var(--bg,#fff);padding:8px 0">'+btn('นำเข้า '+(T==='b'?'บิล ':'ลูกค้า ')+k.inc+' รายการ',null,'txgo',null,k.inc?'':'o')+'</div>'}}
  page({title:'นำเข้า TTX',back:'back',bl:'หลังบ้าน',body:body,
-  on:{txf:function(){var i=document.createElement('input');i.type='file';i.multiple=true;i.accept='.ttx,.txt';i.onchange=function(){if(i.files.length)txRead(i.files)};i.click()},
+  on:{txf:function(){var i=document.createElement('input');i.type='file';i.multiple=true;i.onchange=function(){if(i.files.length)txRead(i.files)};i.click()},
    txt:function(v){TX.tab=v;TX.flt='all';rerender()},txfl:function(v){TX.flt=v;rerender()},
    txbi:function(v){var b=TX.bills[+v];b.inc=!b.inc;rerender()},txci:function(v){var c=TX.custs[+v];c.inc=!c.inc;rerender()},
    txb:function(v){txEditBill(+v)},txc:function(v){txEditCust(+v)},txgo:function(){T==='b'?txGoBills():txGoCusts()}}})};
