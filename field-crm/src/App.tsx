@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import {
   Phone, MapPin, Navigation, Search, CalendarCheck, Users, ListChecks, BarChart3, Settings as Cog, Plus, MessageCircle, Clock, AlertTriangle,
   ChevronRight, Check, ShoppingCart, LocateFixed, Minus, Receipt, Camera, RefreshCw, FileUp, Building2, Crosshair,
@@ -38,7 +38,8 @@ function App() {
   const [db, setDbRaw] = useState<DB>(load)
   const [settings, setSettingsRaw] = useState<Settings>(loadSettings)
   const [tab, setTab] = useState<'today' | 'customers' | 'tasks' | 'bills' | 'analytics'>('today')
-  const [openId, setOpenId] = useState<string | null>(null)
+  const [openId, setOpenId0] = useState<string | null>(null); const [openSub, setOpenSub] = useState<'visit' | 'task' | 'order' | undefined>()
+  const setOpenId = (id: string | null, sb?: 'visit' | 'task' | 'order') => { setOpenSub(sb); setOpenId0(id) }
   const [cog, setCog] = useState(false)
   const [toast, setToast] = useState('')
   const [pos, setPos] = useState<Pos | null>(null)
@@ -81,6 +82,7 @@ function App() {
   const TABS = [['today', CalendarCheck, 'วันนี้'], ['customers', Users, 'ลูกค้า'], ['tasks', ListChecks, 'งาน'], ['bills', Receipt, 'บิล'], ['analytics', BarChart3, 'วิเคราะห์']] as const
   const titles = { today: 'งานวันนี้', customers: 'ลูกค้า', tasks: 'งานติดตาม', bills: 'บิลย้อนหลัง', analytics: 'สรุป / วิเคราะห์การขาย' }
   return (
+    <Quick.Provider value={{ go: setOpenId, call: logCall }}>
     <div className="mx-auto flex h-[100dvh] max-w-md flex-col bg-[#eef2f8] text-slate-900" style={{ fontFamily: "'Sarabun','Noto Sans Thai',system-ui,sans-serif" }}>
       <header className="flex items-center justify-between bg-gradient-to-b from-[#1b3560] to-[#14284b] px-4 pb-2.5 pt-[max(.75rem,env(safe-area-inset-top))] text-[#eef2f8] shadow-[0_2px_0_#e0a82e]">
         <div>
@@ -108,21 +110,26 @@ function App() {
       </nav>
 
       {open && (
-        <CustomerSheet c={open} db={db} byId={byId} s={settings} pos={pos} lastVisit={lastVisit[open.id]} close={() => setOpenId(null)} say={setToast}
+        <CustomerSheet key={open.id + (openSub || '')} initSub={openSub} c={open} db={db} byId={byId} s={settings} pos={pos} lastVisit={lastVisit[open.id]} close={() => setOpenId(null)} say={setToast}
           addVisit={addVisit} addTask={addTask} addOrder={addOrder} logCall={logCall} toggleTask={toggleTask} setCustPos={setCustPos} />
       )}
       {doneBill && <OrderDone b={doneBill} c={byId[doneBill.customerId]} s={settings} byId={byId} say={setToast} close={() => setDoneBill(null)} />}
       {cog && <SettingsSheet db={db} setDb={setDb} s={settings} setS={setSettings} close={() => setCog(false)} say={setToast} />}
       {toast && <div className="fixed bottom-24 left-1/2 z-[90] max-w-[90vw] -translate-x-1/2 rounded-2xl bg-slate-900 px-4 py-2 text-center text-sm text-white shadow-lg">{toast}</div>}
     </div>
+    </Quick.Provider>
   )
 }
 
 /* ---------- ลิสต์ลูกค้า ---------- */
+type SubK = 'visit' | 'task' | 'order'
+const Quick = createContext<{ go: (id: string, sb?: SubK) => void; call: (c: Customer) => void }>({ go: () => {}, call: () => {} })
 function CustomerRow({ c, last, dist, onClick }: { c: Customer; last?: string; dist?: number; onClick: () => void }) {
-  const st = status(c, last)
+  const st = status(c, last); const q = useContext(Quick)
+  const qa = 'grid h-9 flex-1 place-items-center rounded-lg text-[#14284b] active:bg-[#14284b]/15'
   return (
-    <button onClick={onClick} className="flex w-full items-center gap-3 border-b border-slate-200 px-4 py-3 text-left active:bg-slate-200/60">
+    <div className="border-b border-slate-200">
+    <button onClick={onClick} className="flex w-full items-center gap-3 px-4 pb-1.5 pt-3 text-left active:bg-slate-200/60">
       <span className={`h-3 w-3 shrink-0 rounded-full ${dot[st.s]}`} />
       <span className="min-w-0 flex-1">
         <span className="block truncate text-[15px] font-semibold"><span className="mr-1.5 rounded bg-[#14284b]/10 px-1.5 py-0.5 text-[11px] font-bold text-[#14284b]">{c.id}</span>{c.name}</span>
@@ -133,6 +140,13 @@ function CustomerRow({ c, last, dist, onClick }: { c: Customer; last?: string; d
       </span>
       <ChevronRight size={18} className="text-slate-400" />
     </button>
+    <div className="mx-4 mb-2 flex gap-1.5">
+      {c.phone && <a aria-label="โทร" href={`tel:${c.phone.split(/[,/ ]/)[0]}`} onClick={() => q.call(c)} className={`${qa} bg-[#14284b]/[.09]`}><Phone size={17} /></a>}
+      <a aria-label="นำทาง" href={navUrl(c)} target="_blank" rel="noreferrer" className={`${qa} bg-[#e0a82e]/25`}><Navigation size={17} /></a>
+      <button aria-label="เช็กอิน" onClick={() => q.go(c.id, 'visit')} className={`${qa} bg-[#14284b]/[.09]`}><Camera size={17} /></button>
+      <button aria-label="รับออเดอร์" onClick={() => q.go(c.id, 'order')} className={`${qa} bg-[#14284b] !text-white`}><ShoppingCart size={17} /></button>
+    </div>
+    </div>
   )
 }
 
@@ -176,11 +190,11 @@ function Today({ db, byId, lastVisit, pos, locate, openC, toggleTask }: {
 }
 
 function Customers({ db, lastVisit, pos, locate, openC }: { db: DB; lastVisit: Record<string, string>; pos: Pos | null; locate: () => void; openC: (id: string) => void }) {
-  const [q, setQ] = useState(''); const [type, setType] = useState('ทั้งหมด'); const [limit, setLimit] = useState(60)
+  const [q, setQ] = useState(''); const [type, setType] = useState('ทั้งหมด'); const [limit, setLimit] = useState(60); const [late, setLate] = useState(false)
   const types = ['ทั้งหมด', ...Array.from(new Set(db.customers.map(c => c.type)))]
   const rows = useMemo(() => db.customers
-    .filter(c => (type === 'ทั้งหมด' || c.type === type) && (!q || (c.name + c.phone + c.contactName + c.area + c.address + c.id + c.labels.join(' ')).toLowerCase().includes(q.toLowerCase())))
-    .sort((a, b) => (pos ? kmTo(a, pos) - kmTo(b, pos) : a.name.localeCompare(b.name, 'th'))), [db.customers, q, type, pos])
+    .filter(c => (type === 'ทั้งหมด' || c.type === type) && (!late || status(c, lastVisit[c.id]).s === 'overdue') && (!q || (c.name + c.phone + c.contactName + c.area + c.address + c.id + c.labels.join(' ')).toLowerCase().includes(q.toLowerCase())))
+    .sort((a, b) => (pos ? kmTo(a, pos) - kmTo(b, pos) : a.name.localeCompare(b.name, 'th'))), [db.customers, q, type, pos, late, lastVisit])
   return (
     <div>
       <div className="sticky top-0 z-10 space-y-2 bg-[#eef2f8] px-4 pb-2 pt-3">
@@ -192,6 +206,7 @@ function Customers({ db, lastVisit, pos, locate, openC }: { db: DB; lastVisit: R
           <button onClick={locate} aria-label="ใกล้ฉัน" className={`grid h-11 w-11 place-items-center rounded-xl border ${pos ? 'border-[#14284b] bg-[#14284b] text-white' : 'border-slate-200 bg-white'}`}><LocateFixed size={19} /></button>
         </div>
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+          <button onClick={() => { setLate(!late); setLimit(60) }} className={`shrink-0 rounded-full px-3 py-1.5 text-xs ${late ? 'bg-[#c2410c] font-semibold text-white' : 'border border-[#c2410c]/40 bg-white text-[#c2410c]'}`}>⚠ เลยรอบ</button>
           {types.map(t => <button key={t} onClick={() => { setType(t); setLimit(60) }} className={`shrink-0 rounded-full px-3 py-1.5 text-xs ${type === t ? 'bg-[#14284b] font-semibold text-white' : 'border border-slate-200 bg-white'}`}>{t}</button>)}
         </div>
         <div className="text-xs text-slate-500">{rows.length} ราย</div>
@@ -244,13 +259,13 @@ function Photo({ id, size = 64 }: { id: string; size?: number }) {
 }
 
 /* ---------- ชีทลูกค้า ---------- */
-function CustomerSheet({ c, db, byId, s, pos, lastVisit, close, say, addVisit, addTask, addOrder, logCall, toggleTask, setCustPos }: {
+function CustomerSheet({ c, db, byId, s, pos, lastVisit, close, say, addVisit, addTask, addOrder, logCall, toggleTask, setCustPos, initSub }: {
   c: Customer; db: DB; byId: Record<string, Customer>; s: Settings; pos: Pos | null; lastVisit?: string; close: () => void; say: (t: string) => void
   addVisit: (v: Omit<Visit, 'id' | 'at'>) => void; addTask: (t: Omit<Task, 'id' | 'status'>) => void
   addOrder: (id: string, items: BillItem[], vat: Bill['vatMode']) => void; logCall: (c: Customer) => void; toggleTask: (id: string) => void
-  setCustPos: (id: string, lat: number, lng: number) => void
+  setCustPos: (id: string, lat: number, lng: number) => void; initSub?: 'visit' | 'task' | 'order'
 }) {
-  const [sub, setSub] = useState<null | 'visit' | 'task' | 'order'>(null); const [bill, setBill] = useState<Bill | null>(null); const [allBills, setAllBills] = useState(false)
+  const [sub, setSub] = useState<null | 'visit' | 'task' | 'order'>(initSub ?? null); const [bill, setBill] = useState<Bill | null>(null); const [allBills, setAllBills] = useState(false)
   const st = status(c, lastVisit)
   const visits = db.visits.filter(v => v.customerId === c.id).sort((a, b) => b.at.localeCompare(a.at)).slice(0, 6)
   const bills = useMemo(() => db.bills.filter(b => b.customerId === c.id).sort((a, b) => b.date.localeCompare(a.date) || b.no.localeCompare(a.no)), [db.bills, c.id])
