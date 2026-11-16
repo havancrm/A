@@ -399,10 +399,10 @@ var Sheet={mcp:null,state:'init',err:'',pulling:false,
  get:function(range){if(this.api())return this.rpc('get',{range:range}).then(function(j){return j.values||[]});return this.call(GS,'get_values',{spreadsheetId:SHEET_ID,range:range}).then(function(p){return p&&p.values||[]})},
  append:function(sheet,rows){if(this.api())return this.rpc('append',{sheet:sheet,rows:rows});return this.call(GS,'append_values',{spreadsheetId:SHEET_ID,range:sheet+'!A1',values:rows})},
  update:function(range,rows){if(this.api())return this.rpc('update',{range:range,rows:rows});return this.call(GS,'update_values',{spreadsheetId:SHEET_ID,range:range,values:rows})},
- errText:function(e){var c=e&&e.code;return c==='api_unauthorized'?'รหัสลับ (API_TOKEN) ไม่ตรงกับ Apps Script · ตั้งค่า › เชื่อมชีต A':c==='needs_reauth'?'ต้องเชื่อม Google ใหม่ (claude.ai › Settings › Connectors)':c==='server_not_connected'?'ยังไม่ได้เพิ่ม Google Sheets/Drive ใน Connectors':c==='approval_required'||c==='not_in_manifest'||c==='consent_required'?'ต้องกดอนุญาตให้แอปใช้ Google Sheets':c==='tool_error'?'ชีตตอบกลับว่าผิดพลาด: '+String(e.message||'').slice(0,80):'เชื่อมต่อไม่ได้ชั่วคราว'}};
+ errText:function(e){var c=e&&e.code;return c==='api_unauthorized'?'รหัสลับ (API_TOKEN) ไม่ตรงกับ Apps Script · ตั้งค่า › เชื่อมชีต A':c==='needs_reauth'?'ต้องเชื่อม Google ใหม่ (claude.ai › Settings › Connectors)':c==='server_not_connected'?'ยังไม่ได้เพิ่ม Google Sheets/Drive ใน Connectors':c==='approval_required'||c==='not_in_manifest'||c==='consent_required'?'ต้องกดอนุญาตให้แอปใช้ Google Sheets':c==='tool_error'?'ชีตตอบกลับว่าผิดพลาด: '+String(e.message||'').slice(0,160):'เชื่อมต่อไม่ได้ชั่วคราว'}};
 
 // ---------- อ่านเป็นช่วง (ตารางใหญ่) ----------
-function getChunks(sheet,lastCol,from,size,acc){acc=acc||[];return Sheet.get(sheet+'!A'+from+':'+lastCol+(from+size-1)).then(function(v){acc=acc.concat(v);return v.length<size?acc:getChunks(sheet,lastCol,from+size,size,acc)})}
+function getChunks(sheet,lastCol,from,size,acc){acc=acc||[];return Sheet.get(sheet+'!A'+from+':'+lastCol+(from+size-1)).then(function(v){acc=acc.concat(v);return v.length<size?acc:getChunks(sheet,lastCol,from+size,size,acc)},function(e){if(/exceeds grid limits/i.test(String(e&&e.message||'')))return acc;throw e})}
 
 // ---------- ดึงข้อมูลจากชีต ----------
 function pull(full){if(!Sheet.ok()||Sheet.pulling)return Promise.resolve(false);Sheet.pulling=true;var first=DB.src!=='sheet'||full;Sheet.err='';refreshStatus();
@@ -932,10 +932,9 @@ R.ttx=function(){txRestore();var K=txCounts(),T=TX.tab,L=T==='b'?TX.bills:TX.cus
   body+='<div class="g2" style="margin-top:8px">'+btn('บิล ('+K.b.n+')',null,'txt','b',T==='b'?'':'o')+btn('ลูกค้า ('+K.c.n+')',null,'txt','c',T==='c'?'':'o')+'</div>';
   if(!L.length)body+=empty('ยังไม่ได้เลือกไฟล์ชนิดนี้');
   else{var a=txActs();
-   body+='<div class="g4" style="margin-top:8px"><div class="kp" style="cursor:default"><b>'+k.new+'</b>ใหม่</div><div class="kp" style="cursor:default"><b>'+k.flag+'</b>ต้องตรวจ</div><div class="kp" style="cursor:default"><b>'+k.dup+'</b>มีแล้ว</div><div class="kp" style="cursor:default"><b>'+(T==='b'?K.b.can:0)+'</b>ยกเลิก</div></div>';
+   body+='<div style="margin-top:8px">'+kpis([['all','ทั้งหมด',k.n],['new','ใหม่',k.new],['flag','ต้องตรวจ',k.flag],['skip','ข้าม (มีแล้ว'+(T==='b'?'/ยกเลิก':'')+')',k.dup+(T==='b'?K.b.can:0)]],flt,'txfl')+'</div>';
    if(T==='b'&&TX.foot){var s=0;TX.bills.forEach(function(b){s+=b.tot||0});body+='<div class="t" style="margin:8px 0">ท้ายไฟล์: ยอดรวม '+money(TX.foot.a)+' · คำนวณจากรายการ '+money(s)+(Math.abs(s-TX.foot.a)<1?' ✓ ตรง':' ✗ ไม่ตรง (ต่าง '+money(s-TX.foot.a)+')')+'</div>'}
-   body+='<div class="g4" style="margin-top:8px">'+[['all','ทั้งหมด'],['new','ใหม่'],['flag','ต้องตรวจ'],['skip','ข้าม']].map(function(x){return btn(x[1],null,'txfl',x[0],flt===x[0]?'sm':'o sm')}).join('')+'</div>'
-    +'<div style="margin-top:10px">'+srch('ค้นหาในรายการ รหัส · ชื่อ · เบอร์ · เลขบิล · วันที่ · สินค้า',TX.q)+'</div>'
+   body+='<div style="margin-top:10px">'+srch('ค้นหาในรายการ รหัส · ชื่อ · เบอร์ · เลขบิล · วันที่ · สินค้า',TX.q)+'</div>'
     +'<div class="g2" style="margin-top:10px" id="txa1">'+a.top+'</div><div class="t" style="margin:8px 0" id="txa2">'+a.info+'</div>'
     +'<div class="t" style="margin-bottom:4px">แตะรายการเพื่อแก้ไขข้อมูลก่อนนำเข้า · ติ๊กช่องซ้ายเพื่อเลือก/ไม่เลือก</div>'
     +'<div class="sec" id="txl">'+txListHtml()+'</div>'
