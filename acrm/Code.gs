@@ -72,6 +72,28 @@ function doPost(e) {
       return out_({ ok: true, id: f.getId() });
     }
 
+    if (b.action === 'undobatch') {            // ยกเลิกชุดนำเข้าบิล: ลบเฉพาะบิลที่ stamp ตรงกับชุด + รายการสินค้าของบิลนั้น
+      var stamp = String(b.stamp || ''), bid = String(b.batchId || '');
+      if (!stamp || !bid) return out_({ ok: false, error: 'missing batch' });
+      var meta = Sheets.Spreadsheets.get(SHEET_ID, { fields: 'sheets.properties' }).sheets;
+      var idOf = function (n) { for (var i = 0; i < meta.length; i++) if (meta[i].properties.title === n) return meta[i].properties.sheetId; throw new Error('no sheet ' + n); };
+      var del = function (name, rowsIdx) {      // ลบจากล่างขึ้นบน ทีละช่วงต่อเนื่อง
+        var reqs = [], i = rowsIdx.length - 1;
+        while (i >= 0) { var end = rowsIdx[i], st = end; while (i > 0 && rowsIdx[i - 1] === st - 1) { st = rowsIdx[--i]; } i--;
+          reqs.push({ deleteDimension: { range: { sheetId: idOf(name), dimension: 'ROWS', startIndex: st, endIndex: end + 1 } } }); }
+        if (reqs.length) Sheets.Spreadsheets.batchUpdate({ requests: reqs }, SHEET_ID);
+      };
+      var bills = (Sheets.Spreadsheets.Values.get(SHEET_ID, 'bills!A1:M').values || []), nos = {}, bi = [];
+      for (var i = 1; i < bills.length; i++) if (String(bills[i][12] || '') === stamp) { nos[String(bills[i][0])] = 1; bi.push(i); }
+      if (bi.length > 3000) return out_({ ok: false, error: 'too many rows' });
+      var its = (Sheets.Spreadsheets.Values.get(SHEET_ID, 'bill_items!A1:A').values || []), ii = [];
+      for (var j = 1; j < its.length; j++) if (nos[String(its[j][0] || '')]) ii.push(j);
+      del('bill_items', ii); del('bills', bi);
+      var bt = Sheets.Spreadsheets.Values.get(SHEET_ID, 'IMPORT_BATCHES!A1:A').values || [];
+      for (var k = 1; k < bt.length; k++) if (String(bt[k][0]) === bid) { Sheets.Spreadsheets.Values.update({ values: [['undone']] }, SHEET_ID, 'IMPORT_BATCHES!H' + (k + 1), { valueInputOption: 'RAW' }); break; }
+      return out_({ ok: true, bills: bi.length, items: ii.length, nos: Object.keys(nos) });
+    }
+
     return out_({ ok: false, error: 'unknown action' });
   } catch (err) {
     return out_({ ok: false, error: String(err && err.message ? err.message : err) });

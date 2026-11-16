@@ -412,7 +412,7 @@ function getChunks(sheet,lastCol,from,size,acc){acc=acc||[];return Sheet.get(she
 // ---------- ดึงข้อมูลจากชีต ----------
 function pull(full){if(!Sheet.ok()||Sheet.pulling)return Promise.resolve(false);Sheet.pulling=true;var first=DB.src!=='sheet'||full;Sheet.err='';refreshStatus();
  var S=first?{billRow:2,itemRow:2}:(DB.sheet||{billRow:2,itemRow:2}),T={};
- var jobs=[['customers','customers!A2:AK'],['phones','customer_phones!A2:C'],['labels','customer_labels!A2:C'],['gps','gps!A2:F'],['products','products!A2:B'],['orders','orders!A2:P'],['oitems','order_items!A2:H'],['visits','visits!A2:N'],['tasks','tasks!A2:N'],['acts','activities!A2:K']];
+ var jobs=[['customers','customers!A2:AL'],['phones','customer_phones!A2:C'],['labels','customer_labels!A2:C'],['gps','gps!A2:F'],['products','products!A2:B'],['orders','orders!A2:P'],['oitems','order_items!A2:H'],['visits','visits!A2:N'],['tasks','tasks!A2:N'],['acts','activities!A2:K']];
  var seq=jobs.reduce(function(p,j){return p.then(function(){return Sheet.get(j[1]).then(function(v){T[j[0]]=v})})},Promise.resolve());
  return seq.then(function(){return getChunks('bills','N',S.billRow,4000)}).then(function(v){T.bills=v;return getChunks('bill_items','G',S.itemRow,6000)}).then(function(v){T.items=v;
   build(T,first);DB.sheet={billRow:S.billRow+T.bills.length,itemRow:S.itemRow+T.items.length,at:now()};DB.src='sheet';Sheet.pulling=false;reindex();save();refreshStatus();return true})
@@ -990,7 +990,7 @@ function txActs(){var T=TX.tab,show=txVisible(),sel=show.filter(function(p){retu
   go:btn('นำเข้า '+(T==='b'?'บิล ':'ลูกค้า ')+K.inc+' รายการ',null,'txgo',null,K.inc?'':'o')}}
 function txRefresh(){var l=document.getElementById('txl');if(!l)return;var a=txActs();l.innerHTML=txListHtml();var x;if(x=document.getElementById('txa1'))x.innerHTML=a.top;if(x=document.getElementById('txa2'))x.innerHTML=a.info;if(x=document.getElementById('txa3'))x.innerHTML=a.go}
 R.ttx=function(){txRestore();var K=txCounts(),T=TX.tab,L=T==='b'?TX.bills:TX.custs,k=K[T],flt=TX.flt,
- body='<div class="sec"><div style="padding:8px 0">'+btn('เลือกไฟล์ .ttx (บิล / รายชื่อลูกค้า)','up','txf',null,'')+'<div class="t" style="margin-top:6px">เลือกได้ทั้งสองไฟล์พร้อมกัน ระบบแยกชนิดให้เอง · ลูกค้านำเข้าเฉพาะรายที่เคยซื้อ (มีบิล) และยังไม่มีในระบบ · อ่านรหัส cp874 · ยังไม่เขียนลงชีตจนกว่าจะกดนำเข้า</div>'+(TX.msg?'<div class="note '+(TX.err?'w':'ok')+'" style="margin-top:8px">'+TX.msg+'</div>':'')+'</div></div>';
+ body='<div class="sec"><div style="padding:8px 0">'+btn('ยกเลิกชุดบิลที่นำเข้าแล้ว','repeat','txundo',null,'o sm')+' '+btn('เลือกไฟล์ .ttx (บิล / รายชื่อลูกค้า)','up','txf',null,'')+'<div class="t" style="margin-top:6px">เลือกได้ทั้งสองไฟล์พร้อมกัน ระบบแยกชนิดให้เอง · ลูกค้านำเข้าเฉพาะรายที่เคยซื้อ (มีบิล) และยังไม่มีในระบบ · อ่านรหัส cp874 · ยังไม่เขียนลงชีตจนกว่าจะกดนำเข้า</div>'+(TX.msg?'<div class="note '+(TX.err?'w':'ok')+'" style="margin-top:8px">'+TX.msg+'</div>':'')+'</div></div>';
  if(TX.bills.length||TX.custs.length){
   body+='<div class="g2" style="margin-top:8px">'+btn('บิล ('+K.b.n+')',null,'txt','b',T==='b'?'':'o')+btn('ลูกค้า ('+K.c.n+')',null,'txt','c',T==='c'?'':'o')+'</div>';
   if(!L.length)body+=empty('ยังไม่ได้เลือกไฟล์ชนิดนี้');
@@ -1008,7 +1008,14 @@ R.ttx=function(){txRestore();var K=txCounts(),T=TX.tab,L=T==='b'?TX.bills:TX.cus
    txt:function(v){TX.tab=v;TX.flt='all';TX.q='';rerender()},txfl:function(v){TX.flt=v;rerender()},
    txbi:function(v){var b=TX.bills[+v];if(b.st==='new')b.inc=!b.inc;rerender()},txci:function(v){var c=TX.custs[+v];if(c.st==='new')c.inc=!c.inc;rerender()},
    txall:function(){txVisible().forEach(function(p){if(p[0].st==='new')p[0].inc=true});rerender()},txnone:function(){txVisible().forEach(function(p){p[0].inc=false});rerender()},
-   txb:function(v){txEditBill(+v)},txc:function(v){txEditCust(+v)},txgo:function(){T==='b'?txGoBills():txGoCusts()}}})};
+   txb:function(v){txEditBill(+v)},txc:function(v){txEditCust(+v)},txgo:function(){T==='b'?txGoBills():txGoCusts()},txundo:function(){txUndo()}}})};
+function txUndo(){if(!Sheet.api())return toast('ต้องเชื่อมผ่าน Apps Script ก่อน (ตั้งค่า › เชื่อมชีต A)');
+ toast('กำลังอ่านชุดนำเข้า…');Sheet.get('IMPORT_BATCHES!A2:J').then(function(v){var L=v.filter(function(r){return r[2]==='bills'&&r[7]!=='undone'}).slice(-8).reverse();
+  if(!L.length)return toast('ไม่มีชุดบิลที่ยกเลิกได้');
+  modal('<div class="c"><b>ยกเลิกชุดบิลที่นำเข้า</b><div class="t">ลบเฉพาะบิลและรายการสินค้าที่นำเข้าในชุดนั้น · ใช้ได้เมื่ออัปเดต Apps Script เป็นเวอร์ชันล่าสุดแล้ว</div>'+L.map(function(r,i){return '<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line,#e3e8f3);align-items:center;gap:8px"><span class="grow"><b>'+E(r[0])+'</b><span class="t">'+E(String(r[8]||'').slice(0,90))+'</span></span><button type="button" class="b sm d" data-u="'+i+'">ยกเลิก</button></div>'}).join('')+'<div style="margin-top:10px"><button type="button" class="b o" data-a="close">ปิด</button></div></div>');
+  var m=document.querySelector('.mod')||document.body;
+  m.addEventListener('click',function(e){var b=e.target.closest('[data-u]');if(!b)return;var r=L[+b.dataset.u];b.disabled=true;b.textContent='กำลังลบ…';
+   Sheet.rpc('undobatch',{batchId:r[0],stamp:r[1]}).then(function(j){var nos={};(j.nos||[]).forEach(function(n){nos[String(n)]=1});DB.bills=DB.bills.filter(function(x){return !nos[String(x.no)]});save();reindex();b.textContent='ลบแล้ว '+j.bills+' บิล';toast('ยกเลิกชุด '+r[0]+' · ลบ '+j.bills+' บิล '+j.items+' รายการ')},function(e){b.disabled=false;b.textContent='ยกเลิก';toast(e&&e.message==='unknown action'?'ต้องอัปเดต Code.gs ใน Apps Script แล้ว deploy ใหม่ก่อน':'ลบไม่สำเร็จ: '+(e&&e.message))})})},function(e){toast(Sheet.errText(e))})}
 function txEditBill(i){var b=TX.bills[i];
  var its=b.items.map(function(x,n){return '<div class="kv" style="gap:4px;align-items:center"><span style="width:44px;font-size:12px">'+E(x.c)+'</span><span style="flex:1;font-size:12px">'+E(x.n)+'</span><input id="tq'+n+'" value="'+x.q+'" inputmode="decimal" style="width:52px"><input id="tp'+n+'" value="'+x.p+'" inputmode="decimal" style="width:70px"><a class="lk" data-a="txdl" data-v="'+n+'">ลบ</a></div>'}).join('');
  modal('<div class="tl" style="font-size:15px">แก้ไขบิล '+E(b.no)+'</div>'+(b.flags.length?'<div class="t" style="color:var(--red)">'+b.flags.map(E).join('<br>')+'</div>':'<div class="t">ข้อมูลครบ ไม่พบปัญหา</div>')
