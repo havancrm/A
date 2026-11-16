@@ -482,8 +482,8 @@ function execW(op,cb){var ctx={files:[]},L=op.w||[],i=0,retry=op.tries>1;
 // ---------- ตัวช่วยฝั่งหน้าจอ: แปลงการบันทึกเป็นคำสั่งเขียนชีต ----------
 function isoOf(s){var d=new Date(s);return isNaN(d)?s:thIso(d)}
 function track(rec,op){if(op&&DB.src==='sheet'){rec._local=true;rec._op=op.id}return op}
-function saveCust(c,label,extra,isNew){var w=[];if(isNew){w.push(W_append('customers',[custNewRow(c)],['customers!A:A',c.id]));if(c.ph.length)w.push(W_append('customer_phones',c.ph.map(function(p,i){return[c.id,i+1,p]}),['customer_phones!A:A',c.id]))}
- else{w.push(W_cust(c,custFields(c)));var old=c._ph0||[];var add=c.ph.filter(function(p){return old.indexOf(p)<0});if(add.length)w.push(W_append('customer_phones',add.map(function(p,i){return[c.id,old.length+i+1,p]})))}
+function saveCust(c,label,extra,isNew){var w=[];if(isNew){w.push(W_append('customers',[custNewRow(c)],['customers!A:A',c.id]));if(c.ph.length)w.push(W_append('customer_phones',c.ph.map(function(p,i){return[c.id,i+1,fmtTel(p)]}),['customer_phones!A:A',c.id]))}
+ else{w.push(W_cust(c,custFields(c)));var old=c._ph0||[];var add=c.ph.filter(function(p){return old.indexOf(p)<0});if(add.length)w.push(W_append('customer_phones',add.map(function(p,i){return[c.id,old.length+i+1,fmtTel(p)]})))}
  return track(c,commit('ลูกค้า',label,c.id,w.concat(extra||[])))}
 function gpsRow(cid,p,visitId,note){var id='GPS-'+uid().toUpperCase();return W_append('gps',[[id,cid,isoOf(p.at),p.lat,p.lng,p.acc||'','ART CRM a',visitId||'',note,iso(),'{}','@op']],['gps!A:A',id])}
 function actRow(id,cid,type,at,note){return W_append('activities',[[id,cid,type,isoOf(at),'','',note,'','',iso(),'{}','@op']],['activities!A:A',id])}
