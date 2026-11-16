@@ -412,13 +412,14 @@ function getChunks(sheet,lastCol,from,size,acc){acc=acc||[];return Sheet.get(she
 // ---------- ดึงข้อมูลจากชีต ----------
 function pull(full){if(!Sheet.ok()||Sheet.pulling)return Promise.resolve(false);Sheet.pulling=true;var first=DB.src!=='sheet'||full;Sheet.err='';refreshStatus();
  var S=first?{billRow:2,itemRow:2}:(DB.sheet||{billRow:2,itemRow:2}),T={};
- var jobs=[['customers','customers!A2:AL'],['phones','customer_phones!A2:C'],['labels','customer_labels!A2:C'],['gps','gps!A2:F'],['products','products!A2:B'],['orders','orders!A2:P'],['oitems','order_items!A2:H'],['visits','visits!A2:N'],['tasks','tasks!A2:N'],['acts','activities!A2:K']];
+ var jobs=[['customers','customers!A2:AL'],['phones','customer_phones!A2:C'],['labels','customer_labels!A2:C'],['gps','gps!A2:F'],['products','products!A2:B'],['orders','orders!A2:P'],['oitems','order_items!A2:H'],['visits','visits!A2:N'],['tasks','tasks!A2:N'],['acts','activities!A2:K'],['sets','systemSettings!A2:C']];
  var seq=Promise.all(jobs.map(function(j){return Sheet.get(j[1]).then(function(v){T[j[0]]=v})}).concat([getChunks('bills','N',S.billRow,4000).then(function(v){T.bills=v}),getChunks('bill_items','G',S.itemRow,6000).then(function(v){T.items=v})]));
  return seq.then(function(){
   build(T,first);DB.sheet={billRow:S.billRow+T.bills.length,itemRow:S.itemRow+T.items.length,at:now()};DB.src='sheet';Sheet.pulling=false;reindex();save();refreshStatus();return true})
  .catch(function(e){Sheet.pulling=false;Sheet.err=Sheet.errText(e);refreshStatus();throw e})}
 
-function build(T,first){var keepLocal=function(list,key,fresh){var have={};fresh.forEach(function(x){have[x[key]]=1});return fresh.concat(list.filter(function(x){return x._local&&!have[x[key]]}))};
+function applySets(R){var best=null;(R||[]).forEach(function(r){if(/^stmt-/.test(r[0]||'')&&(!best||String(r[1])>String(best[1])))best=r});if(!best||(DB.cfg.stmtAt&&String(DB.cfg.stmtAt)>=String(best[1])))return;try{var o=JSON.parse(best[2]);Object.keys(STK).forEach(function(k){DB.cfg[STK[k]]=o[k]==null?null:o[k]});DB.cfg.stmtAt=String(best[1])}catch(e){}}
+function build(T,first){applySets(T.sets);var keepLocal=function(list,key,fresh){var have={};fresh.forEach(function(x){have[x[key]]=1});return fresh.concat(list.filter(function(x){return x._local&&!have[x[key]]}))};
  // ลูกค้า
  var ph={},lb={},gp={};T.phones.forEach(function(r){if(r[0]&&r[2])(ph[r[0]]=ph[r[0]]||[]).push([+r[1]||0,r[2]])});T.labels.forEach(function(r){if(r[0]&&r[2])(lb[r[0]]=lb[r[0]]||[]).push(r[2])});
  T.gps.forEach(function(r){if(r[1]&&r[3]&&r[4]&&(!gp[r[1]]||String(r[2])>gp[r[1]].at))gp[r[1]]={at:String(r[2]),lat:+r[3],lng:+r[4]}});
@@ -887,11 +888,11 @@ R.msgtpl=function(){var c=DB.customers.filter(function(x){return monthsOf(x.id).
  rd=function(){var o={};F.forEach(function(x){o[x[1]]=(document.getElementById('f_'+x[0])||{value:D[x[1]]}).value.trim()});return o},pv=function(o){return c?stmtText(c,ym,o):'(ยังไม่มีบิลให้แสดงตัวอย่าง)'};
  page({title:'ข้อความแจ้งยอด',back:'settings',bl:'ตั้งค่า',body:'<div class="c">'+F.map(function(x){return field(x[0],x[2],{v:D[x[1]],at:x[1]==='h'||x[1]==='f'?'':'placeholder="'+x[2]+'"'})}).join('')+'</div>'
   +sec('ตัวอย่าง','<span class="t">อัปเดตตามที่พิมพ์</span>','<div class="pre" id="mpv">'+E(pv(D))+'</div>')
-  +'<div class="note i">ยอดโอน = ยอดซื้อรวมของเดือนที่เลือก ระบบใส่ให้เอง · เว้นช่องไหนว่างไว้ บรรทัดนั้นจะไม่ถูกส่ง · ข้อความนี้เก็บในเครื่องนี้ (ยังไม่ขึ้นชีต)</div>',
+  +'<div class="note i">ยอดโอน = ยอดซื้อรวมของเดือนที่เลือก ระบบใส่ให้เอง · เว้นช่องไหนว่างไว้ บรรทัดนั้นจะไม่ถูกส่ง · ข้อความนี้ซิงก์ผ่านชีต (แท็บ systemSettings) ใช้ร่วมกันทุกเครื่อง</div>',
   foot:btn('บันทึก','check','save')+btn('คืนค่าเดิม',null,'reset',null,'o'),
   after:function(){F.forEach(function(x){document.getElementById('f_'+x[0]).addEventListener('input',function(){document.getElementById('mpv').textContent=pv(rd())})})},
-  on:{save:function(){var o=rd();F.forEach(function(x){DB.cfg[STK[x[1]]]=o[x[1]]});commit('ตั้งค่า','ข้อความแจ้งยอดทาง LINE');toast('บันทึกแล้ว');back('settings')},
-   reset:function(){Object.keys(STK).forEach(function(k){DB.cfg[STK[k]]=null});commit('ตั้งค่า','คืนค่าข้อความแจ้งยอด');toast('คืนค่าเดิมแล้ว');route()}}})};
+  on:{save:function(){var o=rd();F.forEach(function(x){DB.cfg[STK[x[1]]]=o[x[1]]});var ts=iso();DB.cfg.stmtAt=ts;commit('ตั้งค่า','ข้อความแจ้งยอดทาง LINE','stmt-'+ts,[W_append('systemSettings',[['stmt-'+ts,ts,JSON.stringify(o)]],['systemSettings!A:A','stmt-'+ts])]);toast('บันทึกแล้ว');back('settings')},
+   reset:function(){Object.keys(STK).forEach(function(k){DB.cfg[STK[k]]=null});var ts=iso();DB.cfg.stmtAt=ts;commit('ตั้งค่า','คืนค่าข้อความแจ้งยอด','stmt-'+ts,[W_append('systemSettings',[['stmt-'+ts,ts,JSON.stringify({})]],['systemSettings!A:A','stmt-'+ts])]);toast('คืนค่าเดิมแล้ว');route()}}})};
 R.rules=function(){var r=DB.rules,F=[['near','ใกล้ถึงรอบ (%)'],['due','ถึงรอบ (%)'],['over','เลยรอบ (%)'],['comm','คอมมิชชั่น (%)']];
  page({title:'กติกาตัวเลข',back:'settings',bl:'ตั้งค่า',body:'<div class="c"><div class="g2">'+F.map(function(x){return field(x[0],x[1],{v:r[x[0]],at:'type="number" inputmode="decimal"'})}).join('')+'</div></div>'
   +'<div class="note i">รอบซื้อ = มัธยฐานช่วงห่างของวันที่ซื้อ (ต้องมีอย่างน้อย 3 วัน) · VAT รวมในราคาได้คอมเต็มยอด · VAT นอก +7% ไม่คิดคอมส่วน VAT · บิลยกเลิกตัดออกตั้งแต่นำเข้า</div>',
