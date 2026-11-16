@@ -1028,14 +1028,43 @@ function txGoBills(){var L=TX.bills.filter(function(b){return b.inc&&b.st==='new
   var w=[W_append('bills',billRows,['bills!A:A',billRows[0][0]]),W_append('bill_items',itemRows,['bill_items!A:A',itemRows[0][0]]),W_append('IMPORT_BATCHES',[batch],['IMPORT_BATCHES!A:A',bid])];
   reindex();commit('นำเข้า','นำเข้า TTX บิล '+L.length+' บิล · '+bid,bid,w);
   TX.bills=TX.bills.filter(function(b){return !(b.inc&&b.st==='new')});txBillStatus();toast('นำเข้า '+L.length+' บิล · กำลังซิงก์');rerender()})}
+function txGuess(n){n=String(n||'');var T=DB.opts['ประเภทธุรกิจ']||[],pick=function(w){return T.filter(function(t){return t.indexOf(w)>-1})[0]||''};
+ if(/ตัดขน|กรูมมิ่ง|grooming|เพ็ท|pet|dog|ด็อก|ด๊อก|แมว|สัตว์/i.test(n))return pick('เพ็ท');
+ if(/ฟิล์ม|film|คาร์|ออโต้|auto|กระจก|ยนต์|เครื่องเสียง|audio|garage|แอร์/i.test(n))return pick('คาร์แคร์');
+ if(/ซักรีด|ซักผ้า/.test(n))return pick('ซักรีด');
+ if(/ร้านขายยา|เภสัช|ดรักสโตร์|pharm|หมอยา/i.test(n))return pick('ขายยา');
+ if(/โรงแรม|รีสอร์ท|ที่พัก|hotel|resort/i.test(n))return pick('โรงแรม');
+ if(/^\s*น\s*\./.test(n))return pick('นวด');
+ if(/^\s*ส\s*\./.test(n))return pick('เสริมสวย');
+ if(/ซาลอน|salon|บิวตี้|beauty|แฮร์|hair|เสริมสวย|บาร์เบอร์|barber|เล็บ|nail/i.test(n))return pick('เสริมสวย');
+ if(/นวด|สปา|spa|massage|มาสสาจ|ซาวน่า|เพื่อสุขภาพ/i.test(n))return pick('นวด');
+ if(/20 บาท|มินิมาร์ท|มาร์ท|mart|ซุปเปอร์|พาณิชย์|ขายส่ง|ค้าส่ง|สโตร์|store|^\s*ม\s*\./i.test(n))return pick('ค้าปลีก');
+ return ''}
+function txTypeReview(L,go){var T=DB.opts['ประเภทธุรกิจ']||[],F='unk',st=0;L.forEach(function(x){if(x.type==null){x.type=txGuess(x.name);x.guess=x.type}});
+ var opt=function(v,ph){return '<option value="">'+(ph||'เลือก...')+'</option>'+T.map(function(t){return '<option'+(t===v?' selected':'')+'>'+E(t)+'</option>'}).join('')};
+ var unk=function(){return L.filter(function(x){return !x.type}).length},chg=function(){return L.filter(function(x){return x.type!==x.guess}).length};
+ modal('<div style="background:#1f2e5a;color:#fff;margin:-16px -16px 10px;padding:12px 14px;font-weight:600;font-size:15px">ตรวจประเภทร้านก่อนนำเข้า</div><div class="t" id="tyi"></div><div id="tyc" style="margin:8px 0"></div><div class="row" style="margin:6px 0"><span class="t grow">ตั้งทุกร้านที่ยังไม่เลือกเป็น</span><select id="tyb">'+opt('','เลือก...')+'</select></div><div id="tyl" style="max-height:48vh;overflow:auto"></div><div class="g2" style="margin-top:10px"><button type="button" class="b o" id="tyx">ยกเลิก</button><button type="button" class="b" id="tyg"></button></div>',true);
+ var m=document.querySelector('.mod'),$=function(i){return m.querySelector('#'+i)};
+ function draw(){var u=unk(),show=F==='unk'?L.filter(function(x){return !x.type}):F==='chg'?L.filter(function(x){return x.type!==x.guess}):L;
+  $('tyi').textContent='ระบบเสนอประเภทให้ '+L.length+' ร้าน · ร้านที่เดาไม่ได้ต้องเลือกเอง · แตะเพื่อแก้';
+  $('tyc').innerHTML=chips([['unk','เดาไม่ได้ '+u],['chg','แก้แล้ว '+chg()],['all','ทั้งหมด '+L.length]],F,'tyf');
+  $('tyl').innerHTML=show.slice(0,150).map(function(x){var i=L.indexOf(x);return '<div class="row" style="padding:7px 0;border-bottom:1px solid var(--line,#e3e8f3);'+(x.type?'':'background:#fff7e0;')+'align-items:center;gap:8px"><span class="grow" style="min-width:0"><b class="nm">'+E(x.name)+'</b><span class="t">'+E(x.id)+(x.type!==x.guess?' · แก้แล้ว':'')+'</span></span><select data-i="'+i+'">'+opt(x.type)+'</select></div>'}).join('')+(show.length>150?'<div class="t" style="padding:8px 0">แสดง 150 แรกจาก '+show.length+' · เลือกแล้วรายการจะหายจากตัวกรอง "เดาไม่ได้"</div>':'')||'<div class="t" style="padding:12px 0">ไม่มีรายการในตัวกรองนี้</div>';
+  var g=$('tyg');g.textContent=u?'ยังเหลือ '+u+' ร้านที่ต้องเลือก':'นำเข้า '+L.length+' ร้าน';g.className='b'+(u?' o':'')}
+ m.addEventListener('click',function(e){var a=e.target.closest('[data-a="tyf"]');if(a){F=a.dataset.v;draw();e.stopPropagation()}},true);
+ m.addEventListener('change',function(e){var t=e.target;if(t.dataset&&t.dataset.i!=null){L[+t.dataset.i].type=t.value;draw()}else if(t.id==='tyb'&&t.value){L.forEach(function(x){if(!x.type)x.type=t.value});t.value='';draw()}});
+ $('tyx').addEventListener('click',closeModal);
+ $('tyg').addEventListener('click',function(){var u=unk();if(u){toast('ยังเหลือ '+u+' ร้านที่ยังไม่ได้เลือกประเภท');F='unk';draw();return}closeModal();go()});
+ draw()}
 function txGoCusts(){var L=TX.custs.filter(function(c){return c.inc&&c.st==='new'});if(!L.length){toast('ยังไม่ได้เลือกลูกค้า');return}
- ask('นำเข้าลูกค้าใหม่ '+L.length+' ราย','<div class="t">เพิ่มเฉพาะรหัสที่ยังไม่มีและเคยซื้อ (มีบิล) · ไม่นำเข้าร้านที่ไม่เคยซื้อ · ไม่แก้ไขลูกค้าเดิมและข้อมูลที่เก็บจากหน้างาน</div>','นำเข้า',function(){
+ txTypeReview(L,function(){txDoImport(L)})}
+function txDoImport(L){
+ (function(){
   var bid='TTX-CUST-'+TD.replace(/-/g,'')+'-'+Math.floor(Math.random()*900+100),rows=[],ph=[],stamp=iso();
-  L.forEach(function(x){var c={id:x.id,name:x.name,type:'',addr:x.addrS,ph:x.ph,owner:x.owner,pay:'เงินสด',clerk:'',status:'active',lat:'',lng:'',alias:'',note:'',closed:'',visitCycle:0,vat:VATMAP.NONE,area:'',tags:[],src:'TTX'};
+  L.forEach(function(x){var c={id:x.id,name:x.name,type:x.type||'',addr:x.addrS,ph:x.ph,owner:x.owner,pay:'เงินสด',clerk:'',status:'active',lat:'',lng:'',alias:'',note:'',closed:'',visitCycle:0,vat:VATMAP.NONE,area:'',tags:[],src:'TTX'};
    var r=custNewRow(c);rows.push(r);x.ph.forEach(function(p,n){ph.push([c.id,n+1,p])});DB.customers.push(Object.assign(c,{_local:true}))});
   var batch=[bid,stamp,'customers',TX.fn_c||'','','TTX ในแอป','TTX cp874','ok','ไฟล์ '+TX.custs.length+' ราย; เพิ่มใหม่ '+L.length+'; มีแล้ว '+TX.custs.filter(function(c){return c.st==='dup'||c.st==='dupf'}).length+' (ไม่แก้ไข); ไม่เคยซื้อ '+TX.custs.filter(function(c){return c.st==='nobuy'}).length+' (ไม่นำเข้า)',DB.user?DB.user.email:'',DB.cfg.device||''];
   var w=[W_append('customers',rows,['customers!A:A',rows[0][0]])];if(ph.length)w.push(W_append('customer_phones',ph,['customer_phones!A:A',ph[0][0]]));w.push(W_append('IMPORT_BATCHES',[batch],['IMPORT_BATCHES!A:A',bid]));
-  reindex();commit('นำเข้า','นำเข้า TTX ลูกค้า '+L.length+' ราย · '+bid,bid,w);txCustStatus();txBillStatus();toast('นำเข้า '+L.length+' ราย · กำลังซิงก์');rerender()})}
+  reindex();commit('นำเข้า','นำเข้า TTX ลูกค้า '+L.length+' ราย · '+bid,bid,w);txCustStatus();txBillStatus();toast('นำเข้า '+L.length+' ราย · กำลังซิงก์');rerender()})()}
 
 // ===== ประวัติ / ตรวจข้อมูล =====
 R.audit=function(){var F=R.audit.f||'all',kinds=['all'].concat(DB.audit.map(function(a){return a.kind}).filter(function(k,i,s){return s.indexOf(k)===i})),L=DB.audit.filter(function(a){return F==='all'||a.kind===F}).slice(0,100);
