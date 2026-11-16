@@ -897,20 +897,27 @@ function txCusts(text){var rows=txParse(text),out=[],cur=null,rx=/^Code\s*:/i;
   cur.addr.push(a)});
  var seen={};out.forEach(function(c){c.addrS=c.addr.join(' ').replace(/\s+/g,' ').trim()});return out}
 function txCustStatus(){var seen={};TX.custs.forEach(function(c){c.st=!c.id?'bad':cust(c.id)?'dup':seen[c.id]?'dupf':'new';seen[c.id]=1;if(c.st!=='new')c.inc=false;c.flags=[];if(!c.id)c.flags.push('ไม่มีรหัส');if(!c.name)c.flags.push('ไม่มีชื่อ');if(!c.ph.length)c.flags.push('ไม่มีเบอร์โทร');if(!c.addrS)c.flags.push('ไม่มีที่อยู่')})}
-function txRead(files){var done=0,all=[];Array.prototype.forEach.call(files,function(f){f.arrayBuffer().then(function(buf){var t;try{t=new TextDecoder('windows-874').decode(buf)}catch(e){toast('เครื่องนี้อ่านไฟล์ cp874 ไม่ได้');return}
-  t=t.replace(/\r\n?/g,'\n');var isC=/"Code\s*:"/i.test(t.slice(0,4000));
-  var h=0;for(var i=0;i<buf.byteLength&&i<2e6;i++)h=(h*31+new Uint8Array(buf)[i])|0;
-  if(isC){TX.custs=txCusts(t);txCustStatus();TX.fn_c=f.name;TX.tab='c'}else{var P=txBills(txParse(t));TX.bills=P.bills;TX.foot=P.foot;TX.fn_b=f.name;txBillStatus();TX.tab='b'}
-  done++;if(done===files.length){TX.flt='all';rerender()}})})}
+function txLoad(name,t){t=t.replace(/\r\n?/g,'\n');var isC=/"Code\s*:"/i.test(t.slice(0,4000));
+ if(isC){TX.custs=txCusts(t);if(!TX.custs.length)throw new Error('ไม่พบรายชื่อลูกค้าในไฟล์ '+name);txCustStatus();TX.fn_c=name;TX.tab='c';return'ลูกค้า '+TX.custs.length+' ราย'}
+ var P=txBills(txParse(t));if(!P.bills.length)throw new Error('ไฟล์ '+name+' ไม่ใช่ไฟล์บิลหรือรายชื่อลูกค้า TTX');TX.bills=P.bills;TX.foot=P.foot;TX.fn_b=name;txBillStatus();TX.tab='b';return'บิล '+P.bills.length+' ใบ'}
+function txSave(k,name,t){try{sessionStorage.setItem('txraw_'+k,JSON.stringify({n:name,t:t}));sessionStorage.setItem('txpending','1')}catch(e){}}
+function txRestore(){if(!TX.restore)return;TX.restore=false;['b','c'].forEach(function(k){try{var r=JSON.parse(sessionStorage.getItem('txraw_'+k)||'null');if(r)txLoad(r.n,r.t);sessionStorage.removeItem('txraw_'+k)}catch(e){}});if(TX.bills.length||TX.custs.length)TX.msg='กู้ไฟล์ที่เลือกไว้กลับมาแล้ว (แอปโหลดใหม่ระหว่างเลือกไฟล์)'}
+function txRead(files){var list=Array.prototype.slice.call(files),ok=[],bad=[],i=0;TX.msg='กำลังอ่านไฟล์ '+list.length+' ไฟล์…';TX.err=0;rerender();toast(TX.msg);
+ function fin(){TX.msg=(ok.length?'อ่านแล้ว: '+ok.join(' · ')+(bad.length?'<br>':'') :'')+bad.join('<br>');TX.err=bad.length&&!ok.length?1:0;TX.flt='all';rerender();toast(ok.length?'อ่านไฟล์แล้ว · '+ok.join(' · '):'อ่านไฟล์ไม่ได้')}
+ function next(){if(i>=list.length)return fin();var f=list[i++];
+  if(/\.zip$/i.test(f.name)){bad.push(E(f.name)+': เป็นไฟล์ zip ให้แตกไฟล์ก่อน แล้วเลือกไฟล์ .ttx');return next()}
+  f.arrayBuffer().then(function(buf){var u=new Uint8Array(buf);if(u[0]===0x50&&u[1]===0x4B){throw new Error('เป็นไฟล์ zip ให้แตกไฟล์ก่อน')}
+   var t=new TextDecoder('windows-874').decode(buf);var r=txLoad(f.name,t);txSave(TX.tab,f.name,t);ok.push(r)}).catch(function(e){bad.push(E(f.name)+': '+E(e&&e.message||'อ่านไม่ได้'))}).then(next)}
+ next()}
 function txCounts(){var b=TX.bills,c=TX.custs;return{b:{n:b.length,new:b.filter(function(x){return x.st==='new'}).length,dup:b.filter(function(x){return x.st==='dup'||x.st==='dupf'}).length,can:b.filter(function(x){return x.st==='cancel'}).length,flag:b.filter(function(x){return x.flags.length&&x.st==='new'}).length,inc:b.filter(function(x){return x.inc}).length},
  c:{n:c.length,new:c.filter(function(x){return x.st==='new'}).length,dup:c.filter(function(x){return x.st==='dup'||x.st==='dupf'}).length,flag:c.filter(function(x){return x.flags.length&&x.st==='new'}).length,inc:c.filter(function(x){return x.inc}).length}}}
 function txBillRow(b,i){var tag=b.st==='new'?(b.flags.length?'<span class="pill p-amb">แก้ไขก่อน</span>':'<span class="pill p-grn">พร้อม</span>'):b.st==='cancel'?'<span class="pill p-gry">ยกเลิก-ข้าม</span>':'<span class="pill p-gry">มีแล้ว-ข้าม</span>';
  return '<div class="li" data-a="txb" data-v="'+i+'"><input type="checkbox" '+(b.inc?'checked ':'')+(b.st!=='new'&&!b.force?'':'')+'data-a="txbi" data-v="'+i+'" style="width:20px;height:20px;margin-right:8px"><span class="grow"><b>'+E(b.no)+' · '+E(dt(b.d))+' · '+money(b.tot||0)+'</b><span class="t">'+E(b.cid)+' '+E(b.name)+' · '+b.items.length+' รายการ · '+E(b.pay||'เงินสด')+(b.by?'/'+E(b.by):'')+'</span>'+(b.flags.length?'<span class="t" style="color:var(--red)">'+b.flags.map(E).join(' · ')+'</span>':'')+'</span>'+tag+'</div>'}
 function txCustRow(c,i){var tag=c.st==='new'?(c.flags.length?'<span class="pill p-amb">ตรวจ</span>':'<span class="pill p-grn">พร้อม</span>'):'<span class="pill p-gry">มีแล้ว-ข้าม</span>';
  return '<div class="li" data-a="txc" data-v="'+i+'"><input type="checkbox" '+(c.inc?'checked ':'')+'data-a="txci" data-v="'+i+'" style="width:20px;height:20px;margin-right:8px"><span class="grow"><b>'+E(c.id)+' · '+E(c.name)+'</b><span class="t">'+E(c.addrS)+' · '+E(c.ph.join(', ')||'-')+(c.owner?' · '+E(c.owner):'')+'</span>'+(c.flags.length?'<span class="t" style="color:var(--red)">'+c.flags.map(E).join(' · ')+'</span>':'')+'</span>'+tag+'</div>'}
-R.ttx=function(){var K=txCounts(),T=TX.tab,L=T==='b'?TX.bills:TX.custs,k=K[T],flt=TX.flt,
+R.ttx=function(){txRestore();var K=txCounts(),T=TX.tab,L=T==='b'?TX.bills:TX.custs,k=K[T],flt=TX.flt,
  show=[];L.forEach(function(x,i){var ok=flt==='all'||(flt==='flag'&&x.flags.length&&x.st==='new')||(flt==='new'&&x.st==='new')||(flt==='skip'&&x.st!=='new');if(ok)show.push([x,i])});
- var cap=300,body='<div class="sec"><div style="padding:8px 0">'+btn('เลือกไฟล์ .ttx (บิล / รายชื่อลูกค้า)','up','txf',null,'')+'<div class="t" style="margin-top:6px">เลือกได้ทั้งสองไฟล์พร้อมกัน ระบบแยกชนิดให้เอง · อ่านรหัส cp874 · ยังไม่เขียนลงชีตจนกว่าจะกดนำเข้า</div></div></div>';
+ var cap=300,body='<div class="sec"><div style="padding:8px 0">'+btn('เลือกไฟล์ .ttx (บิล / รายชื่อลูกค้า)','up','txf',null,'')+'<div class="t" style="margin-top:6px">เลือกได้ทั้งสองไฟล์พร้อมกัน ระบบแยกชนิดให้เอง · อ่านรหัส cp874 · ยังไม่เขียนลงชีตจนกว่าจะกดนำเข้า</div>'+(TX.msg?'<div class="note '+(TX.err?'w':'ok')+'" style="margin-top:8px">'+TX.msg+'</div>':'')+'</div></div>';
  if(TX.bills.length||TX.custs.length){
   body+='<div class="g2" style="margin-top:8px">'+btn('บิล ('+K.b.n+')',null,'txt','b',T==='b'?'':'o')+btn('ลูกค้า ('+K.c.n+')',null,'txt','c',T==='c'?'':'o')+'</div>';
   if(!L.length)body+=empty('ยังไม่ได้เลือกไฟล์ชนิดนี้');
@@ -921,7 +928,7 @@ R.ttx=function(){var K=txCounts(),T=TX.tab,L=T==='b'?TX.bills:TX.custs,k=K[T],fl
    body+='<div class="sec">'+show.slice(0,cap).map(function(p){return T==='b'?txBillRow(p[0],p[1]):txCustRow(p[0],p[1])}).join('')+'</div>'+(show.length>cap?'<div class="t">แสดง '+cap+' แรกจาก '+show.length+' · ใช้ตัวกรองเพื่อดูส่วนที่เหลือ</div>':'');
    body+='<div class="act" style="position:sticky;bottom:0;background:var(--bg,#fff);padding:8px 0">'+btn('นำเข้า '+(T==='b'?'บิล ':'ลูกค้า ')+k.inc+' รายการ',null,'txgo',null,k.inc?'':'o')+'</div>'}}
  page({title:'นำเข้า TTX',back:'back',bl:'หลังบ้าน',body:body,
-  on:{txf:function(){var i=document.createElement('input');i.type='file';i.multiple=true;i.onchange=function(){if(i.files.length)txRead(i.files)};i.click()},
+  on:{txf:function(){var old=document.getElementById('txin');if(old)old.remove();var i=document.createElement('input');i.id='txin';i.type='file';i.multiple=true;i.style.cssText='position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0';document.body.appendChild(i);i.addEventListener('change',function(){var fs=Array.prototype.slice.call(i.files||[]);if(fs.length)txRead(fs)});i.click()},
    txt:function(v){TX.tab=v;TX.flt='all';rerender()},txfl:function(v){TX.flt=v;rerender()},
    txbi:function(v){var b=TX.bills[+v];b.inc=!b.inc;rerender()},txci:function(v){var c=TX.custs[+v];c.inc=!c.inc;rerender()},
    txb:function(v){txEditBill(+v)},txc:function(v){txEditCust(+v)},txgo:function(){T==='b'?txGoBills():txGoCusts()}}})};
@@ -981,7 +988,7 @@ R.check=function(){var ph={};DB.customers.forEach(function(c){c.ph.forEach(funct
 // 28) เริ่มระบบ
 // =====================================================================
 Store.open().then(function(){return Store.get(KEY)}).then(function(d){DB=d&&d.v===2?d:emptyDB();if(!DB.cfg.device)DB.cfg.device='D-'+uid();reindex();
- if(DB.user){CUR='home';Backup.daily()}route();
+ if(DB.user){CUR='home';try{if(sessionStorage.getItem('txpending')==='1'){CUR='ttx';TX.restore=true;sessionStorage.removeItem('txpending')}}catch(e){}Backup.daily()}route();
  Sheet.init().then(function(m){refreshStatus();if(!m||!DB.user)return;
   if(DB.src!=='sheet')firstPull();else pull().then(function(){rerender();Sync.run()},function(){Sync.run()})})});
 </script></body></html>
