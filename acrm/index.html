@@ -53,6 +53,7 @@ a{color:inherit;text-decoration:none}button,input,select,textarea{font:inherit;c
 /* ===== ฟอร์ม ===== */
 input,select,textarea{width:100%;min-height:46px;font-size:16px;border:1px solid var(--ln);border-radius:10px;padding:8px 11px;background:#fff}textarea{min-height:76px;resize:vertical}
 label.l{display:block;font-size:12px;color:var(--mu);margin:8px 0 3px}.er{color:#c62828;font-size:12px;margin-top:3px}.er:empty{display:none}
+.xw{position:relative;display:block}.xi{padding-right:36px!important}.xc{position:absolute;right:6px;top:50%;margin-top:-13px;width:26px;height:26px;border:0;border-radius:13px;background:#d5dae6;color:#475069;font-size:18px;line-height:1;display:none;align-items:center;justify-content:center;padding:0;cursor:pointer}.xc.xt{top:8px;margin-top:0}
 .sr{position:relative}.sr .ic{position:absolute;left:12px;top:50%;margin-top:-9px;width:18px;height:18px;color:var(--mu);pointer-events:none}.sr input{padding-left:38px}
 /* ===== ตาราง / รายการ ===== */
 .tb{width:100%;border-collapse:collapse;font-size:12.5px}.tb th{color:var(--mu);font-weight:500;text-align:left;padding:7px 4px 5px;border-bottom:1px solid var(--ln)}.tb td{padding:6px 4px;border-bottom:1px solid var(--ln2);vertical-align:middle}.tb tr:last-child td{border-bottom:0}.tb .r{text-align:right;white-space:nowrap}.tb td .t{font-size:11px}
@@ -182,7 +183,6 @@ function bt(b){return b.items.reduce(function(s,i){return s+i.q*i.p},0)}
 function bn(no){return 'TN'+String(+TD.slice(0,4)+543).slice(-2)+'/'+no}
 function prod(c){return one(DB.products,'c',c)}
 function unit(c){var p=prod(c);return p&&p.u||'ชิ้น'}
-function custMatch(c,q){q=q.toLowerCase();var dq=digits(q);return [c.id,c.name,c.alias,c.type,c.owner,c.area,c.addr].join(' ').toLowerCase().indexOf(q)>-1||(dq.length>=3&&c.ph.some(function(p){return digits(p).indexOf(dq)>-1}))}
 function samePhone(ph,exceptId){var d=digits(ph);if(d.length<8)return null;return DB.customers.filter(function(c){return c.id!==exceptId&&c.ph.some(function(p){return digits(p)===d})})[0]||null}
 
 // รอบซื้อ = มัธยฐานของช่วงห่างระหว่างวันที่ซื้อ (ต้องมีอย่างน้อย 2 วัน)
@@ -303,7 +303,7 @@ function custCard(c,y,extra){y=y||cyc(c.id);return '<div class="cr" style="borde
 // =====================================================================
 function toast(m){var t=document.getElementById('toast');if(!t)return;t.textContent=m;t.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(function(){t.style.display='none'},2600)}
 function closeModal(){var m=document.querySelector('.mod');if(m)m.remove()}
-function modal(html,full){closeModal();var m=document.createElement('div');m.className='mod'+(full?' full':'');m.innerHTML='<div>'+html+'</div>';m.addEventListener('click',function(e){if(e.target===m)m.remove()});document.getElementById('app').appendChild(m);return m}
+function modal(html,full){closeModal();var m=document.createElement('div');m.className='mod'+(full?' full':'');m.innerHTML='<div>'+html+'</div>';m.addEventListener('click',function(e){if(e.target===m)m.remove()});document.getElementById('app').appendChild(m);addClear(m);return m}
 function ask(title,body,yes,fn,danger){modal('<div class="tl" style="font-size:15px">'+title+'</div>'+(body?'<div style="margin-top:6px">'+body+'</div>':'')+'<div class="g2" style="margin-top:14px">'+btn('ยกเลิก',null,'close',null,'o')+btn(yes,null,'askOk',null,danger?'d':'')+'</div>');PA.askOk=function(){if(fn()!==false)closeModal()}}
 function editText(title,cur,opt,fn){ask(title,'<textarea id="ev" '+(opt||'')+'>'+E(cur||'')+'</textarea>','บันทึก',function(){return fn(document.getElementById('ev').value.trim())})}
 function showImg(src,title){modal((title?'<div class="tl">'+E(title)+'</div><div class="t">กดค้างที่รูปเพื่อบันทึกหรือแชร์</div>':'')+'<img src="'+src+'" alt="" style="width:100%;border-radius:10px;margin-top:8px">'+btn('ปิด',null,'close',null,'o'))}
@@ -337,7 +337,7 @@ function nav(on){return '<nav class="nv">'+[['home','หน้าหลัก','
 function page(o){var top=o.back||o.title?'<div class="top">'+(o.back?'<a class="bk" data-a="back" data-v="'+o.back+'">'+ic('back')+E(o.bl||'กลับ')+'</a>':'')+(o.title?'<h1>'+E(o.title)+'</h1>':'<span style="flex:1"></span>')+(o.right?'<span class="t">'+o.right+'</span>':'')+'</div>'+(o.sub?'<div class="t" style="margin-top:-6px">'+o.sub+'</div>':''):'';
  var tab=CUR==='login'?'':TAB[CUR.split('/')[0]]||'back',app=document.getElementById('app');
  app.innerHTML=(CUR==='login'?'':header())+'<main class="bd" id="bd">'+top+o.body+(o.foot?'<div class="act">'+o.foot+'</div>':'')+'</main>'+(tab?nav(tab):'')+'<div id="toast"></div>';
- PA=o.on||{};PA._txt=o.txt||{};if(o.after)o.after()}
+ PA=o.on||{};PA._txt=o.txt||{};addClear(app);if(o.after)o.after()}
 function rerender(){var b=document.getElementById('bd'),y=b?b.scrollTop:0;route();b=document.getElementById('bd');if(b)b.scrollTop=y}
 function onInput(sel,fn){var e=document.querySelector(sel);if(e)e.addEventListener('input',fn)}
 // =====================================================================
@@ -505,13 +505,58 @@ function firstPull(){toast('กำลังโหลดข้อมูลจา�
 // =====================================================================
 function salesOf(ym){return DB.bills.filter(function(b){return b.d.slice(0,7)===ym}).reduce(function(s,b){return s+bt(b)},0)}
 function ranked(){return DB.customers.filter(function(c){return c.status!=='closed'}).map(function(c){return{c:c,y:cyc(c.id)}}).sort(function(a,b){return (a.y.rank-b.y.rank)||((b.y.r||0)-(a.y.r||0))})}
-function quickList(q){var r=DB.customers.filter(function(c){return custMatch(c,q)});return '<div class="sec">'+(r.slice(0,6).map(function(c){var y=cyc(c.id);return '<a class="li" href="#cust/'+c.id+'"><span class="grow"><b>'+c.id+' · '+E(c.name)+'</b><span class="t">'+E(c.type||'-')+(c.area?' · '+E(c.area):'')+'</span></span>'+pill(y.lbl,y.cls)+'</a>'}).join('')
- ||empty('ไม่พบร้าน "'+E(q)+'" · ลองชื่อ รหัส เบอร์ หรือพื้นที่'))+(r.length>6?'<a class="li" href="#customers" data-a="allRes" data-v="'+E(q)+'"><b class="lk">ดูทั้งหมด '+r.length+' ร้าน</b></a>':'')+'</div>'}
+// ===== ค้นหาอัจฉริยะ: หลายคำ (และ) · ตัวอักษรบางส่วน · ชื่อ/ป้าย/ชื่อเรียก/เบอร์บางส่วน · เลขบิล · วันที่ · เดือน · สินค้าที่เคยซื้อ =====
+var THM=[['มกราคม','ม.ค.'],['กุมภาพันธ์','ก.พ.'],['มีนาคม','มี.ค.'],['เมษายน','เม.ย.'],['พฤษภาคม','พ.ค.'],['มิถุนายน','มิ.ย.'],['กรกฎาคม','ก.ค.'],['สิงหาคม','ส.ค.'],['กันยายน','ก.ย.'],['ตุลาคม','ต.ค.'],['พฤศจิกายน','พ.ย.'],['ธันวาคม','ธ.ค.']];
+function nz(s){return String(s==null?'':s).toLowerCase().replace(/[\s.\-_()\/,"'*:;|]+/g,'')}
+function sxYear(y){y=+y;if(y<100)return 1957+y;if(y>=2400)return y-543;return y}
+function sxMonthName(s){var k=nz(s);if(!k)return 0;for(var i=0;i<12;i++){if(nz(THM[i][0])===k||nz(THM[i][1])===k)return i+1}return 0}
+function sxPred(raw){var m,y=null,mo=null,d=null;
+ if(m=/^(\d{4})-(\d{1,2})(?:-(\d{1,2}))?$/.exec(raw)){y=+m[1];mo=+m[2];d=m[3]?+m[3]:null}
+ else if(m=/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})$/.exec(raw)){d=+m[1];mo=+m[2];y=sxYear(m[3])}
+ else if(m=/^(\d{1,2})[\/.\-](\d{2,4})$/.exec(raw)){if(+m[2]>12||m[2].length>2){mo=+m[1];y=sxYear(m[2])}else{d=+m[1];mo=+m[2]}}
+ else if(m=/^([^\d\s]+?)\.?(\d{2}|\d{4})?$/.exec(raw)){mo=sxMonthName(m[1]);if(!mo)return null;if(m[2])y=sxYear(m[2])}
+ else if(m=/^(25\d\d|26\d\d)$/.exec(raw)){y=sxYear(raw)}
+ else return null;
+ if(mo!=null&&(mo<1||mo>12))return null;
+ return function(iso){if(!iso)return false;return (y==null||+iso.slice(0,4)===y)&&(mo==null||+iso.slice(5,7)===mo)&&(d==null||+iso.slice(8,10)===d)}}
+var SX={nb:-1,no:-1,list:[],by:{},q:null,tk:null};
+function sxBuild(){if(SX.nb===DB.bills.length&&SX.no===DB.orders.length)return;SX.nb=DB.bills.length;SX.no=DB.orders.length;SX.list=[];SX.by={};
+ var add=function(e){SX.list.push(e);(SX.by[e.cid]=SX.by[e.cid]||[]).push(e)};
+ DB.bills.forEach(function(b){var d=b.d,mo=+d.slice(5,7)-1;add({k:'b',no:b.no,cid:b.cid,d:d,h:nz([b.no,d,dtFull(d),dt(d),THM[mo]?THM[mo][0]+THM[mo][1]:'',+d.slice(0,4)+543,b.pay,b.by,b.items.map(function(i){return i.c+' '+i.n}).join(' ')].join(' '))})});
+ DB.orders.forEach(function(o){var d=(o.at||'').slice(0,10),mo=+d.slice(5,7)-1;add({k:'o',no:o.no,cid:o.cid,d:d,h:nz([o.no,d,d?dtFull(d):'',d?dt(d):'',THM[mo]?THM[mo][0]+THM[mo][1]:'',o.pay,o.st,o.note,o.billNo,(o.items||[]).map(function(i){return i.c+' '+i.n}).join(' ')].join(' '))})})}
+function sxTokens(q){if(SX.q===q)return SX.tk;SX.q=q;SX.tk=String(q).trim().split(/\s+/).filter(Boolean).map(function(r){return{t:nz(r),pred:sxPred(r)}}).filter(function(t){return t.t||t.pred});return SX.tk}
+function sxEnt(e,t){return (t.pred&&t.pred(e.d))||(t.t&&e.h.indexOf(t.t)>-1)}
+function sxOwn(c,t){return t.t&&nz([c.id,c.name,c.alias,c.type,c.owner,c.area,c.addr,c.note,(c.tags||[]).join(' '),c.ph.join(' ')].join(' ')).indexOf(t.t)>-1}
+function sxCust(c,q){var T=sxTokens(q);if(!T.length)return null;sxBuild();var by=SX.by[c.id]||[],why=null;
+ for(var i=0;i<T.length;i++){var t=T[i];if(sxOwn(c,t))continue;var hit=null;for(var j=0;j<by.length;j++)if(sxEnt(by[j],t)){hit=by[j];break}if(!hit)return null;if(!why)why=hit}
+ return{why:why}}
+function custMatch(c,q){return !!sxCust(c,q)}
+function sxBills(q){var T=sxTokens(q);if(!T.length)return[];sxBuild();var out=[];
+ for(var i=0;i<SX.list.length;i++){var e=SX.list[i];if(e.k!=='b')continue;var c=cust(e.cid),ch=c?nz(c.name+' '+(c.alias||'')+' '+e.cid):e.cid,ok=true;
+  for(var j=0;j<T.length;j++){if(!sxEnt(e,T[j])&&!(T[j].t&&ch.indexOf(T[j].t)>-1)){ok=false;break}}
+  if(ok)out.push(e)}
+ return out.sort(function(a,b){return a.d<b.d?1:a.d>b.d?-1:0})}
+function quickList(q){sxBuild();var rows=[],own=[],via=[];DB.customers.forEach(function(c){var m=sxCust(c,q);if(m)(m.why?via:own).push({c:c,why:m.why})});var r=own.concat(via),B=sxBills(q);
+ var crow=function(x){var c=x.c,y=cyc(c.id),w=x.why;return '<a class="li" href="#cust/'+c.id+'"><span class="grow"><b>'+c.id+' · '+E(c.name)+'</b><span class="t">'+(w?(w.k==='b'?'บิล ':'ออเดอร์ ')+E(w.no)+' · '+dt(w.d):E(c.type||'-')+(c.area?' · '+E(c.area):''))+'</span></span>'+pill(y.lbl,y.cls)+'</a>'};
+ var brow=function(e){var b=one(DB.bills,'no',e.no),c=cust(e.cid);return '<a class="li" href="#bill/'+E(e.no)+'"><span class="grow"><b>บิล '+E(e.no)+' · '+dt(e.d)+'</b><span class="t">'+E(c?c.name:e.cid)+(b?' · '+money(bt(b)):'')+'</span></span>'+ic('chev')+'</a>'};
+ var h='';if(r.length)h+=sec('ร้านค้า ('+r.length+')','',r.slice(0,6).map(crow).join('')+(r.length>6?'<a class="li" href="#customers" data-a="allRes" data-v="'+E(q)+'"><b class="lk">ดูทั้งหมด '+r.length+' ร้าน</b></a>':''));
+ if(B.length)h+=sec('บิล ('+B.length+')','',B.slice(0,6).map(brow).join('')+(B.length>6?'<a class="li" href="#bills"><b class="lk">ดูบิลทั้งหมดที่หน้าบิลขาย ('+B.length+')</b></a>':''));
+ return h||'<div class="sec">'+empty('ไม่พบ "'+E(q)+'" · ลองชื่อ รหัส เบอร์ ป้ายกำกับ เลขบิล วันที่ หรือเดือน เช่น พ.ย. 69')+'</div>'}
 A.allRes=function(q){R.customers.q=q;go('customers')};
+// ===== ปุ่มกากบาทล้างข้อความในทุกช่องที่พิมพ์ได้ =====
+function addClear(root){var els=(root||document).querySelectorAll('input,textarea');
+ Array.prototype.forEach.call(els,function(el){if(el._xc)return;var ty=(el.type||'text').toLowerCase();if(['text','search','tel','email','number','url',''].indexOf(ty)<0||el.readOnly||el.disabled||(el.style&&el.style.width))return;el._xc=1;
+  var w=document.createElement('span');w.className='xw';el.parentNode.insertBefore(w,el);w.appendChild(el);el.classList.add('xi');
+  var b=document.createElement('button');b.type='button';b.className='xc'+(el.tagName==='TEXTAREA'?' xt':'');b.setAttribute('aria-label','ล้างข้อความ');b.tabIndex=-1;b.innerHTML='&times;';w.appendChild(b);
+  var sync=function(){b.style.display=el.value?'flex':'none'};sync();
+  el.addEventListener('input',sync);el.addEventListener('change',sync);el.addEventListener('focus',sync);
+  var clr=function(e){e.preventDefault();e.stopPropagation();el.value='';sync();el.dispatchEvent(new Event('input',{bubbles:true}));el.focus()};
+  b.addEventListener('mousedown',function(e){e.preventDefault()});b.addEventListener('touchstart',function(e){e.preventDefault();clr(e)},{passive:false});b.addEventListener('click',clr)})}
+
 R.home=function(){var L=ranked(),need=L.filter(function(x){return x.y.rank<=2}),cm=ymOf(0),pm=ymOf(1),cur=salesOf(cm),prev=salesOf(pm),pc=prev?Math.round((cur-prev)/prev*100):0,
  due=DB.tasks.filter(function(t){return !t.done&&t.due<=TD}).length,wait=DB.orders.filter(function(o){return o.st==='รอส่ง'}).length;
  var row=function(n,cls,t,s,h){return '<a class="li" href="#'+h+'"><span class="pill '+cls+'" style="min-width:40px;text-align:center;font-size:15px">'+n+'</span><span class="grow"><b>'+t+'</b><span class="t">'+s+'</span></span>'+ic('chev')+'</a>'};
- page({body:srch('ค้นหา ชื่อ / รหัส / เบอร์ / พื้นที่')+'<div id="hs"></div>'
+ page({body:srch('ค้นหาอะไรก็ได้ ชื่อ · รหัส · เบอร์ · ป้าย · เลขบิล · เดือน')+'<div id="hs"></div>'
   +sec('งานวันนี้','',row(need.length,'p-red','ต้องตามรอบซื้อ','เลยรอบ '+need.filter(function(x){return x.y.st==='OVER'}).length+' · ถึงรอบ '+need.filter(function(x){return x.y.st==='DUE'}).length+' · ใกล้ถึง '+need.filter(function(x){return x.y.st==='NEAR'}).length,'cycle')
    +row(due,'p-amb','งานถึงกำหนด','โทรกลับ · นัดหมาย · ติดตาม','tasks')+row(wait,'p-blu','ออเดอร์รอส่ง','แตะเพื่อดูรายการ','orders'))
   +'<div class="g4"><a class="ab p" href="#order">'+ic('cart')+'รับออเดอร์</a><a class="ab" href="#cycle">'+ic('clock')+'รอบลูกค้า</a><a class="ab" href="#map">'+ic('map')+'แผนที่</a><a class="ab" href="#cform/new">'+ic('plus')+'ร้านใหม่</a></div>'
