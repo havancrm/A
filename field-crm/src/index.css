@@ -1,0 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+body{margin:0}
+.print-only{display:none}
+@media print{#root{display:none!important}.print-only{display:block!important}body{background:#fff!important}.print-only>div{box-shadow:none!important;max-width:none!important}}
