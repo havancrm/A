@@ -853,7 +853,7 @@ function drawBackup(L){
 // 26b) นำเข้าไฟล์ TTX (บิล / รายชื่อลูกค้า): อ่าน → ตรวจ → แก้ไข → นำเข้า
 // =====================================================================
 var TXCANCEL=['369594','371233','371897','372332','385818'];
-var TX={files:[],bills:[],custs:[],footer:null,tab:'b',flt:'all'};
+var TX={files:[],bills:[],custs:[],footer:null,tab:'b',flt:'all',q:''};
 function txParse(text){var rows=[],r=[],f='',q=false,st=true,i=0,n=text.length,c;
  for(;i<n;i++){c=text[i];
   if(q){if(c==='"'){if(text[i+1]==='"'){f+='"';i++}else q=false}else f+=c;continue}
@@ -911,26 +911,41 @@ function txRead(files){var list=Array.prototype.slice.call(files),ok=[],bad=[],i
  next()}
 function txCounts(){var b=TX.bills,c=TX.custs;return{b:{n:b.length,new:b.filter(function(x){return x.st==='new'}).length,dup:b.filter(function(x){return x.st==='dup'||x.st==='dupf'}).length,can:b.filter(function(x){return x.st==='cancel'}).length,flag:b.filter(function(x){return x.flags.length&&x.st==='new'}).length,inc:b.filter(function(x){return x.inc}).length},
  c:{n:c.length,new:c.filter(function(x){return x.st==='new'}).length,dup:c.filter(function(x){return x.st==='dup'||x.st==='dupf'}).length,flag:c.filter(function(x){return x.flags.length&&x.st==='new'}).length,inc:c.filter(function(x){return x.inc}).length}}}
-function txBillRow(b,i){var tag=b.st==='new'?(b.flags.length?'<span class="pill p-amb">แก้ไขก่อน</span>':'<span class="pill p-grn">พร้อม</span>'):b.st==='cancel'?'<span class="pill p-gry">ยกเลิก-ข้าม</span>':'<span class="pill p-gry">มีแล้ว-ข้าม</span>';
- return '<div class="li" data-a="txb" data-v="'+i+'"><input type="checkbox" '+(b.inc?'checked ':'')+(b.st!=='new'&&!b.force?'':'')+'data-a="txbi" data-v="'+i+'" style="width:20px;height:20px;margin-right:8px"><span class="grow"><b>'+E(b.no)+' · '+E(dt(b.d))+' · '+money(b.tot||0)+'</b><span class="t">'+E(b.cid)+' '+E(b.name)+' · '+b.items.length+' รายการ · '+E(b.pay||'เงินสด')+(b.by?'/'+E(b.by):'')+'</span>'+(b.flags.length?'<span class="t" style="color:var(--red)">'+b.flags.map(E).join(' · ')+'</span>':'')+'</span>'+tag+'</div>'}
-function txCustRow(c,i){var tag=c.st==='new'?(c.flags.length?'<span class="pill p-amb">ตรวจ</span>':'<span class="pill p-grn">พร้อม</span>'):'<span class="pill p-gry">มีแล้ว-ข้าม</span>';
- return '<div class="li" data-a="txc" data-v="'+i+'"><input type="checkbox" '+(c.inc?'checked ':'')+'data-a="txci" data-v="'+i+'" style="width:20px;height:20px;margin-right:8px"><span class="grow"><b>'+E(c.id)+' · '+E(c.name)+'</b><span class="t">'+E(c.addrS)+' · '+E(c.ph.join(', ')||'-')+(c.owner?' · '+E(c.owner):'')+'</span>'+(c.flags.length?'<span class="t" style="color:var(--red)">'+c.flags.map(E).join(' · ')+'</span>':'')+'</span>'+tag+'</div>'}
+function txStat(x){return x.st==='new'?(x.flags.length?'<span class="pill p-amb">ต้องตรวจ</span>':'<span class="pill p-grn">พร้อม</span>'):x.st==='cancel'?'<span class="pill p-gry">ยกเลิก</span>':'<span class="pill p-gry">มีแล้ว</span>'}
+function txBillRow(b,i){return '<div class="li" data-a="txb" data-v="'+i+'"><input type="checkbox" '+(b.inc?'checked ':'')+(b.st!=='new'?'disabled ':'')+'data-a="txbi" data-v="'+i+'" style="width:22px;height:22px;min-height:0;flex:none"><span class="grow"><b>'+E(b.no)+' · '+E(dt(b.d))+' · '+money(b.tot||0)+'</b><span class="t">'+E(b.cid)+' '+E(b.name)+' · '+b.items.length+' รายการ · '+E(b.pay||'เงินสด')+(b.by?'/'+E(b.by):'')+'</span>'+(b.flags.length?'<span class="t" style="color:var(--red)">'+b.flags.map(E).join(' · ')+'</span>':'')+'</span><span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">'+txStat(b)+'<span class="lk" style="font-size:12px">แก้ไข</span></span></div>'}
+function txCustRow(c,i){return '<div class="li" data-a="txc" data-v="'+i+'"><input type="checkbox" '+(c.inc?'checked ':'')+(c.st!=='new'?'disabled ':'')+'data-a="txci" data-v="'+i+'" style="width:22px;height:22px;min-height:0;flex:none"><span class="grow"><b>'+E(c.id)+' · '+E(c.name)+'</b><span class="t">'+E(c.addrS||'-')+' · '+E(c.ph.join(', ')||'-')+(c.owner?' · '+E(c.owner):'')+'</span>'+(c.flags.length?'<span class="t" style="color:var(--red)">'+c.flags.map(E).join(' · ')+'</span>':'')+'</span><span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">'+txStat(c)+'<span class="lk" style="font-size:12px">แก้ไข</span></span></div>'}
+function txVisible(){var T=TX.tab,L=T==='b'?TX.bills:TX.custs,flt=TX.flt,tk=String(TX.q||'').trim().split(/\s+/).filter(Boolean).map(function(r){return{t:nz(r),p:T==='b'?sxPred(r):null}}).filter(function(t){return t.t||t.p}),out=[];
+ L.forEach(function(x,i){if(!(flt==='all'||(flt==='flag'&&x.flags.length&&x.st==='new')||(flt==='new'&&x.st==='new')||(flt==='skip'&&x.st!=='new')))return;
+  if(tk.length){var h=nz(T==='b'?[x.no,x.d,dtFull(x.d),dt(x.d),x.cid,x.name,x.pay,x.by,x.ph,x.items.map(function(m){return m.c+' '+m.n}).join(' '),x.flags.join(' ')].join(' '):[x.id,x.name,x.addrS,x.ph.join(' '),x.owner,x.tel,x.flags.join(' ')].join(' '));
+   for(var j=0;j<tk.length;j++){if(!((tk[j].p&&tk[j].p(x.d))||(tk[j].t&&h.indexOf(tk[j].t)>-1)))return}}
+  out.push([x,i])});return out}
+function txListHtml(){var T=TX.tab,show=txVisible(),cap=200;if(!show.length)return empty(TX.q?'ไม่พบรายการที่ค้นหา':'ไม่มีรายการในตัวกรองนี้');
+ return show.slice(0,cap).map(function(p){return T==='b'?txBillRow(p[0],p[1]):txCustRow(p[0],p[1])}).join('')+(show.length>cap?'<div class="t" style="padding:10px 0">แสดง '+cap+' แรกจาก '+show.length+' รายการ · พิมพ์ค้นหาหรือเปลี่ยนตัวกรองเพื่อดูส่วนที่เหลือ</div>':'')}
+function txActs(){var T=TX.tab,show=txVisible(),sel=show.filter(function(p){return p[0].st==='new'}),on=sel.filter(function(p){return p[0].inc}).length,K=txCounts()[T];
+ return {top:btn('เลือกทั้งหมด ('+sel.length+')',null,'txall',null,sel.length&&on<sel.length?'':'o')+btn('ไม่เลือกเลย',null,'txnone',null,'o'),
+  info:'เลือกแล้ว '+K.inc+' จาก '+K.new+' รายการใหม่'+(show.length!==(T==='b'?TX.bills.length:TX.custs.length)?' · ในรายการที่แสดง '+on+'/'+sel.length:''),
+  go:btn('นำเข้า '+(T==='b'?'บิล ':'ลูกค้า ')+K.inc+' รายการ',null,'txgo',null,K.inc?'':'o')}}
+function txRefresh(){var l=document.getElementById('txl');if(!l)return;var a=txActs();l.innerHTML=txListHtml();var x;if(x=document.getElementById('txa1'))x.innerHTML=a.top;if(x=document.getElementById('txa2'))x.innerHTML=a.info;if(x=document.getElementById('txa3'))x.innerHTML=a.go}
 R.ttx=function(){txRestore();var K=txCounts(),T=TX.tab,L=T==='b'?TX.bills:TX.custs,k=K[T],flt=TX.flt,
- show=[];L.forEach(function(x,i){var ok=flt==='all'||(flt==='flag'&&x.flags.length&&x.st==='new')||(flt==='new'&&x.st==='new')||(flt==='skip'&&x.st!=='new');if(ok)show.push([x,i])});
- var cap=300,body='<div class="sec"><div style="padding:8px 0">'+btn('เลือกไฟล์ .ttx (บิล / รายชื่อลูกค้า)','up','txf',null,'')+'<div class="t" style="margin-top:6px">เลือกได้ทั้งสองไฟล์พร้อมกัน ระบบแยกชนิดให้เอง · อ่านรหัส cp874 · ยังไม่เขียนลงชีตจนกว่าจะกดนำเข้า</div>'+(TX.msg?'<div class="note '+(TX.err?'w':'ok')+'" style="margin-top:8px">'+TX.msg+'</div>':'')+'</div></div>';
+ body='<div class="sec"><div style="padding:8px 0">'+btn('เลือกไฟล์ .ttx (บิล / รายชื่อลูกค้า)','up','txf',null,'')+'<div class="t" style="margin-top:6px">เลือกได้ทั้งสองไฟล์พร้อมกัน ระบบแยกชนิดให้เอง · อ่านรหัส cp874 · ยังไม่เขียนลงชีตจนกว่าจะกดนำเข้า</div>'+(TX.msg?'<div class="note '+(TX.err?'w':'ok')+'" style="margin-top:8px">'+TX.msg+'</div>':'')+'</div></div>';
  if(TX.bills.length||TX.custs.length){
   body+='<div class="g2" style="margin-top:8px">'+btn('บิล ('+K.b.n+')',null,'txt','b',T==='b'?'':'o')+btn('ลูกค้า ('+K.c.n+')',null,'txt','c',T==='c'?'':'o')+'</div>';
   if(!L.length)body+=empty('ยังไม่ได้เลือกไฟล์ชนิดนี้');
-  else{
+  else{var a=txActs();
    body+='<div class="g4" style="margin-top:8px"><div class="kp" style="cursor:default"><b>'+k.new+'</b>ใหม่</div><div class="kp" style="cursor:default"><b>'+k.flag+'</b>ต้องตรวจ</div><div class="kp" style="cursor:default"><b>'+k.dup+'</b>มีแล้ว</div><div class="kp" style="cursor:default"><b>'+(T==='b'?K.b.can:0)+'</b>ยกเลิก</div></div>';
    if(T==='b'&&TX.foot){var s=0;TX.bills.forEach(function(b){s+=b.tot||0});body+='<div class="t" style="margin:8px 0">ท้ายไฟล์: ยอดรวม '+money(TX.foot.a)+' · คำนวณจากรายการ '+money(s)+(Math.abs(s-TX.foot.a)<1?' ✓ ตรง':' ✗ ไม่ตรง (ต่าง '+money(s-TX.foot.a)+')')+'</div>'}
-   body+='<div class="g4" style="margin-top:6px">'+[['all','ทั้งหมด'],['new','ใหม่'],['flag','ต้องตรวจ'],['skip','ข้าม']].map(function(x){return btn(x[1],null,'txfl',x[0],flt===x[0]?'sm':'o sm')}).join('')+'</div>';
-   body+='<div class="sec">'+show.slice(0,cap).map(function(p){return T==='b'?txBillRow(p[0],p[1]):txCustRow(p[0],p[1])}).join('')+'</div>'+(show.length>cap?'<div class="t">แสดง '+cap+' แรกจาก '+show.length+' · ใช้ตัวกรองเพื่อดูส่วนที่เหลือ</div>':'');
-   body+='<div class="act" style="position:sticky;bottom:0;background:var(--bg,#fff);padding:8px 0">'+btn('นำเข้า '+(T==='b'?'บิล ':'ลูกค้า ')+k.inc+' รายการ',null,'txgo',null,k.inc?'':'o')+'</div>'}}
+   body+='<div class="g4" style="margin-top:8px">'+[['all','ทั้งหมด'],['new','ใหม่'],['flag','ต้องตรวจ'],['skip','ข้าม']].map(function(x){return btn(x[1],null,'txfl',x[0],flt===x[0]?'sm':'o sm')}).join('')+'</div>'
+    +'<div style="margin-top:10px">'+srch('ค้นหาในรายการ รหัส · ชื่อ · เบอร์ · เลขบิล · วันที่ · สินค้า',TX.q)+'</div>'
+    +'<div class="g2" style="margin-top:10px" id="txa1">'+a.top+'</div><div class="t" style="margin:8px 0" id="txa2">'+a.info+'</div>'
+    +'<div class="t" style="margin-bottom:4px">แตะรายการเพื่อแก้ไขข้อมูลก่อนนำเข้า · ติ๊กช่องซ้ายเพื่อเลือก/ไม่เลือก</div>'
+    +'<div class="sec" id="txl">'+txListHtml()+'</div>'
+    +'<div style="margin:12px 0 24px" id="txa3">'+a.go+'</div>'}}
  page({title:'นำเข้า TTX',back:'back',bl:'หลังบ้าน',body:body,
+  after:function(){onInput('#q',function(){TX.q=this.value;txRefresh()})},
   on:{txf:function(){var old=document.getElementById('txin');if(old)old.remove();var i=document.createElement('input');i.id='txin';i.type='file';i.multiple=true;i.style.cssText='position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0';document.body.appendChild(i);i.addEventListener('change',function(){var fs=Array.prototype.slice.call(i.files||[]);if(fs.length)txRead(fs)});i.click()},
-   txt:function(v){TX.tab=v;TX.flt='all';rerender()},txfl:function(v){TX.flt=v;rerender()},
-   txbi:function(v){var b=TX.bills[+v];b.inc=!b.inc;rerender()},txci:function(v){var c=TX.custs[+v];c.inc=!c.inc;rerender()},
+   txt:function(v){TX.tab=v;TX.flt='all';TX.q='';rerender()},txfl:function(v){TX.flt=v;rerender()},
+   txbi:function(v){var b=TX.bills[+v];if(b.st==='new')b.inc=!b.inc;rerender()},txci:function(v){var c=TX.custs[+v];if(c.st==='new')c.inc=!c.inc;rerender()},
+   txall:function(){txVisible().forEach(function(p){if(p[0].st==='new')p[0].inc=true});rerender()},txnone:function(){txVisible().forEach(function(p){p[0].inc=false});rerender()},
    txb:function(v){txEditBill(+v)},txc:function(v){txEditCust(+v)},txgo:function(){T==='b'?txGoBills():txGoCusts()}}})};
 function txEditBill(i){var b=TX.bills[i];
  var its=b.items.map(function(x,n){return '<div class="kv" style="gap:4px;align-items:center"><span style="width:44px;font-size:12px">'+E(x.c)+'</span><span style="flex:1;font-size:12px">'+E(x.n)+'</span><input id="tq'+n+'" value="'+x.q+'" inputmode="decimal" style="width:52px"><input id="tp'+n+'" value="'+x.p+'" inputmode="decimal" style="width:70px"><a class="lk" data-a="txdl" data-v="'+n+'">ลบ</a></div>'}).join('');
