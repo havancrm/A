@@ -222,8 +222,12 @@ function timeline(id){var L=[];
 
 // ข้อความส่ง LINE
 function monthsOf(id){var s={};billsOf(id).forEach(function(b){s[b.d.slice(0,7)]=1});return Object.keys(s).sort().reverse()}
-function stmtText(c,ym){var L=billsOf(c.id).filter(function(b){return b.d.slice(0,7)===ym}).reverse(),tot=L.reduce(function(s,b){return s+bt(b)},0);
- return 'หจก.ฮาแวน คอสเมติค\nแจ้งยอดซื้อ '+ymLabel(ym)+'\nร้าน '+c.name+' (#'+c.id+')\n\n'+L.map(function(b,i){return (i+1)+'. '+dt(b.d)+' • '+bn(b.no)+'  '+money(bt(b))}).join('\n')+'\n\nรวม '+L.length+' บิล '+money(tot)+' บาท\nขอบคุณที่อุดหนุนครับ'}
+var STH='หจก.ฮาแวน คอสเมติค',STF='ขอบคุณที่อุดหนุนครับ';
+function stmtHead(){return DB.cfg.stmtHead==null?STH:DB.cfg.stmtHead}
+function stmtFoot(){return DB.cfg.stmtFoot==null?STF:DB.cfg.stmtFoot}
+function stmtText(c,ym,h,f){var L=billsOf(c.id).filter(function(b){return b.d.slice(0,7)===ym}).reverse(),tot=L.reduce(function(s,b){return s+bt(b)},0);
+ h=h==null?stmtHead():h;f=f==null?stmtFoot():f;
+ return (h?h+'\n':'')+'แจ้งยอดซื้อ '+ymLabel(ym)+'\nร้าน '+c.name+' (#'+c.id+')\n\n'+L.map(function(b,i){return (i+1)+'. '+dt(b.d)+' • '+bn(b.no)+'  '+money(bt(b))}).join('\n')+'\n\nรวม '+L.length+' บิล '+money(tot)+' บาท'+(f?'\n'+f:'')}
 function orderText(o){var c=cust(o.cid),t=ototal(o);return 'ใบออเดอร์ '+o.no+' • '+dt(o.at)+'\nร้าน '+(c?c.name:'')+' (#'+o.cid+')\n\n'+o.items.map(function(i,k){return (k+1)+'. '+i.n+' '+i.q+' '+unit(i.c)+' × '+money(i.p)+' = '+money(i.q*i.p)}).join('\n')+'\n\n'+o.vat+' · '+o.pay+'\nยอดรวมสุทธิ '+money(t.tot)+' บาท'+(o.note?'\nหมายเหตุ: '+o.note:'')}
 function lineUrl(t){return 'https://line.me/R/share?text='+encodeURIComponent(t)}
 function mapUrl(c){return 'https://www.google.com/maps/search/?api=1&query='+(c.lat?c.lat+','+c.lng:encodeURIComponent(c.name+' '+(c.addr||c.area||'')))}
@@ -772,11 +776,17 @@ R.bill=function(a){var b=one(DB.bills,'no',a[0]);if(!b)return go('bills',true);
   +sec('ข้อมูลภายใน','',kv('ร้าน','<a class="lk" href="#cust/'+b.cid+'">'+E((cust(b.cid)||{}).name||b.cid)+'</a>')+kv('ผู้เปิดบิล',E(b.by))+kv('คอมมิชชั่น '+DB.rules.comm+'%',money(bt(b)*DB.rules.comm/100)))
   +'<div class="g2">'+btn('สั่งซ้ำ','repeat','billAgain',b.no,'o')+lnk('แจ้งยอด','doc','#stmt/'+b.cid,'o')+'</div>',foot:btn('ส่งรูปบิล','share','billImg',b.no),
  on:{full:function(){modal(btn('ปิด',null,'close')+sheetHtml(b),true)}}})};
-R.sales=function(){var yr=TD.slice(0,4),m=[];for(var i=0;i<12;i++){var k=yr+'-'+p2(i+1);m.push({k:k,v:salesOf(k),n:DB.bills.filter(function(b){return b.d.slice(0,7)===k}).length})}
+R.sales=function(){var yr=TD.slice(0,4),m=[],SM=R.sales.m||'all';for(var i=0;i<12;i++){var k=yr+'-'+p2(i+1);m.push({k:k,v:salesOf(k),n:DB.bills.filter(function(b){return b.d.slice(0,7)===k}).length})}
  var tot=m.reduce(function(s,x){return s+x.v},0),mx=Math.max.apply(null,m.map(function(x){return x.v}))||1;
+ var sh={};DB.bills.filter(function(b){var k=b.d.slice(0,7);return k.slice(0,4)===yr&&(SM==='all'||k===SM)}).forEach(function(b){var o=sh[b.cid]=sh[b.cid]||{id:b.cid,v:0,n:0};o.v+=bt(b);o.n++});
+ var SL=Object.keys(sh).map(function(k){return sh[k]}).sort(function(a,b){return b.v-a.v}),st=SL.reduce(function(s,x){return s+x.v},0),sm=SL.length?SL[0].v:1;
+ var chp=[['all','ทั้งปี']].concat(m.filter(function(x){return x.n}).map(function(x){return[x.k,MTH[+x.k.slice(5)-1]]}));
  page({title:'ยอดขาย '+(+yr+543),back:'home',bl:'หน้าหลัก',body:'<div class="g2"><div class="c"><div class="t">ยอดทั้งปี</div><b class="big">'+money(tot)+'</b></div><div class="c"><div class="t">คอมมิชชั่น '+DB.rules.comm+'%</div><b class="big">'+money(tot*DB.rules.comm/100)+'</b></div></div>'
-  +sec('รายเดือน','',m.map(function(x){return '<div class="kv"><span style="width:44px">'+MTH[+x.k.slice(5)-1]+'</span><span style="flex:1;height:8px;background:var(--ln2);border-radius:4px;overflow:hidden"><i style="display:block;height:100%;width:'+Math.round(x.v/mx*100)+'%;background:var(--n)"></i></span><b style="width:96px">'+money(x.v)+'</b></div>'}).join(''))
-  +'<div class="t">นับเฉพาะบิลปกติ · บิลยกเลิกถูกตัดออกตั้งแต่นำเข้า · ข้อมูลบิลถึง '+dt(DB.bills.map(function(b){return b.d}).sort().pop())+'</div>'})};
+  +sec('รายเดือน','<span class="t">แตะเพื่อดูร้าน</span>',m.map(function(x){return '<a class="kv" data-a="sm" data-v="'+x.k+'" style="cursor:pointer"><span style="width:44px">'+MTH[+x.k.slice(5)-1]+'</span><span style="flex:1;height:8px;background:var(--ln2);border-radius:4px;overflow:hidden"><i style="display:block;height:100%;width:'+Math.round(x.v/mx*100)+'%;background:var(--n)"></i></span><b style="width:96px">'+money(x.v)+'</b></a>'}).join(''))
+  +'<div class="tl">ร้านที่ซื้อ</div>'+chips(chp,SM,'sm',true)
+  +sec((SM==='all'?'ทั้งปี':MTH[+SM.slice(5)-1])+' · '+SL.length+' ร้าน · '+money(st),'',SL.length?SL.slice(0,100).map(function(x,i){var c=cust(x.id);return '<a class="li" href="#cust/'+x.id+'"><span class="t" style="width:26px">'+(i+1)+'</span><span class="grow"><b>'+x.id+' · '+E(c?c.name:x.id)+'</b><span class="t">'+x.n+' บิล · '+(st?(x.v/st*100).toFixed(1):0)+'%</span><span style="display:block;height:5px;background:var(--ln2);border-radius:3px;overflow:hidden;margin-top:4px"><i style="display:block;height:100%;width:'+Math.round(x.v/sm*100)+'%;background:var(--n)"></i></span></span><b>'+money(x.v)+'</b></a>'}).join('')+(SL.length>100?'<div class="t" style="padding:8px 0">แสดง 100 ร้านแรกจาก '+SL.length+'</div>':''):empty('ไม่มียอดขายในช่วงนี้'))
+  +'<div class="t">นับเฉพาะบิลปกติ · บิลยกเลิกถูกตัดออกตั้งแต่นำเข้า · ข้อมูลบิลถึง '+dt(DB.bills.map(function(b){return b.d}).sort().pop())+'</div>',
+  on:{sm:function(v){R.sales.m=(v===R.sales.m?'all':v);route()}}})};
 // =====================================================================
 // 27) หลังบ้าน
 // =====================================================================
@@ -791,6 +801,7 @@ var OPTF={'ประเภทธุรกิจ':'type','พื้นที่':
 function optUse(k,v){var f=OPTF[k];if(k==='ป้ายกำกับ')return DB.customers.filter(function(c){return c.tags.indexOf(v)>-1}).length;return f?DB.customers.filter(function(c){return c[f]===v}).length:null}
 R.settings=function(){var T=R.settings.t||'gen',b='';
  if(T==='gen')b=sec('บัญชี','',kv('อีเมล',E(DB.user.email))+kv('สิทธิ์','ผู้ดูแล')+kv('ชื่อพนักงานขายในบิล',E(DB.cfg.seller)+' '+tlink('แก้','edit','seller')))
+  +sec('ข้อความแจ้งยอดทาง LINE',tlink('แก้','edit','go','msgtpl'),'<div class="pre" style="max-height:120px;overflow:hidden">'+E((stmtHead()?stmtHead()+'\n':'')+'… รายการบิล …\n'+stmtFoot())+'</div>')
   +sec('กติกาตัวเลข',tlink('แก้','edit','go','rules'),kv('ใกล้ถึง / ถึง / เลยรอบ',DB.rules.near+'% / '+DB.rules.due+'% / '+DB.rules.over+'%')+kv('คอมมิชชั่น',DB.rules.comm+'%'))
   +sec('เชื่อมชีต A','',kv('สถานะ',DB.cfg.api?'ตั้งค่าแล้ว '+tlink('แก้','edit','apiSet'):'ยังไม่ได้ตั้งค่า '+tlink('ตั้งค่า','edit','apiSet')))
   +btn('ออกจากระบบ',null,'logout',null,'d');
@@ -805,6 +816,14 @@ R.settings=function(){var T=R.settings.t||'gen',b='';
   addOpt:function(k){var i=document.querySelector('[data-new="'+k+'"]'),v=i.value.trim();if(!v)return toast('พิมพ์ตัวเลือกก่อน');if(DB.opts[k].indexOf(v)>-1)return toast('มีตัวเลือกนี้แล้ว');DB.opts[k].push(v);R.settings.o=k;commit('ตั้งค่า','เพิ่ม '+k+' · '+v);rerender()},
   delOpt:function(x){var p=x.split('|'),k=p[0],v=DB.opts[k][+p[1]],n=optUse(k,v);ask('ลบ "'+E(v)+'"','<div class="t">'+(n?'มี '+n+' ร้านใช้อยู่ · ร้านเหล่านั้นยังเก็บค่าเดิม':'ยังไม่มีร้านใช้')+'</div>','ลบ',function(){DB.opts[k].splice(+p[1],1);if(k==='ป้ายกำกับ')DB.customers.forEach(function(c){c.tags=c.tags.filter(function(t){return t!==v})});R.settings.o=k;commit('ตั้งค่า','ลบ '+k+' · '+v);rerender()},true)}},
  after:function(){[].forEach.call(document.querySelectorAll('details[data-k]'),function(d){d.addEventListener('toggle',function(){if(d.open)R.settings.o=d.dataset.k})})}})};
+R.msgtpl=function(){var c=DB.customers.filter(function(x){return monthsOf(x.id).length})[0],ym=c?monthsOf(c.id)[0]:'',pv=function(h,f){return c?stmtText(c,ym,h,f):'(ยังไม่มีบิลให้แสดงตัวอย่าง)'};
+ page({title:'ข้อความแจ้งยอด',back:'settings',bl:'ตั้งค่า',body:'<div class="c">'+field('mh','หัวข้อความ (บรรทัดแรก)',{v:stmtHead(),at:'placeholder="ชื่อบริษัท"'})+field('mf','ท้ายข้อความ (ใส่เลขบัญชีได้ หลายบรรทัด)',{v:stmtFoot(),area:1,at:'rows="6" placeholder="เช่น\nโอนชำระ ธ.กสิกรไทย 000-0-00000-0\nชื่อบัญชี หจก.ฮาแวน คอสเมติค\nขอบคุณที่อุดหนุนครับ"'})+'</div>'
+  +sec('ตัวอย่าง','<span class="t">อัปเดตตามที่พิมพ์</span>','<div class="pre" id="mpv">'+E(pv())+'</div>')
+  +'<div class="note i">รายการบิล เดือน ชื่อร้าน และยอดรวม ระบบใส่ให้เองทุกร้าน · ข้อความนี้เก็บในเครื่องนี้ (ยังไม่ขึ้นชีต) ถ้าใช้หลายเครื่องต้องตั้งทุกเครื่อง</div>',
+  foot:btn('บันทึก','check','save')+btn('คืนค่าเดิม',null,'reset',null,'o'),
+  after:function(){var h=document.getElementById('f_mh'),f=document.getElementById('f_mf'),u=function(){document.getElementById('mpv').textContent=pv(h.value.trim(),f.value.trim())};h.addEventListener('input',u);f.addEventListener('input',u)},
+  on:{save:function(){DB.cfg.stmtHead=val('mh');DB.cfg.stmtFoot=val('mf');commit('ตั้งค่า','ข้อความแจ้งยอดทาง LINE');toast('บันทึกแล้ว');back('settings')},
+   reset:function(){DB.cfg.stmtHead=null;DB.cfg.stmtFoot=null;commit('ตั้งค่า','คืนค่าข้อความแจ้งยอด');toast('คืนค่าเดิมแล้ว');route()}}})};
 R.rules=function(){var r=DB.rules,F=[['near','ใกล้ถึงรอบ (%)'],['due','ถึงรอบ (%)'],['over','เลยรอบ (%)'],['comm','คอมมิชชั่น (%)']];
  page({title:'กติกาตัวเลข',back:'settings',bl:'ตั้งค่า',body:'<div class="c"><div class="g2">'+F.map(function(x){return field(x[0],x[1],{v:r[x[0]],at:'type="number" inputmode="decimal"'})}).join('')+'</div></div>'
   +'<div class="note i">รอบซื้อ = มัธยฐานช่วงห่างของวันที่ซื้อ (ต้องมีอย่างน้อย 2 วัน) · VAT รวมในราคาได้คอมเต็มยอด · VAT นอก +7% ไม่คิดคอมส่วน VAT · บิลยกเลิกตัดออกตั้งแต่นำเข้า</div>',
