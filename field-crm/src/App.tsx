@@ -5,7 +5,7 @@ import {
 } from 'lucide-react'
 import { buildDemo, OUTCOMES, TASK_TYPES, type Bill, type BillItem, type Customer, type DB, type Task, type Visit } from './data'
 import {
-  baht, billTotals, companyOrderText, customerBillText, daysSince, distM, fmt, getPhoto, getPosition, kmTo, lineShare, loadSettings, localDay, navUrl, putPhoto,
+  baht, billTotals, cname, companyOrderText, customerBillText, daysSince, distM, fmt, getPhoto, getPosition, kmTo, lineShare, loadSettings, localDay, navUrl, putPhoto,
   readBillHash, saveSettings, smsLink, stampPhoto, todayStr, uid, ymd, type Pos, type Settings, copyText,
 } from './lib'
 import { syncFromSheet } from './sheet'
@@ -26,7 +26,7 @@ function status(c: Customer, lastVisit?: string): { s: Status; days: number } {
   const d = daysSince(lastVisit)
   return { s: d > c.visitCycleDays ? 'overdue' : d >= c.visitCycleDays * 0.8 ? 'soon' : 'ok', days: d }
 }
-export const dot: Record<Status, string> = { overdue: 'bg-[#c2410c]', soon: 'bg-[#d99a1b]', ok: 'bg-[#2f7d57]', new: 'bg-stone-400' }
+export const dot: Record<Status, string> = { overdue: 'bg-[#c2410c]', soon: 'bg-[#e0a82e]', ok: 'bg-[#2f7d57]', new: 'bg-slate-400' }
 const label: Record<Status, string> = { overdue: 'เลยรอบเยี่ยม', soon: 'ใกล้ถึงรอบ', ok: 'ปกติ', new: 'ยังไม่เคยเยี่ยม' }
 
 export default function Root() {
@@ -81,8 +81,8 @@ function App() {
   const TABS = [['today', CalendarCheck, 'วันนี้'], ['customers', Users, 'ลูกค้า'], ['tasks', ListChecks, 'งาน'], ['bills', Receipt, 'บิล'], ['analytics', BarChart3, 'วิเคราะห์']] as const
   const titles = { today: 'งานวันนี้', customers: 'ลูกค้า', tasks: 'งานติดตาม', bills: 'บิลย้อนหลัง', analytics: 'สรุป / วิเคราะห์การขาย' }
   return (
-    <div className="mx-auto flex h-[100dvh] max-w-md flex-col bg-[#f5f0e6] text-stone-900" style={{ fontFamily: "'Sarabun','Noto Sans Thai',system-ui,sans-serif" }}>
-      <header className="flex items-center justify-between bg-[#0f4c47] px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))] text-[#f5f0e6]">
+    <div className="mx-auto flex h-[100dvh] max-w-md flex-col bg-[#eef2f8] text-slate-900" style={{ fontFamily: "'Sarabun','Noto Sans Thai',system-ui,sans-serif" }}>
+      <header className="flex items-center justify-between bg-[#14284b] px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))] text-[#eef2f8] border-b-[3px] border-[#e0a82e]">
         <div>
           <div className="text-[11px] tracking-wide opacity-70">{new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}{db.syncedAt ? ` · ซิงก์ชีท ${new Date(db.syncedAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}` : ' · ข้อมูลตัวอย่าง'}</div>
           <div className="text-lg font-bold leading-tight">{titles[tab]}</div>
@@ -98,9 +98,9 @@ function App() {
         {tab === 'analytics' && <Analytics db={db} openC={setOpenId} />}
       </main>
 
-      <nav className="grid grid-cols-5 border-t border-stone-300 bg-[#fbf8f1] pb-[env(safe-area-inset-bottom)]">
+      <nav className="grid grid-cols-5 border-t border-slate-300 bg-[#f7f9fc] pb-[env(safe-area-inset-bottom)]">
         {TABS.map(([k, Icon, t]) => (
-          <button key={k} onClick={() => setTab(k)} className={`flex flex-col items-center gap-0.5 py-2.5 text-[11px] ${tab === k ? 'font-bold text-[#0f4c47]' : 'text-stone-500'}`}>
+          <button key={k} onClick={() => setTab(k)} className={`flex flex-col items-center gap-0.5 py-2.5 text-[11px] ${tab === k ? 'font-bold text-[#14284b]' : 'text-slate-500'}`}>
             <Icon size={20} strokeWidth={tab === k ? 2.5 : 1.8} />{t}
           </button>
         ))}
@@ -112,7 +112,7 @@ function App() {
       )}
       {doneBill && <OrderDone b={doneBill} c={byId[doneBill.customerId]} s={settings} byId={byId} say={setToast} close={() => setDoneBill(null)} />}
       {cog && <SettingsSheet db={db} setDb={setDb} s={settings} setS={setSettings} close={() => setCog(false)} say={setToast} />}
-      {toast && <div className="fixed bottom-24 left-1/2 z-[90] max-w-[90vw] -translate-x-1/2 rounded-2xl bg-stone-900 px-4 py-2 text-center text-sm text-white shadow-lg">{toast}</div>}
+      {toast && <div className="fixed bottom-24 left-1/2 z-[90] max-w-[90vw] -translate-x-1/2 rounded-2xl bg-slate-900 px-4 py-2 text-center text-sm text-white shadow-lg">{toast}</div>}
     </div>
   )
 }
@@ -121,16 +121,16 @@ function App() {
 function CustomerRow({ c, last, dist, onClick }: { c: Customer; last?: string; dist?: number; onClick: () => void }) {
   const st = status(c, last)
   return (
-    <button onClick={onClick} className="flex w-full items-center gap-3 border-b border-stone-200 px-4 py-3 text-left active:bg-stone-200/60">
+    <button onClick={onClick} className="flex w-full items-center gap-3 border-b border-slate-200 px-4 py-3 text-left active:bg-slate-200/60">
       <span className={`h-3 w-3 shrink-0 rounded-full ${dot[st.s]}`} />
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[15px] font-semibold">{c.name}</span>
-        <span className="block truncate text-xs text-stone-500">{c.type} · {c.area}{dist != null && isFinite(dist) ? ` · ${dist.toFixed(1)} กม.` : ''}</span>
-        <span className={`text-xs ${st.s === 'overdue' ? 'font-semibold text-[#c2410c]' : 'text-stone-500'}`}>
+        <span className="block truncate text-[15px] font-semibold"><span className="mr-1.5 rounded bg-[#14284b]/10 px-1.5 py-0.5 text-[11px] font-bold text-[#14284b]">{c.id}</span>{c.name}</span>
+        <span className="block truncate text-xs text-slate-500">{c.type} · {c.area}{dist != null && isFinite(dist) ? ` · ${dist.toFixed(1)} กม.` : ''}</span>
+        <span className={`text-xs ${st.s === 'overdue' ? 'font-semibold text-[#c2410c]' : 'text-slate-500'}`}>
           {st.s === 'new' ? label.new : `เยี่ยมล่าสุด ${st.days} วันก่อน (รอบ ${c.visitCycleDays} วัน)`}
         </span>
       </span>
-      <ChevronRight size={18} className="text-stone-400" />
+      <ChevronRight size={18} className="text-slate-400" />
     </button>
   )
 }
@@ -149,25 +149,25 @@ function Today({ db, byId, lastVisit, pos, locate, openC, toggleTask }: {
     .sort((a, b) => (pos ? a.d! - b.d! : b.st.days - b.c.visitCycleDays - (a.st.days - a.c.visitCycleDays)))
   return (
     <div>
-      <div className="grid grid-cols-4 gap-px border-b border-stone-300 bg-stone-300 text-center">
+      <div className="grid grid-cols-4 gap-px border-b border-slate-300 bg-slate-300 text-center">
         {[['เยี่ยมวันนี้', todayVisits], ['งานครบกำหนด', due.length], ['ถึงรอบเยี่ยม', list.length], ['ยอดวันนี้', baht(Math.round(todaySales))]].map(([k, v]) => (
-          <div key={k as string} className="bg-[#fbf8f1] py-3"><div className="text-lg font-bold text-[#0f4c47]">{v}</div><div className="text-[10px] text-stone-500">{k}</div></div>
+          <div key={k as string} className="bg-[#f7f9fc] py-3"><div className="text-lg font-bold text-[#14284b]">{v}</div><div className="text-[10px] text-slate-500">{k}</div></div>
         ))}
       </div>
       {due.length > 0 && (
         <section>
-          <h2 className="px-4 pb-1 pt-4 text-xs font-bold uppercase tracking-wider text-stone-500">งานที่ต้องทำ</h2>
+          <h2 className="px-4 pb-1 pt-4 text-xs font-bold uppercase tracking-wider text-slate-500">งานที่ต้องทำ</h2>
           {due.map(x => <TaskRow key={x.id} t={x} c={byId[x.customerId]} openC={openC} toggle={toggleTask} />)}
         </section>
       )}
       <section>
         <div className="flex items-center justify-between px-4 pb-1 pt-4">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-stone-500">ลูกค้าที่ควรเข้าเยี่ยม</h2>
-          <button onClick={locate} className="flex items-center gap-1 rounded-full border border-[#0f4c47] px-3 py-1 text-xs font-semibold text-[#0f4c47] active:bg-[#0f4c47]/10">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">ลูกค้าที่ควรเข้าเยี่ยม</h2>
+          <button onClick={locate} className="flex items-center gap-1 rounded-full border border-[#14284b] px-3 py-1 text-xs font-semibold text-[#14284b] active:bg-[#14284b]/10">
             <LocateFixed size={14} />{pos ? 'อัปเดตตำแหน่ง' : 'เรียงตามใกล้ฉัน'}
           </button>
         </div>
-        {list.length === 0 && <p className="px-4 py-8 text-center text-sm text-stone-500">ไม่มีลูกค้าถึงรอบเยี่ยม</p>}
+        {list.length === 0 && <p className="px-4 py-8 text-center text-sm text-slate-500">ไม่มีลูกค้าถึงรอบเยี่ยม</p>}
         {list.slice(0, 80).map(x => <CustomerRow key={x.c.id} c={x.c} last={lastVisit[x.c.id]} dist={x.d} onClick={() => openC(x.c.id)} />)}
       </section>
     </div>
@@ -182,21 +182,21 @@ function Customers({ db, lastVisit, pos, locate, openC }: { db: DB; lastVisit: R
     .sort((a, b) => (pos ? kmTo(a, pos) - kmTo(b, pos) : a.name.localeCompare(b.name, 'th'))), [db.customers, q, type, pos])
   return (
     <div>
-      <div className="sticky top-0 z-10 space-y-2 bg-[#f5f0e6] px-4 pb-2 pt-3">
+      <div className="sticky top-0 z-10 space-y-2 bg-[#eef2f8] px-4 pb-2 pt-3">
         <div className="flex gap-2">
-          <label className="flex flex-1 items-center gap-2 rounded-xl border border-stone-300 bg-white px-3">
-            <Search size={17} className="text-stone-400" />
+          <label className="flex flex-1 items-center gap-2 rounded-xl border border-slate-300 bg-white px-3">
+            <Search size={17} className="text-slate-400" />
             <input value={q} onChange={e => { setQ(e.target.value); setLimit(60) }} placeholder="ค้นหาชื่อร้าน เบอร์ โซน รหัส" className="h-11 w-full bg-transparent text-[15px] outline-none" />
           </label>
-          <button onClick={locate} aria-label="ใกล้ฉัน" className={`grid h-11 w-11 place-items-center rounded-xl border ${pos ? 'border-[#0f4c47] bg-[#0f4c47] text-white' : 'border-stone-300 bg-white'}`}><LocateFixed size={19} /></button>
+          <button onClick={locate} aria-label="ใกล้ฉัน" className={`grid h-11 w-11 place-items-center rounded-xl border ${pos ? 'border-[#14284b] bg-[#14284b] text-white' : 'border-slate-300 bg-white'}`}><LocateFixed size={19} /></button>
         </div>
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
-          {types.map(t => <button key={t} onClick={() => { setType(t); setLimit(60) }} className={`shrink-0 rounded-full px-3 py-1.5 text-xs ${type === t ? 'bg-[#0f4c47] font-semibold text-white' : 'border border-stone-300 bg-white'}`}>{t}</button>)}
+          {types.map(t => <button key={t} onClick={() => { setType(t); setLimit(60) }} className={`shrink-0 rounded-full px-3 py-1.5 text-xs ${type === t ? 'bg-[#14284b] font-semibold text-white' : 'border border-slate-300 bg-white'}`}>{t}</button>)}
         </div>
-        <div className="text-xs text-stone-500">{rows.length} ราย</div>
+        <div className="text-xs text-slate-500">{rows.length} ราย</div>
       </div>
       {rows.slice(0, limit).map(c => <CustomerRow key={c.id} c={c} last={lastVisit[c.id]} dist={pos ? kmTo(c, pos) : undefined} onClick={() => openC(c.id)} />)}
-      {rows.length > limit && <button onClick={() => setLimit(limit + 100)} className="w-full py-4 text-sm font-semibold text-[#0f4c47]">แสดงเพิ่ม (เหลือ {rows.length - limit})</button>}
+      {rows.length > limit && <button onClick={() => setLimit(limit + 100)} className="w-full py-4 text-sm font-semibold text-[#14284b]">แสดงเพิ่ม (เหลือ {rows.length - limit})</button>}
     </div>
   )
 }
@@ -204,15 +204,15 @@ function Customers({ db, lastVisit, pos, locate, openC }: { db: DB; lastVisit: R
 function TaskRow({ t, c, openC, toggle }: { t: Task; c?: Customer; openC: (id: string) => void; toggle: (id: string) => void }) {
   const late = t.status === 'open' && t.dueAt < todayStr()
   return (
-    <div className="flex items-center gap-3 border-b border-stone-200 px-4 py-3">
-      <button aria-label="ทำเสร็จ" onClick={() => toggle(t.id)} className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border-2 ${t.status === 'done' ? 'border-[#2f7d57] bg-[#2f7d57] text-white' : 'border-stone-400'}`}>
+    <div className="flex items-center gap-3 border-b border-slate-200 px-4 py-3">
+      <button aria-label="ทำเสร็จ" onClick={() => toggle(t.id)} className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border-2 ${t.status === 'done' ? 'border-[#2f7d57] bg-[#2f7d57] text-white' : 'border-slate-400'}`}>
         {t.status === 'done' && <Check size={16} />}
       </button>
       <button onClick={() => c && openC(c.id)} className="min-w-0 flex-1 text-left">
-        <span className={`block truncate text-[15px] font-semibold ${t.status === 'done' ? 'text-stone-400 line-through' : ''}`}>{t.type} · {t.title}</span>
-        <span className="block truncate text-xs text-stone-500">{c?.name ?? 'ลูกค้า'}</span>
+        <span className={`block truncate text-[15px] font-semibold ${t.status === 'done' ? 'text-slate-400 line-through' : ''}`}>{t.type} · {t.title}</span>
+        <span className="block truncate text-xs text-slate-500">{c ? cname(c) : 'ลูกค้า'}</span>
       </button>
-      <span className={`shrink-0 text-xs ${late ? 'font-bold text-[#c2410c]' : 'text-stone-500'}`}>{late && <AlertTriangle size={12} className="mr-0.5 inline" />}{fmt(t.dueAt)}</span>
+      <span className={`shrink-0 text-xs ${late ? 'font-bold text-[#c2410c]' : 'text-slate-500'}`}>{late && <AlertTriangle size={12} className="mr-0.5 inline" />}{fmt(t.dueAt)}</span>
     </div>
   )
 }
@@ -223,9 +223,9 @@ function Tasks({ db, byId, openC, toggleTask }: { db: DB; byId: Record<string, C
   return (
     <div>
       <div className="flex gap-2 px-4 py-3">
-        {([['open', 'ค้างอยู่'], ['done', 'เสร็จแล้ว']] as const).map(([k, t]) => <button key={k} onClick={() => setF(k)} className={`rounded-full px-4 py-1.5 text-sm ${f === k ? 'bg-[#0f4c47] font-semibold text-white' : 'border border-stone-300 bg-white'}`}>{t}</button>)}
+        {([['open', 'ค้างอยู่'], ['done', 'เสร็จแล้ว']] as const).map(([k, t]) => <button key={k} onClick={() => setF(k)} className={`rounded-full px-4 py-1.5 text-sm ${f === k ? 'bg-[#14284b] font-semibold text-white' : 'border border-slate-300 bg-white'}`}>{t}</button>)}
       </div>
-      {rows.length === 0 && <p className="px-4 py-10 text-center text-sm text-stone-500">ไม่มีรายการ</p>}
+      {rows.length === 0 && <p className="px-4 py-10 text-center text-sm text-slate-500">ไม่มีรายการ</p>}
       {rows.map(t => <TaskRow key={t.id} t={t} c={byId[t.customerId]} openC={openC} toggle={toggleTask} />)}
     </div>
   )
@@ -235,7 +235,7 @@ function Tasks({ db, byId, openC, toggleTask }: { db: DB; byId: Record<string, C
 function Photo({ id, size = 64 }: { id: string; size?: number }) {
   const [u, setU] = useState<string>(); const [big, setBig] = useState(false)
   useEffect(() => { getPhoto(id).then(setU) }, [id])
-  if (!u) return <div className="rounded-lg bg-stone-200" style={{ width: size, height: size }} />
+  if (!u) return <div className="rounded-lg bg-slate-200" style={{ width: size, height: size }} />
   return (<>
     <button onClick={() => setBig(true)}><img src={u} alt="รูปเช็กอิน" className="rounded-lg object-cover" style={{ width: size, height: size }} /></button>
     {big && <button onClick={() => setBig(false)} className="fixed inset-0 z-[100] grid place-items-center bg-black/85 p-3"><img src={u} alt="รูปเช็กอิน" className="max-h-full max-w-full rounded-lg" /></button>}
@@ -261,71 +261,71 @@ function CustomerSheet({ c, db, byId, s, pos, lastVisit, close, say, addVisit, a
   const grabPos = async () => { try { const p = await getPosition(); setCustPos(c.id, p.lat, p.lng) } catch (e) { say((e as Error).message) } }
   return (
     <>
-      <Sheet title={c.name} onClose={close}>
+      <Sheet title={cname(c)} onClose={close}>
         <div className="space-y-4 p-4">
           <div className="flex items-center gap-2 text-sm">
             <span className={`h-3 w-3 rounded-full ${dot[st.s]}`} /><span className="font-semibold">{label[st.s]}</span>
-            <span className="text-stone-500">· {c.type} · {c.paymentTerm}</span>
+            <span className="text-slate-500">· {c.type} · {c.paymentTerm}</span>
           </div>
           <div className="flex gap-2">
-            <a href={`tel:${c.phone.split(/[,/ ]/)[0]}`} onClick={() => logCall(c)} className={`${act} bg-[#0f4c47] text-white`}><Phone size={22} />โทร</a>
-            <a href={navUrl(c)} target="_blank" rel="noreferrer" className={`${act} bg-[#d99a1b] text-stone-900`}><Navigation size={22} />นำทาง</a>
+            <a href={`tel:${c.phone.split(/[,/ ]/)[0]}`} onClick={() => logCall(c)} className={`${act} bg-[#14284b] text-white`}><Phone size={22} />โทร</a>
+            <a href={navUrl(c)} target="_blank" rel="noreferrer" className={`${act} bg-[#e0a82e] text-slate-900`}><Navigation size={22} />นำทาง</a>
             {c.lineId
               ? <a href={`https://line.me/R/ti/p/~${c.lineId}`} target="_blank" rel="noreferrer" className={`${act} bg-[#2f7d57] text-white`}><MessageCircle size={22} />LINE</a>
-              : <span className={`${act} bg-stone-200 text-stone-400`}><MessageCircle size={22} />LINE</span>}
+              : <span className={`${act} bg-slate-200 text-slate-400`}><MessageCircle size={22} />LINE</span>}
           </div>
           <div className="flex gap-2">
-            <button onClick={() => setSub('visit')} className={`${act} border-2 border-[#0f4c47] text-[#0f4c47]`}><Camera size={20} />เช็กอิน+รูป</button>
-            <button onClick={() => setSub('order')} className={`${act} border-2 border-[#0f4c47] text-[#0f4c47]`}><ShoppingCart size={20} />รับออเดอร์</button>
-            <button onClick={() => setSub('task')} className={`${act} border-2 border-[#0f4c47] text-[#0f4c47]`}><Plus size={20} />เพิ่มงาน</button>
+            <button onClick={() => setSub('visit')} className={`${act} border-2 border-[#14284b] text-[#14284b]`}><Camera size={20} />เช็กอิน+รูป</button>
+            <button onClick={() => setSub('order')} className={`${act} border-2 border-[#14284b] text-[#14284b]`}><ShoppingCart size={20} />รับออเดอร์</button>
+            <button onClick={() => setSub('task')} className={`${act} border-2 border-[#14284b] text-[#14284b]`}><Plus size={20} />เพิ่มงาน</button>
           </div>
 
-          <div className="space-y-1.5 rounded-xl bg-[#fbf8f1] p-3 text-sm">
+          <div className="space-y-1.5 rounded-xl bg-[#f7f9fc] p-3 text-sm">
             <div><b>รหัส:</b> {c.id} · <b>ติดต่อ:</b> {c.contactName || '-'} · {c.phone}</div>
             <div><b>ที่อยู่:</b> {c.address || '-'}</div>
             <div className="flex items-center justify-between gap-2">
-              <span className="flex items-center gap-1 text-xs text-stone-600"><MapPin size={14} />{c.lat != null ? `${c.lat.toFixed(5)}, ${c.lng!.toFixed(5)}${pos ? ` · ห่าง ${Math.round(distM({ lat: c.lat, lng: c.lng! }, pos))} ม.` : ''}` : 'ยังไม่มีพิกัดร้าน'}</span>
-              <button onClick={grabPos} className="flex shrink-0 items-center gap-1 rounded-lg border border-[#0f4c47] px-2 py-1 text-xs font-semibold text-[#0f4c47]"><Crosshair size={13} />ตั้งพิกัดร้าน = ตำแหน่งฉัน</button>
+              <span className="flex items-center gap-1 text-xs text-slate-600"><MapPin size={14} />{c.lat != null ? `${c.lat.toFixed(5)}, ${c.lng!.toFixed(5)}${pos ? ` · ห่าง ${Math.round(distM({ lat: c.lat, lng: c.lng! }, pos))} ม.` : ''}` : 'ยังไม่มีพิกัดร้าน'}</span>
+              <button onClick={grabPos} className="flex shrink-0 items-center gap-1 rounded-lg border border-[#14284b] px-2 py-1 text-xs font-semibold text-[#14284b]"><Crosshair size={13} />ตั้งพิกัดร้าน = ตำแหน่งฉัน</button>
             </div>
             {c.storeHours && <div className="flex gap-1"><Clock size={15} className="mt-0.5 shrink-0" />{c.storeHours}</div>}
             <div><b>รอบเยี่ยม:</b> ทุก {c.visitCycleDays} วัน{lastVisit ? ` · ล่าสุด ${fmt(lastVisit)}` : ''}</div>
             {c.specialConditions && <div className="rounded-lg bg-[#fdebd2] p-2 text-[#8a3b0c]"><AlertTriangle size={14} className="mr-1 inline" />{c.specialConditions}</div>}
-            {c.note && <div className="text-stone-600">📝 {c.note}</div>}
+            {c.note && <div className="text-slate-600">📝 {c.note}</div>}
           </div>
 
           {tasks.length > 0 && (
             <section><H>งานค้าง</H>
               {tasks.map(t => (
                 <div key={t.id} className="flex items-center gap-3 py-1.5 text-sm">
-                  <button aria-label="เสร็จ" onClick={() => toggleTask(t.id)} className="h-6 w-6 rounded-full border-2 border-stone-400" />
-                  <span className="flex-1">{t.type} · {t.title}</span><span className="text-xs text-stone-500">{fmt(t.dueAt)}</span>
+                  <button aria-label="เสร็จ" onClick={() => toggleTask(t.id)} className="h-6 w-6 rounded-full border-2 border-slate-400" />
+                  <span className="flex-1">{t.type} · {t.title}</span><span className="text-xs text-slate-500">{fmt(t.dueAt)}</span>
                 </div>))}
             </section>
           )}
           {usual.length > 0 && (
             <section><H>สินค้าที่สั่งประจำ</H>
-              <div className="flex flex-wrap gap-1.5">{usual.map(u => <span key={u.code || u.name} className="rounded-full border border-stone-300 bg-white px-3 py-1 text-xs">{u.name}</span>)}</div>
+              <div className="flex flex-wrap gap-1.5">{usual.map(u => <span key={u.code || u.name} className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs">{u.name}</span>)}</div>
             </section>
           )}
           <section><H>ประวัติเยี่ยม</H>
-            {visits.length === 0 && <p className="text-sm text-stone-500">ยังไม่มี</p>}
+            {visits.length === 0 && <p className="text-sm text-slate-500">ยังไม่มี</p>}
             {visits.map(v => (
-              <div key={v.id} className="border-b border-stone-200 py-2 text-sm">
+              <div key={v.id} className="border-b border-slate-200 py-2 text-sm">
                 <b>{fmt(v.at)}</b> · {v.outcome}
-                {v.note && <div className="text-xs text-stone-500">{v.note}</div>}
-                {v.lat != null && <a href={`https://maps.google.com/?q=${v.lat},${v.lng}`} target="_blank" rel="noreferrer" className="text-xs text-[#0f4c47] underline">📍 {v.lat.toFixed(5)}, {v.lng?.toFixed(5)}{v.distM != null ? ` · ห่างร้าน ${Math.round(v.distM)} ม.` : ''}</a>}
+                {v.note && <div className="text-xs text-slate-500">{v.note}</div>}
+                {v.lat != null && <a href={`https://maps.google.com/?q=${v.lat},${v.lng}`} target="_blank" rel="noreferrer" className="text-xs text-[#14284b] underline">📍 {v.lat.toFixed(5)}, {v.lng?.toFixed(5)}{v.distM != null ? ` · ห่างร้าน ${Math.round(v.distM)} ม.` : ''}</a>}
                 {v.photoIds && v.photoIds.length > 0 && <div className="mt-1 flex gap-1.5">{v.photoIds.map(id => <Photo key={id} id={id} />)}</div>}
               </div>))}
           </section>
           <section>
             <div className="mb-1 flex items-center justify-between"><H>บิลย้อนหลัง ({bills.length}) · รวม ฿{baht(Math.round(spend))}</H></div>
-            {bills.length === 0 && <p className="text-sm text-stone-500">ยังไม่มีบิล</p>}
+            {bills.length === 0 && <p className="text-sm text-slate-500">ยังไม่มีบิล</p>}
             {(allBills ? bills : bills.slice(0, 4)).map(b => (
-              <button key={b.no} onClick={() => setBill(b)} className="block w-full border-b border-stone-200 py-2 text-left text-sm">
+              <button key={b.no} onClick={() => setBill(b)} className="block w-full border-b border-slate-200 py-2 text-left text-sm">
                 <div className="flex justify-between"><b>#{b.no} · {fmt(b.date)}</b><b>฿{baht(billTotals(b).total)}</b></div>
-                <div className="truncate text-xs text-stone-500">{b.items.map(i => `${i.name} ×${i.qty}`).join(', ')}</div>
+                <div className="truncate text-xs text-slate-500">{b.items.map(i => `${i.name} ×${i.qty}`).join(', ')}</div>
               </button>))}
-            {bills.length > 4 && <button onClick={() => setAllBills(!allBills)} className="py-2 text-xs font-semibold text-[#0f4c47]">{allBills ? 'แสดงน้อยลง' : `ดูทั้งหมด ${bills.length} บิล`}</button>}
+            {bills.length > 4 && <button onClick={() => setAllBills(!allBills)} className="py-2 text-xs font-semibold text-[#14284b]">{allBills ? 'แสดงน้อยลง' : `ดูทั้งหมด ${bills.length} บิล`}</button>}
           </section>
         </div>
       </Sheet>
@@ -346,7 +346,7 @@ function VisitForm({ c, onClose, save, setCustPos }: { c: Customer; onClose: () 
   const dist = pos && c.lat != null ? distM({ lat: c.lat, lng: c.lng! }, pos) : undefined
   const addPhotos = async (files: FileList | null) => {
     if (!files) return
-    const cap = `${c.name}\n${new Date().toLocaleString('th-TH')}\n${pos ? `${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)} ±${Math.round(pos.accuracy)}ม.` : 'ไม่มีพิกัด'}`
+    const cap = `${cname(c)}\n${new Date().toLocaleString('th-TH')}\n${pos ? `${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)} ±${Math.round(pos.accuracy)}ม.` : 'ไม่มีพิกัด'}`
     const out: { id: string; url: string }[] = []
     for (const f of Array.from(files)) { try { out.push({ id: uid('P'), url: await stampPhoto(f, cap) }) } catch { /* ข้ามไฟล์ที่อ่านไม่ได้ */ } }
     setPhotos(p => [...p, ...out])
@@ -361,33 +361,33 @@ function VisitForm({ c, onClose, save, setCustPos }: { c: Customer; onClose: () 
   return (
     <Sheet title="เช็กอิน / บันทึกการเยี่ยม" onClose={onClose} z={60}>
       <div className="space-y-4 p-4">
-        <div className={`rounded-xl p-3 text-sm ${gpsErr ? 'bg-[#fdebd2] text-[#8a3b0c]' : 'bg-[#fbf8f1]'}`}>
+        <div className={`rounded-xl p-3 text-sm ${gpsErr ? 'bg-[#fdebd2] text-[#8a3b0c]' : 'bg-[#f7f9fc]'}`}>
           <div className="flex items-center justify-between gap-2">
-            <span className="font-semibold">{c.name}</span>
-            <button onClick={fetchPos} className="flex shrink-0 items-center gap-1 text-xs font-semibold text-[#0f4c47]"><RefreshCw size={13} className={loading ? 'animate-spin' : ''} />อ่านพิกัดใหม่</button>
+            <span className="font-semibold">{cname(c)}</span>
+            <button onClick={fetchPos} className="flex shrink-0 items-center gap-1 text-xs font-semibold text-[#14284b]"><RefreshCw size={13} className={loading ? 'animate-spin' : ''} />อ่านพิกัดใหม่</button>
           </div>
-          {loading && <div className="text-xs text-stone-500">กำลังอ่านตำแหน่งจาก GPS…</div>}
+          {loading && <div className="text-xs text-slate-500">กำลังอ่านตำแหน่งจาก GPS…</div>}
           {gpsErr && <div className="text-xs">{gpsErr} (ยังบันทึกได้โดยไม่มีพิกัด)</div>}
-          {pos && <div className="text-xs text-stone-600">📍 {pos.lat.toFixed(5)}, {pos.lng.toFixed(5)} · แม่นยำ ±{Math.round(pos.accuracy)} ม.</div>}
+          {pos && <div className="text-xs text-slate-600">📍 {pos.lat.toFixed(5)}, {pos.lng.toFixed(5)} · แม่นยำ ±{Math.round(pos.accuracy)} ม.</div>}
           {dist != null && <div className={`text-xs font-semibold ${dist > 300 ? 'text-[#c2410c]' : 'text-[#2f7d57]'}`}>{dist > 300 ? `⚠ ห่างจากพิกัดร้าน ${Math.round(dist)} ม.` : `✓ ถึงร้านแล้ว (ห่าง ${Math.round(dist)} ม.)`}</div>}
           {pos && <label className="mt-1 flex items-center gap-2 text-xs"><input type="checkbox" checked={setShop} onChange={e => setSetShop(e.target.checked)} className="h-4 w-4" />ตั้งพิกัดนี้เป็นตำแหน่งร้าน{c.lat != null ? ' (แทนที่ของเดิม)' : ''}</label>}
         </div>
         <div className="flex flex-wrap gap-2">
-          {OUTCOMES.map(o => <button key={o} onClick={() => setOutcome(o)} className={`rounded-full px-3 py-2 text-sm ${outcome === o ? 'bg-[#0f4c47] font-semibold text-white' : 'border border-stone-300 bg-white'}`}>{o}</button>)}
+          {OUTCOMES.map(o => <button key={o} onClick={() => setOutcome(o)} className={`rounded-full px-3 py-2 text-sm ${outcome === o ? 'bg-[#14284b] font-semibold text-white' : 'border border-slate-300 bg-white'}`}>{o}</button>)}
         </div>
         <Field l="หมายเหตุ"><textarea value={note} onChange={e => setNote(e.target.value)} rows={2} className={inputCls} placeholder="เช่น สินค้าเหลือครึ่งหนึ่ง ให้กลับมาอาทิตย์หน้า" /></Field>
         <div>
           <H>รูปถ่าย (ใส่ลายน้ำวันที่-เวลา-พิกัดอัตโนมัติ)</H>
           <div className="flex flex-wrap gap-2">
             {photos.map(p => <img key={p.id} src={p.url} alt="" className="h-20 w-20 rounded-lg object-cover" />)}
-            <label className="grid h-20 w-20 cursor-pointer place-items-center rounded-lg border-2 border-dashed border-[#0f4c47] text-[#0f4c47]">
+            <label className="grid h-20 w-20 cursor-pointer place-items-center rounded-lg border-2 border-dashed border-[#14284b] text-[#14284b]">
               <span className="flex flex-col items-center text-[11px] font-semibold"><Camera size={22} />ถ่ายรูป</span>
               <input type="file" accept="image/*" capture="environment" multiple className="hidden" onChange={e => { addPhotos(e.target.files); e.target.value = '' }} />
             </label>
           </div>
         </div>
         <button disabled={saving || loading} onClick={go} className={`${btnPrimary} w-full`}>{saving ? 'กำลังบันทึก…' : loading ? 'รอพิกัดสักครู่…' : 'บันทึกเช็กอิน'}</button>
-        {loading && <button onClick={() => setLoading(false)} className="w-full text-xs text-stone-500 underline">ไม่รอพิกัด</button>}
+        {loading && <button onClick={() => setLoading(false)} className="w-full text-xs text-slate-500 underline">ไม่รอพิกัด</button>}
       </div>
     </Sheet>
   )
@@ -399,12 +399,12 @@ function TaskForm({ c, onClose, save }: { c: Customer; onClose: () => void; save
   return (
     <Sheet title="เพิ่มงานติดตาม" onClose={onClose} z={60}>
       <div className="space-y-4 p-4">
-        <div className="text-sm text-stone-600">{c.name}</div>
-        <div className="flex flex-wrap gap-2">{TASK_TYPES.map(t => <button key={t} onClick={() => setType(t)} className={`rounded-full px-3 py-2 text-sm ${type === t ? 'bg-[#0f4c47] font-semibold text-white' : 'border border-stone-300 bg-white'}`}>{t}</button>)}</div>
+        <div className="text-sm text-slate-600">{cname(c)}</div>
+        <div className="flex flex-wrap gap-2">{TASK_TYPES.map(t => <button key={t} onClick={() => setType(t)} className={`rounded-full px-3 py-2 text-sm ${type === t ? 'bg-[#14284b] font-semibold text-white' : 'border border-slate-300 bg-white'}`}>{t}</button>)}</div>
         <Field l="รายละเอียด"><input value={title} onChange={e => setTitle(e.target.value)} className={inputCls} placeholder="เช่น โทรถามออเดอร์" /></Field>
         <Field l="กำหนด">
           <div className="flex gap-2"><input type="date" value={due} onChange={e => setDue(e.target.value)} className={inputCls} />
-            {[['พรุ่งนี้', 1], ['+7 วัน', 7]].map(([t, n]) => <button key={t as string} onClick={() => quick(n as number)} className="shrink-0 rounded-xl border border-stone-300 bg-white px-3 text-xs">{t}</button>)}</div>
+            {[['พรุ่งนี้', 1], ['+7 วัน', 7]].map(([t, n]) => <button key={t as string} onClick={() => quick(n as number)} className="shrink-0 rounded-xl border border-slate-300 bg-white px-3 text-xs">{t}</button>)}</div>
         </Field>
         <Field l="หมายเหตุ"><input value={note} onChange={e => setNote(e.target.value)} className={inputCls} /></Field>
         <button onClick={() => { save({ customerId: c.id, type, title: title || type, dueAt: due, note }); onClose() }} className={`${btnPrimary} w-full`}>เพิ่มงาน</button>
@@ -424,17 +424,17 @@ function OrderForm({ c, db, usual, onClose, save }: { c: Customer; db: DB; usual
   return (
     <Sheet title="รับออเดอร์" onClose={onClose} z={60}>
       <div className="p-4">
-        <div className="mb-2 text-sm text-stone-600">{c.name} · ตั้งต้นจากสินค้าที่สั่งประจำ</div>
+        <div className="mb-2 text-sm text-slate-600">{cname(c)} · ตั้งต้นจากสินค้าที่สั่งประจำ</div>
         <input value={q} onChange={e => setQ(e.target.value)} placeholder="ค้นหาสินค้า" className={`${inputCls} mb-2`} />
         {sorted.map(p => (
-          <div key={p.code} className="flex items-center gap-2 border-b border-stone-200 py-2.5">
-            <div className="min-w-0 flex-1"><div className="truncate text-sm font-semibold">{p.name}</div><div className="text-xs text-stone-500">{p.code} · ฿{baht(p.price)}</div></div>
-            <button aria-label="ลด" onClick={() => set(p.code, -1)} className="grid h-9 w-9 place-items-center rounded-full border border-stone-300 bg-white"><Minus size={16} /></button>
+          <div key={p.code} className="flex items-center gap-2 border-b border-slate-200 py-2.5">
+            <div className="min-w-0 flex-1"><div className="truncate text-sm font-semibold">{p.name}</div><div className="text-xs text-slate-500">{p.code} · ฿{baht(p.price)}</div></div>
+            <button aria-label="ลด" onClick={() => set(p.code, -1)} className="grid h-9 w-9 place-items-center rounded-full border border-slate-300 bg-white"><Minus size={16} /></button>
             <span className="w-7 text-center font-bold">{qty[p.code] || 0}</span>
-            <button aria-label="เพิ่ม" onClick={() => set(p.code, 1)} className="grid h-9 w-9 place-items-center rounded-full bg-[#0f4c47] text-white"><Plus size={16} /></button>
+            <button aria-label="เพิ่ม" onClick={() => set(p.code, 1)} className="grid h-9 w-9 place-items-center rounded-full bg-[#14284b] text-white"><Plus size={16} /></button>
           </div>
         ))}
-        {sorted.length === 0 && <p className="py-6 text-center text-sm text-stone-500">ไม่พบสินค้า — นำเข้าสินค้าได้ที่ตั้งค่า</p>}
+        {sorted.length === 0 && <p className="py-6 text-center text-sm text-slate-500">ไม่พบสินค้า — นำเข้าสินค้าได้ที่ตั้งค่า</p>}
         <div className="mt-3"><Field l="VAT"><select value={vat} onChange={e => setVat(e.target.value as Bill['vatMode'])} className={inputCls}><option value="NONE">ไม่มี VAT</option><option value="VAT_OUT">แยก VAT 7%</option><option value="VAT_IN">รวม VAT แล้ว</option></select></Field></div>
         <button disabled={!items.length} onClick={() => { save(items, vat); onClose() }} className={`${btnPrimary} mt-4 w-full`}>บันทึกออเดอร์ · ฿{baht(t.total)}</button>
       </div>
@@ -450,15 +450,15 @@ function OrderDone({ b, c, s, byId, say, close }: { b: Bill; c?: Customer; s: Se
     <>
       <Sheet title="บันทึกออเดอร์แล้ว" onClose={close} z={75}>
         <div className="space-y-3 p-4">
-          <div className="rounded-xl bg-[#fbf8f1] p-3 text-sm"><b>{b.no}</b> · {c?.name}<div className="text-lg font-bold text-[#0f4c47]">฿{baht(billTotals(b).total)}</div></div>
+          <div className="rounded-xl bg-[#f7f9fc] p-3 text-sm"><b>{b.no}</b> · {c ? cname(c) : b.customerId}<div className="text-lg font-bold text-[#14284b]">฿{baht(billTotals(b).total)}</div></div>
           <a href={lineShare(companyOrderText(b, c, s))} target="_blank" rel="noreferrer" className={`${act} bg-[#06c755] text-white`}><Building2 size={19} />แจ้งออเดอร์ให้บริษัททาง LINE</a>
-          <a href={lineShare(msg)} target="_blank" rel="noreferrer" className={`${act} border-2 border-[#0f4c47] text-[#0f4c47]`}><MessageCircle size={19} />ส่งยอด+ลิงก์บิลให้ลูกค้า (LINE)</a>
+          <a href={lineShare(msg)} target="_blank" rel="noreferrer" className={`${act} border-2 border-[#14284b] text-[#14284b]`}><MessageCircle size={19} />ส่งยอด+ลิงก์บิลให้ลูกค้า (LINE)</a>
           <div className="flex gap-2">
-            <a href={smsLink(c?.phone || '', msg)} className={`${act} flex-1 border border-stone-400`}>SMS</a>
-            <button onClick={async () => say((await copyText(msg)) ? 'คัดลอกข้อความแล้ว' : 'คัดลอกไม่สำเร็จ')} className={`${act} flex-1 border border-stone-400`}>คัดลอก</button>
-            <button onClick={() => setView(true)} className={`${act} flex-1 border border-stone-400`}>ดูบิล</button>
+            <a href={smsLink(c?.phone || '', msg)} className={`${act} flex-1 border border-slate-400`}>SMS</a>
+            <button onClick={async () => say((await copyText(msg)) ? 'คัดลอกข้อความแล้ว' : 'คัดลอกไม่สำเร็จ')} className={`${act} flex-1 border border-slate-400`}>คัดลอก</button>
+            <button onClick={() => setView(true)} className={`${act} flex-1 border border-slate-400`}>ดูบิล</button>
           </div>
-          <p className="text-xs text-stone-500">LINE จะเปิดหน้าเลือกแชต/กลุ่มปลายทางพร้อมข้อความที่เตรียมไว้ — เลือกกลุ่มบริษัทแล้วกดส่ง</p>
+          <p className="text-xs text-slate-500">LINE จะเปิดหน้าเลือกแชต/กลุ่มปลายทางพร้อมข้อความที่เตรียมไว้ — เลือกกลุ่มบริษัทแล้วกดส่ง</p>
         </div>
       </Sheet>
       {view && <BillDetail b={b} c={c} s={s} byId={byId} say={say} close={() => setView(false)} />}
@@ -485,7 +485,7 @@ function SettingsSheet({ db, setDb, s, setS, close, say }: { db: DB; setDb: (d: 
             <Field l="ดึงบิลย้อนหลัง (เดือน)"><input type="number" min={1} max={60} value={f.months} onChange={e => set('months', +e.target.value || 12)} className={inputCls} /></Field>
             {err && <div className="rounded-lg bg-[#fdebd2] p-2 text-xs text-[#8a3b0c]">{err}</div>}
             <button disabled={busy || !f.sheetUrl || !f.sheetToken} onClick={sync} className={`${btnPrimary} flex w-full items-center justify-center gap-2`}><RefreshCw size={17} className={busy ? 'animate-spin' : ''} />{busy ? 'กำลังดึงข้อมูล…' : 'ซิงก์จากชีท A'}</button>
-            <p className="text-xs text-stone-500">ลูกค้า {db.customers.length} · บิล {db.bills.length} · เยี่ยม {db.visits.length}{db.syncedAt ? ` · ซิงก์ล่าสุด ${new Date(db.syncedAt).toLocaleString('th-TH')}` : ' · ตอนนี้เป็นข้อมูลตัวอย่าง'}. ข้อมูลที่บันทึกในแอปเก็บในเครื่อง ไม่เขียนกลับชีท</p>
+            <p className="text-xs text-slate-500">ลูกค้า {db.customers.length} · บิล {db.bills.length} · เยี่ยม {db.visits.length}{db.syncedAt ? ` · ซิงก์ล่าสุด ${new Date(db.syncedAt).toLocaleString('th-TH')}` : ' · ตอนนี้เป็นข้อมูลตัวอย่าง'}. ข้อมูลที่บันทึกในแอปเก็บในเครื่อง ไม่เขียนกลับชีท</p>
           </section>
           <section className="space-y-3">
             <H>นำเข้าจากไฟล์ (txt / csv)</H>
@@ -504,7 +504,7 @@ function SettingsSheet({ db, setDb, s, setS, close, say }: { db: DB; setDb: (d: 
             <Field l="URL แอปสำหรับลิงก์หน้าบิล (เว้นว่าง = ใช้ที่อยู่ปัจจุบัน)"><input value={f.billBase} onChange={e => set('billBase', e.target.value)} className={inputCls} /></Field>
             <button onClick={() => { setS(f); say('บันทึกการตั้งค่าแล้ว') }} className={`${btnPrimary} w-full`}>บันทึกการตั้งค่า</button>
           </section>
-          <button onClick={() => { if (confirm('ล้างข้อมูลในเครื่องและกลับไปข้อมูลตัวอย่าง?')) { setDb(buildDemo()); say('รีเซ็ตแล้ว'); close() } }} className="w-full rounded-xl border border-stone-400 py-3 font-semibold">ล้างข้อมูลในเครื่อง → ข้อมูลตัวอย่าง</button>
+          <button onClick={() => { if (confirm('ล้างข้อมูลในเครื่องและกลับไปข้อมูลตัวอย่าง?')) { setDb(buildDemo()); say('รีเซ็ตแล้ว'); close() } }} className="w-full rounded-xl border border-slate-400 py-3 font-semibold">ล้างข้อมูลในเครื่อง → ข้อมูลตัวอย่าง</button>
         </div>
       </Sheet>
       {imp && <ImportWizard db={db} setDb={d => { setDb(d) }} close={() => setImp(false)} say={say} />}

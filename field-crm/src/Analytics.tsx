@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { TrendingDown, TrendingUp } from 'lucide-react'
 import type { DB } from './data'
-import { baht, billTotals, daysSince, ymd } from './lib'
+import { baht, billTotals, cname, daysSince, ymd } from './lib'
 import { H } from './ui'
 
 const PERIODS = [['30', '30 วัน'], ['90', '90 วัน'], ['365', '12 เดือน'], ['0', 'ทั้งหมด']] as const
@@ -13,7 +13,7 @@ function Bars({ rows, fmtV = baht }: { rows: [string, number][]; fmtV?: (n: numb
       {rows.map(([k, v]) => (
         <div key={k} className="text-xs">
           <div className="flex justify-between"><span className="truncate pr-2">{k}</span><b>{fmtV(v)}</b></div>
-          <div className="h-2 rounded bg-stone-200"><div className="h-2 rounded bg-[#0f4c47]" style={{ width: `${(v / max) * 100}%` }} /></div>
+          <div className="h-2 rounded bg-slate-200"><div className="h-2 rounded bg-[#14284b]" style={{ width: `${(v / max) * 100}%` }} /></div>
         </div>
       ))}
     </div>
@@ -52,25 +52,25 @@ export default function Analytics({ db, openC }: { db: DB; openC: (id: string) =
   const maxM = Math.max(1, ...A.months.map(m => A.monthly[m]))
   return (
     <div className="space-y-5 p-4">
-      <div className="flex gap-2">{PERIODS.map(([k, t]) => <button key={k} onClick={() => setP(k)} className={`flex-1 rounded-full py-2 text-xs ${p === k ? 'bg-[#0f4c47] font-bold text-white' : 'border border-stone-300 bg-white'}`}>{t}</button>)}</div>
+      <div className="flex gap-2">{PERIODS.map(([k, t]) => <button key={k} onClick={() => setP(k)} className={`flex-1 rounded-full py-2 text-xs ${p === k ? 'bg-[#14284b] font-bold text-white' : 'border border-slate-300 bg-white'}`}>{t}</button>)}</div>
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-2xl bg-[#0f4c47] p-4 text-white">
+        <div className="rounded-2xl bg-[#14284b] p-4 text-white">
           <div className="text-xs opacity-70">ยอดขาย</div><div className="text-2xl font-bold">฿{baht(Math.round(A.rev))}</div>
           {delta != null && <div className="mt-0.5 flex items-center gap-1 text-xs">{delta >= 0 ? <TrendingUp size={13} /> : <TrendingDown size={13} />}{delta > 999 ? 'มากกว่า +999' : (delta >= 0 ? '+' : '') + delta.toFixed(1)}% เทียบช่วงก่อนหน้า</div>}
         </div>
         <div className="grid gap-2">
-          <div className="rounded-xl border border-stone-300 bg-[#fbf8f1] px-3 py-2"><div className="text-[11px] text-stone-500">บิล · เฉลี่ย/บิล</div><b>{A.n} · ฿{baht(Math.round(A.rev / Math.max(A.n, 1)))}</b></div>
-          <div className="rounded-xl border border-stone-300 bg-[#fbf8f1] px-3 py-2"><div className="text-[11px] text-stone-500">ลูกค้าที่สั่งซื้อ</div><b>{A.active} / {db.customers.length} ราย</b></div>
+          <div className="rounded-xl border border-slate-300 bg-[#f7f9fc] px-3 py-2"><div className="text-[11px] text-slate-500">บิล · เฉลี่ย/บิล</div><b>{A.n} · ฿{baht(Math.round(A.rev / Math.max(A.n, 1)))}</b></div>
+          <div className="rounded-xl border border-slate-300 bg-[#f7f9fc] px-3 py-2"><div className="text-[11px] text-slate-500">ลูกค้าที่สั่งซื้อ</div><b>{A.active} / {db.customers.length} ราย</b></div>
         </div>
       </div>
 
       <section><H>ยอดขายรายเดือน</H>
-        {A.months.length === 0 ? <p className="text-sm text-stone-500">ยังไม่มีบิล</p> : (
+        {A.months.length === 0 ? <p className="text-sm text-slate-500">ยังไม่มีบิล</p> : (
           <div className="flex h-32 items-end gap-1">
             {A.months.map(m => (
               <div key={m} className="flex h-full flex-1 flex-col items-center justify-end gap-1" title={`${m}: ฿${baht(Math.round(A.monthly[m]))}`}>
-                <div className="w-full rounded-t bg-[#0f4c47]" style={{ height: `${Math.max(3, (A.monthly[m] / maxM) * 100)}%` }} />
-                <span className="text-[9px] text-stone-500">{m.slice(5)}</span>
+                <div className="w-full rounded-t bg-[#14284b]" style={{ height: `${Math.max(3, (A.monthly[m] / maxM) * 100)}%` }} />
+                <span className="text-[9px] text-slate-500">{m.slice(5)}</span>
               </div>
             ))}
           </div>)}
@@ -79,17 +79,17 @@ export default function Analytics({ db, openC }: { db: DB; openC: (id: string) =
       <section><H>สินค้าขายดี (มูลค่า)</H><Bars rows={A.byProd.map(([k, v]) => [k, Math.round(v)])} /></section>
       <section><H>ลูกค้ายอดสูงสุด</H>
         {A.byCust.map(([id, v], i) => (
-          <button key={id} onClick={() => openC(id)} className="flex w-full items-center justify-between border-b border-stone-200 py-2 text-left text-sm">
-            <span className="truncate"><b className="mr-2 text-[#0f4c47]">{i + 1}</b>{A.byC[id]?.name ?? id}</span><b>฿{baht(Math.round(v))}</b>
+          <button key={id} onClick={() => openC(id)} className="flex w-full items-center justify-between border-b border-slate-200 py-2 text-left text-sm">
+            <span className="truncate"><b className="mr-2 text-[#14284b]">{i + 1}</b>{A.byC[id] ? cname(A.byC[id]) : id}</span><b>฿{baht(Math.round(v))}</b>
           </button>))}
       </section>
       {A.bySales.length > 1 && <section><H>ตามพนักงานขาย</H><Bars rows={A.bySales.map(([k, v]) => [k, Math.round(v)])} /></section>}
       <section><H>ลูกค้าที่หายไป (ควรรีบติดตาม)</H>
-        {A.lapsed.length === 0 && <p className="text-sm text-stone-500">ไม่พบ</p>}
+        {A.lapsed.length === 0 && <p className="text-sm text-slate-500">ไม่พบ</p>}
         {A.lapsed.map(({ c, d, v }) => (
-          <button key={c.id} onClick={() => openC(c.id)} className="flex w-full items-center justify-between border-b border-stone-200 py-2 text-left text-sm">
-            <span className="min-w-0"><span className="block truncate font-semibold">{c.name}</span><span className="text-xs font-semibold text-[#c2410c]">ไม่สั่งมา {d} วัน</span></span>
-            <span className="shrink-0 text-xs text-stone-500">ยอดสะสม ฿{baht(Math.round(v))}</span>
+          <button key={c.id} onClick={() => openC(c.id)} className="flex w-full items-center justify-between border-b border-slate-200 py-2 text-left text-sm">
+            <span className="min-w-0"><span className="block truncate font-semibold">{cname(c)}</span><span className="text-xs font-semibold text-[#c2410c]">ไม่สั่งมา {d} วัน</span></span>
+            <span className="shrink-0 text-xs text-slate-500">ยอดสะสม ฿{baht(Math.round(v))}</span>
           </button>))}
       </section>
     </div>

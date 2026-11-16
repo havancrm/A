@@ -20,6 +20,7 @@ export function normDate(s: string): string {
   if (m < 1 || m > 12 || d < 1 || d > 31) return ''
   return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
 }
+export const cname = (c?: { id: string; name: string }, fb = '') => (c ? `${c.id} · ${c.name}` : fb)
 export const num = (s: string) => { const n = parseFloat((s || '').replace(/,/g, '').trim()); return isNaN(n) ? NaN : n }
 
 /* ---------- ระยะทาง / แผนที่ ---------- */
@@ -79,7 +80,7 @@ const b64e = (s: string) => btoa(unescape(encodeURIComponent(s))).replace(/\+/g,
 const b64d = (s: string) => decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/'))))
 export function billLink(b: Bill, cust: Customer | undefined, s: Settings) {
   const data: SharedBill = {
-    n: b.no, d: b.date, c: cust?.name || b.customerName || '', i: b.items.map(i => [i.name, i.qty, i.price]), v: b.vatMode, p: b.paymentTerm || cust?.paymentTerm,
+    n: b.no, d: b.date, c: cust ? cname(cust) : [b.customerId, b.customerName].filter(Boolean).join(' · '), i: b.items.map(i => [i.name, i.qty, i.price]), v: b.vatMode, p: b.paymentTerm || cust?.paymentTerm,
     co: s.companyName, ph: s.companyPhone, tx: s.companyTaxId, bk: s.bankInfo,
   }
   const base = s.billBase || location.origin + location.pathname
@@ -96,7 +97,7 @@ export const smsLink = (phone: string, text: string) => `sms:${phone.replace(/[^
 export function companyOrderText(b: Bill, cust: Customer | undefined, s: Settings) {
   const t = billTotals(b)
   return [
-    `🧾 ออเดอร์ใหม่ ${b.no}`, `ลูกค้า: ${cust?.name ?? b.customerName ?? b.customerId} (${b.customerId})`,
+    `🧾 ออเดอร์ใหม่ ${b.no}`, `ลูกค้า: ${cust ? cname(cust) : [b.customerId, b.customerName].filter(Boolean).join(' · ')}`,
     `วันที่: ${fmt(b.date)}   เงื่อนไข: ${b.paymentTerm || cust?.paymentTerm || '-'}`, '', 'รายการ:',
     ...b.items.map(i => `• ${i.name} ×${i.qty} @${baht(i.price)} = ${baht(i.qty * i.price)}`), '',
     `รวม ${baht(t.total)} บาท (${vatLabel(b.vatMode)})`, `เซลล์: ${b.salesperson || s.salesName || '-'}`,
@@ -107,7 +108,7 @@ export function customerBillText(b: Bill, cust: Customer | undefined, s: Setting
   const t = billTotals(b)
   return [
     `เรียน ${cust?.contactName || cust?.name || 'ลูกค้า'}`, `${s.companyName} ขอแจ้งยอดบิลเลขที่ ${b.no} วันที่ ${fmt(b.date)}`,
-    `ยอดรวม ${baht(t.total)} บาท (${b.paymentTerm || cust?.paymentTerm || 'เงินสด'})`,
+    `รหัสลูกค้า: ${b.customerId}`, `ยอดรวม ${baht(t.total)} บาท (${b.paymentTerm || cust?.paymentTerm || 'เงินสด'})`,
     s.bankInfo ? `ช่องทางชำระเงิน: ${s.bankInfo}` : '', `ดูใบแจ้งยอด: ${billLink(b, cust, s)}`, 'ขอบคุณที่ใช้บริการค่ะ/ครับ',
   ].filter(Boolean).join('\n')
 }

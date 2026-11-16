@@ -150,11 +150,11 @@ export default function ImportWizard({ db, setDb, close, say }: { db: DB; setDb:
     <Sheet title={`นำเข้าไฟล์ · ขั้น ${step}/3`} onClose={close} z={80} full>
       {step === 1 && (
         <div className="space-y-4 p-4 text-sm">
-          <p className="text-stone-600">เลือกไฟล์ .txt / .csv / .tsv ที่ส่งออกจากโปรแกรมบัญชี ระบบเดาตัวคั่นและการเข้ารหัสภาษาไทยให้เอง และยังไม่เขียนข้อมูลจนกว่าจะกดยืนยันในขั้นสุดท้าย</p>
+          <p className="text-slate-600">เลือกไฟล์ .txt / .csv / .tsv ที่ส่งออกจากโปรแกรมบัญชี ระบบเดาตัวคั่นและการเข้ารหัสภาษาไทยให้เอง และยังไม่เขียนข้อมูลจนกว่าจะกดยืนยันในขั้นสุดท้าย</p>
           <input type="file" accept=".txt,.csv,.tsv,.ttx,text/*" onChange={e => { const f = e.target.files?.[0]; if (f) loadFile(f) }} className={inputCls} />
           {raw.length > 0 && (
             <>
-              <div className="rounded-xl bg-[#fbf8f1] p-3">ไฟล์ <b>{fileName}</b> · {raw.length} แถว · เข้ารหัส {encUsed}</div>
+              <div className="rounded-xl bg-[#f7f9fc] p-3">ไฟล์ <b>{fileName}</b> · {raw.length} แถว · เข้ารหัส {encUsed}</div>
               <div className="grid grid-cols-2 gap-3">
                 <Field l="ตัวคั่น"><select value={delim} onChange={e => reparse(e.target.value)} className={inputCls}><option value=",">, (คอมมา)</option><option value={'\t'}>Tab</option><option value="|">| (ขีดตั้ง)</option><option value=";">; (เซมิโคลอน)</option></select></Field>
                 <Field l="ตัวอักษรเพี้ยน?"><select value={encUsed} onChange={e => file && loadFile(file, e.target.value as 'utf-8' | 'windows-874')} className={inputCls}><option value="utf-8">UTF-8</option><option value="windows-874">Windows-874 (ไฟล์ไทยเก่า)</option></select></Field>
@@ -163,8 +163,8 @@ export default function ImportWizard({ db, setDb, close, say }: { db: DB; setDb:
               <Field l="นำเข้าเป็นข้อมูลชนิด">
                 <select value={target} onChange={e => setTarget(e.target.value as keyof typeof TARGETS)} className={inputCls}>{Object.entries(TARGETS).map(([k, t]) => <option key={k} value={k}>{t.label}</option>)}</select>
               </Field>
-              <div className="overflow-x-auto rounded-xl border border-stone-300 bg-white">
-                <table className="w-full text-xs"><tbody>{raw.slice(0, 4).map((r, i) => <tr key={i} className={i === 0 && hasHeader ? 'bg-stone-100 font-bold' : ''}>{r.slice(0, 8).map((c, j) => <td key={j} className="max-w-[120px] truncate border-b border-stone-200 px-2 py-1">{c}</td>)}</tr>)}</tbody></table>
+              <div className="overflow-x-auto rounded-xl border border-slate-300 bg-white">
+                <table className="w-full text-xs"><tbody>{raw.slice(0, 4).map((r, i) => <tr key={i} className={i === 0 && hasHeader ? 'bg-slate-100 font-bold' : ''}>{r.slice(0, 8).map((c, j) => <td key={j} className="max-w-[120px] truncate border-b border-slate-200 px-2 py-1">{c}</td>)}</tr>)}</tbody></table>
               </div>
               <button onClick={goMap} className={`${btnPrimary} w-full`}>ถัดไป: จับคู่คอลัมน์</button>
             </>
@@ -174,7 +174,7 @@ export default function ImportWizard({ db, setDb, close, say }: { db: DB; setDb:
 
       {step === 2 && (
         <div className="space-y-3 p-4 text-sm">
-          <p className="text-stone-600">เลือกว่าคอลัมน์ในไฟล์ตรงกับข้อมูลไหน (ระบบจับคู่ให้เบื้องต้นแล้ว) ช่อง * จำเป็น</p>
+          <p className="text-slate-600">เลือกว่าคอลัมน์ในไฟล์ตรงกับข้อมูลไหน (ระบบจับคู่ให้เบื้องต้นแล้ว) ช่อง * จำเป็น</p>
           {def.fields.map(([k, l, req]) => (
             <Field key={k} l={`${l}${req ? ' *' : ''}`}>
               <select value={map[k] ?? -1} onChange={e => setMap({ ...map, [k]: +e.target.value })} className={`${inputCls} ${req && (map[k] ?? -1) < 0 ? 'border-[#c2410c]' : ''}`}>
@@ -191,41 +191,41 @@ export default function ImportWizard({ db, setDb, close, say }: { db: DB; setDb:
 
       {step === 3 && (
         <div className="text-sm">
-          <div className="sticky top-0 z-10 space-y-2 border-b border-stone-300 bg-[#f5f0e6] p-3">
+          <div className="sticky top-0 z-10 space-y-2 border-b border-slate-300 bg-[#eef2f8] p-3">
             <div className="flex flex-wrap gap-1.5">
               {([['all', `ทั้งหมด ${rows.length}`], ['bad', `ต้องแก้ ${nBad}`], ['dup', `แจ้งเตือน ${nWarn}`], ['skip', `ข้าม ${rows.filter(r => r.skip).length}`]] as const).map(([k, t]) => (
-                <button key={k} onClick={() => { setTab(k); setLimit(100) }} className={`rounded-full px-3 py-1.5 text-xs ${tab === k ? 'bg-[#0f4c47] font-semibold text-white' : 'border border-stone-300 bg-white'}`}>{t}</button>
+                <button key={k} onClick={() => { setTab(k); setLimit(100) }} className={`rounded-full px-3 py-1.5 text-xs ${tab === k ? 'bg-[#14284b] font-semibold text-white' : 'border border-slate-300 bg-white'}`}>{t}</button>
               ))}
             </div>
             <div className="flex gap-2">
               <input value={q} onChange={e => setQ(e.target.value)} placeholder="กรอง/ค้นหาในแถว" className={`${inputCls} !py-2`} />
-              <button onClick={tidy} className="flex shrink-0 items-center gap-1 rounded-xl border border-stone-300 bg-white px-3 text-xs"><Wand2 size={14} />ล้างช่องว่าง</button>
-              <button onClick={skipBad} className="shrink-0 rounded-xl border border-stone-300 bg-white px-3 text-xs">ข้ามแถวเสีย</button>
+              <button onClick={tidy} className="flex shrink-0 items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 text-xs"><Wand2 size={14} />ล้างช่องว่าง</button>
+              <button onClick={skipBad} className="shrink-0 rounded-xl border border-slate-300 bg-white px-3 text-xs">ข้ามแถวเสีย</button>
             </div>
           </div>
-          {view.length === 0 && <p className="p-8 text-center text-stone-500">ไม่มีแถวในตัวกรองนี้</p>}
+          {view.length === 0 && <p className="p-8 text-center text-slate-500">ไม่มีแถวในตัวกรองนี้</p>}
           {view.slice(0, limit).map(({ r, i, c }) => (
-            <div key={i} className={`border-b border-stone-200 p-3 ${r.skip ? 'opacity-40' : ''} ${c.e.length ? 'bg-[#fdebd2]/60' : ''}`}>
+            <div key={i} className={`border-b border-slate-200 p-3 ${r.skip ? 'opacity-40' : ''} ${c.e.length ? 'bg-[#fdebd2]/60' : ''}`}>
               <div className="mb-1.5 flex items-start justify-between gap-2">
                 <div className="text-xs">
-                  <span className="mr-1 font-bold text-stone-400">#{i + 1}</span>
+                  <span className="mr-1 font-bold text-slate-400">#{i + 1}</span>
                   {c.e.map(m => <span key={m} className="mr-1 inline-flex items-center gap-0.5 rounded bg-[#c2410c] px-1.5 py-0.5 text-white"><AlertTriangle size={10} />{m}</span>)}
-                  {c.w.map(m => <span key={m} className="mr-1 rounded bg-[#d99a1b]/30 px-1.5 py-0.5 text-[#7a5200]">{m}</span>)}
+                  {c.w.map(m => <span key={m} className="mr-1 rounded bg-[#e0a82e]/30 px-1.5 py-0.5 text-[#7a5200]">{m}</span>)}
                 </div>
-                <button onClick={() => flagSkip(i, !r.skip)} aria-label="ข้ามแถว" className="shrink-0 rounded p-1 text-stone-500 active:bg-stone-200">{r.skip ? 'คืนค่า' : <Trash2 size={16} />}</button>
+                <button onClick={() => flagSkip(i, !r.skip)} aria-label="ข้ามแถว" className="shrink-0 rounded p-1 text-slate-500 active:bg-slate-200">{r.skip ? 'คืนค่า' : <Trash2 size={16} />}</button>
               </div>
               <div className="grid grid-cols-2 gap-1.5">
                 {def.fields.filter(([k]) => map[k] >= 0).map(([k, l, req]) => (
                   <label key={k} className={target === 'customers' && (k === 'name' || k === 'address') ? 'col-span-2' : target !== 'customers' && k === 'name' ? 'col-span-2' : ''}>
-                    <span className="text-[10px] text-stone-500">{l}</span>
-                    <input value={r.v[k]} onChange={e => setCell(i, k, e.target.value)} className={`w-full rounded-lg border px-2 py-1.5 text-[13px] outline-none focus:border-[#0f4c47] ${req && !r.v[k] ? 'border-[#c2410c] bg-white' : 'border-stone-300 bg-white'}`} />
+                    <span className="text-[10px] text-slate-500">{l}</span>
+                    <input value={r.v[k]} onChange={e => setCell(i, k, e.target.value)} className={`w-full rounded-lg border px-2 py-1.5 text-[13px] outline-none focus:border-[#14284b] ${req && !r.v[k] ? 'border-[#c2410c] bg-white' : 'border-slate-300 bg-white'}`} />
                   </label>
                 ))}
               </div>
             </div>
           ))}
-          {view.length > limit && <button onClick={() => setLimit(limit + 200)} className="w-full py-4 text-sm font-semibold text-[#0f4c47]">แสดงเพิ่ม (เหลือ {view.length - limit})</button>}
-          <div className="sticky bottom-0 flex gap-2 border-t border-stone-300 bg-[#f5f0e6] p-3">
+          {view.length > limit && <button onClick={() => setLimit(limit + 200)} className="w-full py-4 text-sm font-semibold text-[#14284b]">แสดงเพิ่ม (เหลือ {view.length - limit})</button>}
+          <div className="sticky bottom-0 flex gap-2 border-t border-slate-300 bg-[#eef2f8] p-3">
             <button onClick={() => setStep(2)} className={`${btnGhost} flex-1`}>กลับ</button>
             <button disabled={!ready.length} onClick={apply} className={`${btnPrimary} flex-[2]`}>นำเข้า {ready.length} แถว</button>
           </div>
