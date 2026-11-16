@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import {
-  Phone, MapPin, Navigation, Search, CalendarCheck, Users, ListChecks, BarChart3, Settings as Cog, Plus, MessageCircle, Clock, AlertTriangle,
+  Home, Menu, Bell, ChevronLeft, Store, Scissors, Flower2, Phone, MapPin, Navigation, Search, CalendarCheck, Users, ListChecks, BarChart3, Settings as Cog, Plus, MessageCircle, Clock, AlertTriangle,
   ChevronRight, Check, ShoppingCart, LocateFixed, Minus, Receipt, Camera, RefreshCw, FileUp, Building2, Crosshair,
 } from 'lucide-react'
 import { buildDemo, OUTCOMES, TASK_TYPES, type Bill, type BillItem, type Customer, type DB, type Task, type Visit } from './data'
@@ -26,7 +26,7 @@ function status(c: Customer, lastVisit?: string): { s: Status; days: number } {
   const d = daysSince(lastVisit)
   return { s: d > c.visitCycleDays ? 'overdue' : d >= c.visitCycleDays * 0.8 ? 'soon' : 'ok', days: d }
 }
-export const dot: Record<Status, string> = { overdue: 'bg-[#c2410c]', soon: 'bg-[#e0a82e]', ok: 'bg-[#2f7d57]', new: 'bg-slate-400' }
+export const dot: Record<Status, string> = { overdue: 'bg-[#c2410c]', soon: 'bg-[#2c5aa0]', ok: 'bg-[#2f7d57]', new: 'bg-slate-400' }
 const label: Record<Status, string> = { overdue: 'เลยรอบเยี่ยม', soon: 'ใกล้ถึงรอบ', ok: 'ปกติ', new: 'ยังไม่เคยเยี่ยม' }
 
 export default function Root() {
@@ -37,7 +37,7 @@ export default function Root() {
 function App() {
   const [db, setDbRaw] = useState<DB>(load)
   const [settings, setSettingsRaw] = useState<Settings>(loadSettings)
-  const [tab, setTab] = useState<'today' | 'customers' | 'tasks' | 'bills' | 'analytics'>('today')
+  const [tab, setTab] = useState<'today' | 'customers' | 'checkin' | 'bills' | 'more'>('today'); const [page, setPage] = useState<'tasks' | 'analytics' | null>(null)
   const [openId, setOpenId0] = useState<string | null>(null); const [openSub, setOpenSub] = useState<'visit' | 'task' | 'order' | undefined>()
   const setOpenId = (id: string | null, sb?: 'visit' | 'task' | 'order') => { setOpenSub(sb); setOpenId0(id) }
   const [cog, setCog] = useState(false)
@@ -79,34 +79,71 @@ function App() {
     setDoneBill(b)
   }
 
-  const TABS = [['today', CalendarCheck, 'วันนี้'], ['customers', Users, 'ลูกค้า'], ['tasks', ListChecks, 'งาน'], ['bills', Receipt, 'บิล'], ['analytics', BarChart3, 'วิเคราะห์']] as const
-  const titles = { today: 'งานวันนี้', customers: 'ลูกค้า', tasks: 'งานติดตาม', bills: 'บิลย้อนหลัง', analytics: 'สรุป / วิเคราะห์การขาย' }
+  type Tab = 'today' | 'customers' | 'checkin' | 'bills' | 'more'
+  const TABS: [Tab, typeof Home, string][] = [['today', Home, 'หน้าหลัก'], ['customers', Users, 'ลูกค้า'], ['checkin', Check, 'เช็คอิน'], ['bills', Receipt, 'ออเดอร์'], ['more', Menu, 'เพิ่มเติม']]
+  const lateTasks = db.tasks.filter(t => t.status === 'open' && t.dueAt <= todayStr()).length
+  const lateCust = db.customers.filter(c => status(c, lastVisit[c.id]).s === 'overdue').length
+  const bell = lateTasks + lateCust
+  const goTab = (t: Tab) => { setPage(null); setTab(t) }
+  const clock = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
   return (
     <Quick.Provider value={{ go: setOpenId, call: logCall }}>
-    <div className="mx-auto flex h-[100dvh] max-w-md flex-col bg-[#eef2f8] text-slate-900" style={{ fontFamily: "'Sarabun','Noto Sans Thai',system-ui,sans-serif" }}>
-      <header className="flex items-center justify-between bg-gradient-to-b from-[#1b3560] to-[#14284b] px-4 pb-2.5 pt-[max(.75rem,env(safe-area-inset-top))] text-[#eef2f8] shadow-[0_2px_0_#e0a82e]">
-        <div>
-          <div className="text-[11px] tracking-wide opacity-70">{new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}{db.syncedAt ? ` · ซิงก์ชีท ${new Date(db.syncedAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}` : ' · ข้อมูลตัวอย่าง'}</div>
-          <div className="text-[17px] font-bold leading-tight tracking-tight">{titles[tab]}</div>
+    <div className="mx-auto flex h-[100dvh] max-w-md flex-col bg-[#f3f5f4] text-[#16201b]" style={{ fontFamily: "'Sarabun','Noto Sans Thai',-apple-system,system-ui,sans-serif" }}>
+      <header className="bg-gradient-to-br from-[#172f57] via-[#1f3d6e] to-[#2c5aa0] px-4 pb-2 pt-[max(.5rem,env(safe-area-inset-top))] text-white">
+        <div className="flex items-center justify-between">
+          <span className="text-base font-extrabold tracking-wide">CRM</span>
+          <div className="flex items-center gap-1">
+            <button aria-label="แจ้งเตือน" onClick={() => { setPage('tasks') }} className="relative grid h-9 w-9 place-items-center rounded-full active:bg-white/15">
+              <Bell size={19} />{bell > 0 && <em className="absolute -right-0.5 top-0 min-w-[18px] rounded-full bg-[#f5a524] px-1 text-center text-[11px] font-bold not-italic leading-[18px] text-[#16201b]">{bell}</em>}
+            </button>
+            <button aria-label="ตั้งค่า" onClick={() => setCog(true)} className="grid h-9 w-9 place-items-center rounded-full active:bg-white/15"><Cog size={19} /></button>
+          </div>
         </div>
-        <button aria-label="ตั้งค่า" onClick={() => setCog(true)} className="grid h-9 w-9 place-items-center rounded-full bg-white/10 active:bg-white/20"><Cog size={18} /></button>
+        <div className="flex items-center gap-3 text-xs opacity-90">
+          <span>{new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'short', year: '2-digit' })} • {clock}</span>
+          <span className="flex items-center gap-1.5"><span className={`h-2 w-2 rounded-full ${db.syncedAt ? 'bg-[#34c759]' : 'bg-[#f5a524]'}`} />{db.syncedAt ? `ซิงก์ชีท ${new Date(db.syncedAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}` : 'ข้อมูลตัวอย่าง'}</span>
+        </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto pb-4">
-        {tab === 'today' && <Today db={db} byId={byId} lastVisit={lastVisit} pos={pos} locate={locate} openC={setOpenId} toggleTask={toggleTask} />}
-        {tab === 'customers' && <Customers db={db} lastVisit={lastVisit} pos={pos} locate={locate} openC={setOpenId} />}
-        {tab === 'tasks' && <Tasks db={db} byId={byId} openC={setOpenId} toggleTask={toggleTask} />}
-        {tab === 'bills' && <Bills bills={db.bills} byId={byId} s={settings} say={setToast} />}
-        {tab === 'analytics' && <Analytics db={db} openC={setOpenId} />}
+      <main className="flex-1 overflow-y-auto px-2.5 pb-4 pt-2.5">
+        {page && <button onClick={() => setPage(null)} className="mb-1 flex items-center gap-0.5 text-sm font-semibold text-[#1f3d6e]"><ChevronLeft size={18} />กลับ</button>}
+        {page === 'tasks' && <Tasks db={db} byId={byId} openC={setOpenId} toggleTask={toggleTask} />}
+        {page === 'analytics' && <Analytics db={db} openC={setOpenId} />}
+        {!page && tab === 'today' && <Today db={db} byId={byId} lastVisit={lastVisit} pos={pos} locate={locate} openC={setOpenId} toggleTask={toggleTask} goPage={setPage} />}
+        {!page && tab === 'customers' && <Customers db={db} lastVisit={lastVisit} pos={pos} locate={locate} openC={setOpenId} />}
+        {!page && tab === 'checkin' && <CheckinPick db={db} pos={pos} locate={locate} lastVisit={lastVisit} openC={setOpenId} />}
+        {!page && tab === 'bills' && <Bills bills={db.bills} byId={byId} s={settings} say={setToast} />}
+        {!page && tab === 'more' && (
+          <div className="space-y-2.5">
+            <h2 className="px-1 text-base font-bold">เพิ่มเติม</h2>
+            <div className="overflow-hidden rounded-[14px] border border-[#e3e8e5] bg-white shadow-[0_1px_2px_rgba(20,40,70,.05),0_4px_12px_rgba(20,40,70,.04)]">
+              {[
+                [ListChecks, 'งานติดตาม', `${lateTasks} งานวันนี้และที่เลยกำหนด`, () => setPage('tasks')],
+                [BarChart3, 'สรุปและวิเคราะห์การขาย', 'ยอดขาย สินค้า ลูกค้า เซลล์', () => setPage('analytics')],
+                [FileUp, 'นำเข้าข้อมูลและเชื่อมชีท', 'ไฟล์ .txt/.csv จากโปรแกรมบัญชี · ชีท A', () => setCog(true)],
+                [Building2, 'ข้อมูลบริษัทและตั้งค่า', 'ชื่อ ที่อยู่ ช่องทางชำระเงินบนบิล', () => setCog(true)],
+              ].map(([Ic, t, sub, fn], i) => { const I = Ic as typeof Home; return (
+                <button key={i} onClick={fn as () => void} className="flex min-h-[56px] w-full items-center gap-3 border-b border-[#e3e8e5] px-3.5 py-2.5 text-left last:border-0 active:bg-[#e8eef8]">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] bg-[#e8eef8] text-[#1f3d6e]"><I size={18} /></span>
+                  <span className="min-w-0 flex-1"><b className="block text-[15px] font-semibold">{t as string}</b><small className="block truncate text-xs text-[#6b7670]">{sub as string}</small></span>
+                  <ChevronRight size={16} className="text-[#a3ada8]" />
+                </button>) })}
+            </div>
+          </div>
+        )}
       </main>
 
-      <nav className="grid grid-cols-5 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_16px_rgba(20,40,75,.06)]">
-        {TABS.map(([k, Icon, t]) => (
-          <button key={k} onClick={() => setTab(k)} className={`relative flex flex-col items-center gap-0.5 py-2 text-[11px] ${tab === k ? 'font-bold text-[#14284b]' : 'text-slate-400'}`}>
-            {tab === k && <span className="absolute top-0 h-[3px] w-8 rounded-b-full bg-[#e0a82e]" />}
-            <Icon size={20} strokeWidth={tab === k ? 2.4 : 1.7} />{t}
-          </button>
-        ))}
+      <nav className="relative grid grid-cols-5 border-t border-[#e3e8e5] bg-white/95 px-1.5 pb-[calc(4px+env(safe-area-inset-bottom))] pt-1 backdrop-blur">
+        {TABS.map(([k, Icon, t]) => {
+          const on = !page && tab === k, fab = k === 'checkin'
+          return (
+            <button key={k} onClick={() => goTab(k)} className={`flex min-h-[50px] flex-col items-center justify-center gap-0.5 text-xs font-semibold ${fab ? '-translate-y-4 font-extrabold text-[#1f3d6e]' : on ? 'text-[#1f3d6e]' : 'text-[#7a847f]'}`}>
+              <span className={fab ? `grid h-[58px] w-[58px] place-items-center rounded-full border-4 border-white text-white shadow-[0_8px_18px_#1f3d6e59] ${on ? 'bg-[#2c5aa0]' : 'bg-[#1f3d6e]'}` : `grid h-[26px] w-11 place-items-center rounded-full ${on ? 'bg-[#e8eef8]' : ''}`}>
+                <Icon size={fab ? 26 : 22} strokeWidth={on || fab ? 2.3 : 1.8} />
+              </span>{t}
+            </button>
+          )
+        })}
       </nav>
 
       {open && (
@@ -124,35 +161,41 @@ function App() {
 /* ---------- ลิสต์ลูกค้า ---------- */
 type SubK = 'visit' | 'task' | 'order'
 const Quick = createContext<{ go: (id: string, sb?: SubK) => void; call: (c: Customer) => void }>({ go: () => {}, call: () => {} })
-function CustomerRow({ c, last, dist, onClick }: { c: Customer; last?: string; dist?: number; onClick: () => void }) {
+function TypeIcon({ type, size = 18 }: { type: string; size?: number }) {
+  return /ซาลอน|เสริมสวย|ตัดผม/.test(type) ? <Scissors size={size} /> : /สปา|นวด/.test(type) ? <Flower2 size={size} /> : <Store size={size} />
+}
+function StatusPill({ st, cycle }: { st: { s: Status; days: number }; cycle: number }) {
+  const cls = st.s === 'overdue' ? 'bg-[#fcebe8] text-[#b02a1f]' : st.s === 'soon' ? 'bg-[#fdf3e1] text-[#8a5508]' : st.s === 'ok' ? 'bg-[#e6f3ec] text-[#2f7a4f]' : 'bg-[#e8eef8] text-[#1f3d6e]'
+  const t = st.s === 'overdue' ? `เลยรอบ ${st.days - cycle} วัน` : st.s === 'soon' ? `ใกล้ถึงรอบ ${Math.max(0, cycle - st.days)} วัน` : st.s === 'ok' ? 'ปกติ' : 'ยังไม่เคยเยี่ยม'
+  return <span className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold ${cls}`}>{t}</span>
+}
+const CARD = 'rounded-[14px] border border-[#e3e8e5] bg-white shadow-[0_1px_2px_rgba(20,40,70,.05),0_4px_12px_rgba(20,40,70,.04)]'
+function CustomerRow({ c, last, dist, onClick, actions }: { c: Customer; last?: string; dist?: number; onClick: () => void; actions?: boolean }) {
   const st = status(c, last); const q = useContext(Quick)
-  const qa = 'grid h-9 flex-1 place-items-center rounded-lg text-[#14284b] active:bg-[#14284b]/15'
+  const qa = 'grid h-8 flex-1 place-items-center rounded-[10px] border border-[#e3e8e5] text-[#1f3d6e] active:bg-[#e8eef8]'
   return (
-    <div className="border-b border-slate-200">
-    <button onClick={onClick} className="flex w-full items-center gap-3 px-4 pb-1.5 pt-3 text-left active:bg-slate-200/60">
-      <span className={`h-3 w-3 shrink-0 rounded-full ${dot[st.s]}`} />
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-[15px] font-semibold"><span className="mr-1.5 rounded bg-[#14284b]/10 px-1.5 py-0.5 text-[11px] font-bold text-[#14284b]">{c.id}</span>{c.name}</span>
-        <span className="block truncate text-xs text-slate-500">{c.type} · {c.area}{dist != null && isFinite(dist) ? ` · ${dist.toFixed(1)} กม.` : ''}</span>
-        <span className={`text-xs ${st.s === 'overdue' ? 'font-semibold text-[#c2410c]' : 'text-slate-500'}`}>
-          {st.s === 'new' ? label.new : `เยี่ยมล่าสุด ${st.days} วันก่อน (รอบ ${c.visitCycleDays} วัน)`}
+    <div className="border-b border-[#e3e8e5] px-3 pb-2 pt-1 last:border-0">
+      <button onClick={onClick} className="flex w-full items-center gap-2.5 py-1.5 text-left">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#e8eef8] text-[#1f3d6e]"><TypeIcon type={c.type} /></span>
+        <span className="min-w-0 flex-1">
+          <b className="block truncate text-[15px] font-semibold"><span className="mr-1.5 rounded bg-[#e8eef8] px-1.5 py-0.5 text-[11px] font-bold text-[#1f3d6e]">{c.id}</span>{c.name}</b>
+          <small className="block truncate text-xs text-[#6b7670]">{c.area}{dist != null && isFinite(dist) ? ` · ห่าง ${dist.toFixed(1)} กม.` : ''}{last ? ` · เยี่ยม ${st.days} วันก่อน` : ''}</small>
         </span>
-      </span>
-      <ChevronRight size={18} className="text-slate-400" />
-    </button>
-    <div className="mx-4 mb-2 flex gap-1.5">
-      {c.phone && <a aria-label="โทร" href={`tel:${c.phone.split(/[,/ ]/)[0]}`} onClick={() => q.call(c)} className={`${qa} bg-[#14284b]/[.09]`}><Phone size={17} /></a>}
-      <a aria-label="นำทาง" href={navUrl(c)} target="_blank" rel="noreferrer" className={`${qa} bg-[#e0a82e]/25`}><Navigation size={17} /></a>
-      <button aria-label="เช็กอิน" onClick={() => q.go(c.id, 'visit')} className={`${qa} bg-[#14284b]/[.09]`}><Camera size={17} /></button>
-      <button aria-label="รับออเดอร์" onClick={() => q.go(c.id, 'order')} className={`${qa} bg-[#14284b] !text-white`}><ShoppingCart size={17} /></button>
-    </div>
+        <StatusPill st={st} cycle={c.visitCycleDays} />
+      </button>
+      {actions && <div className="flex gap-1.5">
+        {c.phone && <a aria-label="โทร" href={`tel:${c.phone.split(/[,/ ]/)[0]}`} onClick={() => q.call(c)} className={qa}><Phone size={16} /></a>}
+        <a aria-label="นำทาง" href={navUrl(c)} target="_blank" rel="noreferrer" className={qa}><Navigation size={16} /></a>
+        <button aria-label="เช็กอิน" onClick={() => q.go(c.id, 'visit')} className={qa}><Camera size={16} /></button>
+        <button aria-label="รับออเดอร์" onClick={() => q.go(c.id, 'order')} className={`${qa} !border-[#1f3d6e] !bg-[#1f3d6e] !text-white`}><ShoppingCart size={16} /></button>
+      </div>}
     </div>
   )
 }
 
-function Today({ db, byId, lastVisit, pos, locate, openC, toggleTask }: {
+function Today({ db, byId, lastVisit, pos, locate, openC, toggleTask, goPage }: {
   db: DB; byId: Record<string, Customer>; lastVisit: Record<string, string>; pos: Pos | null
-  locate: () => void; openC: (id: string) => void; toggleTask: (id: string) => void
+  locate: () => void; openC: (id: string) => void; toggleTask: (id: string) => void; goPage: (p: 'tasks' | 'analytics') => void
 }) {
   const t = todayStr()
   const due = db.tasks.filter(x => x.status === 'open' && x.dueAt <= t).sort((a, b) => a.dueAt.localeCompare(b.dueAt))
@@ -162,29 +205,71 @@ function Today({ db, byId, lastVisit, pos, locate, openC, toggleTask }: {
     .map(c => ({ c, st: status(c, lastVisit[c.id]), d: pos ? kmTo(c, pos) : undefined }))
     .filter(x => x.st.s === 'overdue' || x.st.s === 'soon' || x.st.s === 'new')
     .sort((a, b) => (pos ? a.d! - b.d! : b.st.days - b.c.visitCycleDays - (a.st.days - a.c.visitCycleDays)))
+  const overdueN = list.filter(x => x.st.s === 'overdue').length, soonN = list.filter(x => x.st.s === 'soon').length
+  const hour = new Date().getHours(); const greet = hour < 12 ? 'สวัสดียามเช้า' : hour < 18 ? 'สวัสดียามบ่าย' : 'สวัสดียามเย็น'
   return (
-    <div>
-      <div className="grid grid-cols-4 gap-px border-b border-slate-200 bg-slate-300 text-center">
-        {[['เยี่ยมวันนี้', todayVisits], ['งานครบกำหนด', due.length], ['ถึงรอบเยี่ยม', list.length], ['ยอดวันนี้', baht(Math.round(todaySales))]].map(([k, v]) => (
-          <div key={k as string} className="bg-[#f7f9fc] py-3"><div className="text-lg font-bold text-[#14284b]">{v}</div><div className="text-[10px] text-slate-500">{k}</div></div>
+    <div className="space-y-2.5">
+      <div className="flex items-start justify-between gap-3 rounded-[18px] bg-gradient-to-br from-[#172f57] via-[#1f3d6e] to-[#2c5aa0] p-4 text-white shadow-[0_8px_24px_#1f3d6e33]">
+        <div className="min-w-0">
+          <div className="text-xs opacity-85">{greet}</div>
+          <div className="my-1 text-xl font-extrabold tracking-tight">{overdueN ? `ต้องเยี่ยม ${overdueN} ร้าน` : 'วันนี้ไม่มีร้านเลยรอบ'}</div>
+          <div className="text-xs opacity-85">{soonN ? `และใกล้ถึงรอบอีก ${soonN} ร้าน` : overdueN ? 'ควรเข้าก่อนเที่ยง' : 'ทุกร้านอยู่ในรอบปกติ'}</div>
+        </div>
+        <button onClick={() => goPage('analytics')} className="flex shrink-0 items-center gap-1 rounded-[10px] border border-white/25 bg-white/15 px-2.5 py-1.5 text-xs font-semibold"><BarChart3 size={15} />รายงาน</button>
+      </div>
+      <div className="grid grid-cols-4 gap-1.5">
+        {[['เยี่ยมวันนี้', todayVisits], ['งานครบกำหนด', due.length], ['ถึงรอบเยี่ยม', list.length], ['ยอดวันนี้', baht(Math.round(todaySales))]].map(([k, v], i) => (
+          <div key={k as string} className={`${CARD} px-1 py-2 text-center`}><div className={`text-xl font-extrabold leading-tight ${i === 1 && due.length ? 'text-[#8a5508]' : 'text-[#1f3d6e]'}`}>{v}</div><div className="text-xs text-[#6b7670]">{k}</div></div>
         ))}
       </div>
-      {due.length > 0 && (
-        <section>
-          <h2 className="px-4 pb-1 pt-4 text-xs font-bold uppercase tracking-wider text-slate-500">งานที่ต้องทำ</h2>
-          {due.map(x => <TaskRow key={x.id} t={x} c={byId[x.customerId]} openC={openC} toggle={toggleTask} />)}
-        </section>
-      )}
-      <section>
-        <div className="flex items-center justify-between px-4 pb-1 pt-4">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">ลูกค้าที่ควรเข้าเยี่ยม</h2>
-          <button onClick={locate} className="flex items-center gap-1 rounded-full border border-[#14284b] px-3 py-1 text-xs font-semibold text-[#14284b] active:bg-[#14284b]/10">
-            <LocateFixed size={14} />{pos ? 'อัปเดตตำแหน่ง' : 'เรียงตามใกล้ฉัน'}
-          </button>
+      <div className={`${CARD} overflow-hidden`}>
+        <div className="flex items-center justify-between px-3 pb-1 pt-2.5">
+          <b className="text-[15px]">คิวเยี่ยมวันนี้</b>
+          <button onClick={locate} className="flex items-center gap-1 rounded-full border border-[#1f3d6e]/30 px-2.5 py-1 text-xs font-semibold text-[#1f3d6e] active:bg-[#e8eef8]"><LocateFixed size={13} />{pos ? 'อัปเดตตำแหน่ง' : 'เรียงตามใกล้ฉัน'}</button>
         </div>
-        {list.length === 0 && <p className="px-4 py-8 text-center text-sm text-slate-500">ไม่มีลูกค้าถึงรอบเยี่ยม</p>}
-        {list.slice(0, 80).map(x => <CustomerRow key={x.c.id} c={x.c} last={lastVisit[x.c.id]} dist={x.d} onClick={() => openC(x.c.id)} />)}
-      </section>
+        {list.length === 0 && <p className="px-4 py-6 text-center text-sm text-[#6b7670]">ไม่มีลูกค้าถึงรอบเยี่ยม</p>}
+        {list.slice(0, 8).map(x => <CustomerRow actions key={x.c.id} c={x.c} last={lastVisit[x.c.id]} dist={x.d} onClick={() => openC(x.c.id)} />)}
+        {list.length > 8 && <div className="px-3 py-2.5 text-center text-xs text-[#6b7670]">แสดง 8 จาก {list.length} ร้าน · ดูทั้งหมดที่แท็บลูกค้า</div>}
+      </div>
+      <button onClick={() => goPage('tasks')} className={`${CARD} flex w-full items-center gap-2.5 p-3 text-left`}>
+        <span className="grid h-[34px] w-[34px] place-items-center rounded-[11px] bg-[#fdf3e1] text-[#8a5508]"><Check size={18} /></span>
+        <span className="min-w-0 flex-1"><b className="block text-[15px]">งานติดตามค้างอยู่</b><small className="text-xs text-[#6b7670]">{due.length} งาน วันนี้และที่เลยกำหนด</small></span>
+        <ChevronRight size={16} className="text-[#a3ada8]" />
+      </button>
+    </div>
+  )
+}
+
+function CheckinPick({ db, pos, locate, lastVisit, openC }: { db: DB; pos: Pos | null; locate: () => void; lastVisit: Record<string, string>; openC: (id: string, sb?: SubK) => void }) {
+  const [q, setQ] = useState('')
+  useEffect(() => { if (!pos) locate() }, []) // eslint-disable-line
+  const rows = useMemo(() => {
+    const k = q.trim().toLowerCase()
+    if (k) return db.customers.filter(c => (c.name + c.id + c.phone + c.area).toLowerCase().includes(k)).slice(0, 12).map(c => ({ c, d: pos ? kmTo(c, pos) : undefined }))
+    if (pos) return db.customers.filter(c => c.lat != null).map(c => ({ c, d: kmTo(c, pos) })).sort((a, b) => a.d - b.d).slice(0, 8)
+    return []
+  }, [db.customers, q, pos])
+  return (
+    <div className="space-y-2.5">
+      <h2 className="px-1 text-base font-bold">เช็คอินหน้าร้าน</h2>
+      <div className={`${CARD} p-3`}>
+        <button onClick={locate} className="flex w-full items-center justify-center gap-1.5 rounded-[10px] bg-[#1f3d6e] py-2.5 text-[15px] font-semibold text-white active:opacity-90"><LocateFixed size={17} />{pos ? 'อัปเดตตำแหน่ง' : 'ใช้ตำแหน่งหาร้านใกล้ฉัน'}</button>
+        <label className="mt-2 flex items-center gap-2 rounded-[11px] border border-[#e3e8e5] bg-white px-3">
+          <Search size={17} className="text-[#a3ada8]" />
+          <input value={q} onChange={e => setQ(e.target.value)} placeholder="หรือค้นหาชื่อร้าน รหัส เบอร์" className="h-11 w-full bg-transparent text-base outline-none" />
+        </label>
+      </div>
+      <div className={`${CARD} overflow-hidden`}>
+        {rows.length === 0 && <p className="px-4 py-6 text-center text-sm text-[#6b7670]">{pos ? 'ไม่พบร้านที่มีพิกัด' : 'กำลังหาตำแหน่ง… หรือพิมพ์ชื่อร้านเพื่อเช็คอิน'}</p>}
+        {rows.map(({ c, d }) => (
+          <button key={c.id} onClick={() => openC(c.id, 'visit')} className="flex w-full items-center gap-2.5 border-b border-[#e3e8e5] px-3 py-2.5 text-left last:border-0 active:bg-[#e8eef8]">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#e8eef8] text-[#1f3d6e]"><TypeIcon type={c.type} /></span>
+            <span className="min-w-0 flex-1"><b className="block truncate text-[15px] font-semibold"><span className="mr-1.5 rounded bg-[#e8eef8] px-1.5 py-0.5 text-[11px] font-bold text-[#1f3d6e]">{c.id}</span>{c.name}</b>
+              <small className="block truncate text-xs text-[#6b7670]">{c.area}{d != null && isFinite(d) ? ` · ห่าง ${d < 1 ? Math.round(d * 1000) + ' ม.' : d.toFixed(1) + ' กม.'}` : ''}</small></span>
+            <StatusPill st={status(c, lastVisit[c.id])} cycle={c.visitCycleDays} />
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
@@ -197,22 +282,24 @@ function Customers({ db, lastVisit, pos, locate, openC }: { db: DB; lastVisit: R
     .sort((a, b) => (pos ? kmTo(a, pos) - kmTo(b, pos) : a.name.localeCompare(b.name, 'th'))), [db.customers, q, type, pos, late, lastVisit])
   return (
     <div>
-      <div className="sticky top-0 z-10 space-y-2 bg-[#eef2f8] px-4 pb-2 pt-3">
+      <div className="sticky -top-2.5 z-10 -mx-2.5 mb-2 space-y-2 bg-[#f3f5f4] px-2.5 pb-1 pt-2.5">
         <div className="flex gap-2">
           <label className="flex flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3">
             <Search size={17} className="text-slate-400" />
             <input value={q} onChange={e => { setQ(e.target.value); setLimit(60) }} placeholder="ค้นหาชื่อร้าน เบอร์ โซน รหัส" className="h-11 w-full bg-transparent text-[15px] outline-none" />
           </label>
-          <button onClick={locate} aria-label="ใกล้ฉัน" className={`grid h-11 w-11 place-items-center rounded-xl border ${pos ? 'border-[#14284b] bg-[#14284b] text-white' : 'border-slate-200 bg-white'}`}><LocateFixed size={19} /></button>
+          <button onClick={locate} aria-label="ใกล้ฉัน" className={`grid h-11 w-11 place-items-center rounded-xl border ${pos ? 'border-[#1f3d6e] bg-[#1f3d6e] text-white' : 'border-slate-200 bg-white'}`}><LocateFixed size={19} /></button>
         </div>
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
           <button onClick={() => { setLate(!late); setLimit(60) }} className={`shrink-0 rounded-full px-3 py-1.5 text-xs ${late ? 'bg-[#c2410c] font-semibold text-white' : 'border border-[#c2410c]/40 bg-white text-[#c2410c]'}`}>⚠ เลยรอบ</button>
-          {types.map(t => <button key={t} onClick={() => { setType(t); setLimit(60) }} className={`shrink-0 rounded-full px-3 py-1.5 text-xs ${type === t ? 'bg-[#14284b] font-semibold text-white' : 'border border-slate-200 bg-white'}`}>{t}</button>)}
+          {types.map(t => <button key={t} onClick={() => { setType(t); setLimit(60) }} className={`shrink-0 rounded-full px-3 py-1.5 text-xs ${type === t ? 'bg-[#1f3d6e] font-semibold text-white' : 'border border-slate-200 bg-white'}`}>{t}</button>)}
         </div>
         <div className="text-xs text-slate-500">{rows.length} ราย</div>
       </div>
+      <div className={`${CARD} overflow-hidden`}>
       {rows.slice(0, limit).map(c => <CustomerRow key={c.id} c={c} last={lastVisit[c.id]} dist={pos ? kmTo(c, pos) : undefined} onClick={() => openC(c.id)} />)}
-      {rows.length > limit && <button onClick={() => setLimit(limit + 100)} className="w-full py-4 text-sm font-semibold text-[#14284b]">แสดงเพิ่ม (เหลือ {rows.length - limit})</button>}
+      {rows.length > limit && <button onClick={() => setLimit(limit + 100)} className="w-full py-4 text-sm font-semibold text-[#1f3d6e]">แสดงเพิ่ม (เหลือ {rows.length - limit})</button>}
+      </div>
     </div>
   )
 }
@@ -239,7 +326,7 @@ function Tasks({ db, byId, openC, toggleTask }: { db: DB; byId: Record<string, C
   return (
     <div>
       <div className="flex gap-2 px-4 py-3">
-        {([['open', 'ค้างอยู่'], ['done', 'เสร็จแล้ว']] as const).map(([k, t]) => <button key={k} onClick={() => setF(k)} className={`rounded-full px-4 py-1.5 text-sm ${f === k ? 'bg-[#14284b] font-semibold text-white' : 'border border-slate-200 bg-white'}`}>{t}</button>)}
+        {([['open', 'ค้างอยู่'], ['done', 'เสร็จแล้ว']] as const).map(([k, t]) => <button key={k} onClick={() => setF(k)} className={`rounded-full px-4 py-1.5 text-sm ${f === k ? 'bg-[#1f3d6e] font-semibold text-white' : 'border border-slate-200 bg-white'}`}>{t}</button>)}
       </div>
       {rows.length === 0 && <p className="px-4 py-10 text-center text-sm text-slate-500">ไม่มีรายการ</p>}
       {rows.map(t => <TaskRow key={t.id} t={t} c={byId[t.customerId]} openC={openC} toggle={toggleTask} />)}
@@ -284,24 +371,24 @@ function CustomerSheet({ c, db, byId, s, pos, lastVisit, close, say, addVisit, a
             <span className="text-slate-500">· {c.type} · {c.paymentTerm}</span>
           </div>
           <div className="flex gap-2">
-            <a href={`tel:${c.phone.split(/[,/ ]/)[0]}`} onClick={() => logCall(c)} className={`${act} bg-[#14284b] text-white`}><Phone size={22} />โทร</a>
-            <a href={navUrl(c)} target="_blank" rel="noreferrer" className={`${act} bg-[#e0a82e] text-slate-900`}><Navigation size={22} />นำทาง</a>
+            <a href={`tel:${c.phone.split(/[,/ ]/)[0]}`} onClick={() => logCall(c)} className={`${act} bg-[#1f3d6e] text-white`}><Phone size={22} />โทร</a>
+            <a href={navUrl(c)} target="_blank" rel="noreferrer" className={`${act} bg-[#2c5aa0] text-white`}><Navigation size={22} />นำทาง</a>
             {c.lineId
               ? <a href={`https://line.me/R/ti/p/~${c.lineId}`} target="_blank" rel="noreferrer" className={`${act} bg-[#2f7d57] text-white`}><MessageCircle size={22} />LINE</a>
               : <span className={`${act} bg-slate-200 text-slate-400`}><MessageCircle size={22} />LINE</span>}
           </div>
           <div className="flex gap-2">
-            <button onClick={() => setSub('visit')} className={`${act} border border-[#14284b]/40 text-[#14284b]`}><Camera size={20} />เช็กอิน+รูป</button>
-            <button onClick={() => setSub('order')} className={`${act} border border-[#14284b]/40 text-[#14284b]`}><ShoppingCart size={20} />รับออเดอร์</button>
-            <button onClick={() => setSub('task')} className={`${act} border border-[#14284b]/40 text-[#14284b]`}><Plus size={20} />เพิ่มงาน</button>
+            <button onClick={() => setSub('visit')} className={`${act} border border-[#1f3d6e]/40 text-[#1f3d6e]`}><Camera size={20} />เช็กอิน+รูป</button>
+            <button onClick={() => setSub('order')} className={`${act} border border-[#1f3d6e]/40 text-[#1f3d6e]`}><ShoppingCart size={20} />รับออเดอร์</button>
+            <button onClick={() => setSub('task')} className={`${act} border border-[#1f3d6e]/40 text-[#1f3d6e]`}><Plus size={20} />เพิ่มงาน</button>
           </div>
 
-          <div className="space-y-1.5 rounded-xl bg-[#f7f9fc] p-3 text-sm">
+          <div className="space-y-1.5 rounded-xl bg-[#ffffff] p-3 text-sm">
             <div><b>รหัส:</b> {c.id} · <b>ติดต่อ:</b> {c.contactName || '-'} · {c.phone}</div>
             <div><b>ที่อยู่:</b> {c.address || '-'}</div>
             <div className="flex items-center justify-between gap-2">
               <span className="flex items-center gap-1 text-xs text-slate-600"><MapPin size={14} />{c.lat != null ? `${c.lat.toFixed(5)}, ${c.lng!.toFixed(5)}${pos ? ` · ห่าง ${Math.round(distM({ lat: c.lat, lng: c.lng! }, pos))} ม.` : ''}` : 'ยังไม่มีพิกัดร้าน'}</span>
-              <button onClick={grabPos} className="flex shrink-0 items-center gap-1 rounded-lg border border-[#14284b] px-2 py-1 text-xs font-semibold text-[#14284b]"><Crosshair size={13} />ตั้งพิกัดร้าน = ตำแหน่งฉัน</button>
+              <button onClick={grabPos} className="flex shrink-0 items-center gap-1 rounded-lg border border-[#1f3d6e] px-2 py-1 text-xs font-semibold text-[#1f3d6e]"><Crosshair size={13} />ตั้งพิกัดร้าน = ตำแหน่งฉัน</button>
             </div>
             {c.storeHours && <div className="flex gap-1"><Clock size={15} className="mt-0.5 shrink-0" />{c.storeHours}</div>}
             <div><b>รอบเยี่ยม:</b> ทุก {c.visitCycleDays} วัน{lastVisit ? ` · ล่าสุด ${fmt(lastVisit)}` : ''}</div>
@@ -329,7 +416,7 @@ function CustomerSheet({ c, db, byId, s, pos, lastVisit, close, say, addVisit, a
               <div key={v.id} className="border-b border-slate-200 py-2 text-sm">
                 <b>{fmt(v.at)}</b> · {v.outcome}
                 {v.note && <div className="text-xs text-slate-500">{v.note}</div>}
-                {v.lat != null && <a href={`https://maps.google.com/?q=${v.lat},${v.lng}`} target="_blank" rel="noreferrer" className="text-xs text-[#14284b] underline">📍 {v.lat.toFixed(5)}, {v.lng?.toFixed(5)}{v.distM != null ? ` · ห่างร้าน ${Math.round(v.distM)} ม.` : ''}</a>}
+                {v.lat != null && <a href={`https://maps.google.com/?q=${v.lat},${v.lng}`} target="_blank" rel="noreferrer" className="text-xs text-[#1f3d6e] underline">📍 {v.lat.toFixed(5)}, {v.lng?.toFixed(5)}{v.distM != null ? ` · ห่างร้าน ${Math.round(v.distM)} ม.` : ''}</a>}
                 {v.photoIds && v.photoIds.length > 0 && <div className="mt-1 flex gap-1.5">{v.photoIds.map(id => <Photo key={id} id={id} />)}</div>}
               </div>))}
           </section>
@@ -341,7 +428,7 @@ function CustomerSheet({ c, db, byId, s, pos, lastVisit, close, say, addVisit, a
                 <div className="flex justify-between"><b>#{b.no} · {fmt(b.date)}</b><b>฿{baht(billTotals(b).total)}</b></div>
                 <div className="truncate text-xs text-slate-500">{b.items.map(i => `${i.name} ×${i.qty}`).join(', ')}</div>
               </button>))}
-            {bills.length > 4 && <button onClick={() => setAllBills(!allBills)} className="py-2 text-xs font-semibold text-[#14284b]">{allBills ? 'แสดงน้อยลง' : `ดูทั้งหมด ${bills.length} บิล`}</button>}
+            {bills.length > 4 && <button onClick={() => setAllBills(!allBills)} className="py-2 text-xs font-semibold text-[#1f3d6e]">{allBills ? 'แสดงน้อยลง' : `ดูทั้งหมด ${bills.length} บิล`}</button>}
           </section>
         </div>
       </Sheet>
@@ -377,10 +464,10 @@ function VisitForm({ c, onClose, save, setCustPos }: { c: Customer; onClose: () 
   return (
     <Sheet title="เช็กอิน / บันทึกการเยี่ยม" onClose={onClose} z={60}>
       <div className="space-y-4 p-4">
-        <div className={`rounded-xl p-3 text-sm ${gpsErr ? 'bg-[#fdebd2] text-[#8a3b0c]' : 'bg-[#f7f9fc]'}`}>
+        <div className={`rounded-xl p-3 text-sm ${gpsErr ? 'bg-[#fdebd2] text-[#8a3b0c]' : 'bg-[#ffffff]'}`}>
           <div className="flex items-center justify-between gap-2">
             <span className="font-semibold">{cname(c)}</span>
-            <button onClick={fetchPos} className="flex shrink-0 items-center gap-1 text-xs font-semibold text-[#14284b]"><RefreshCw size={13} className={loading ? 'animate-spin' : ''} />อ่านพิกัดใหม่</button>
+            <button onClick={fetchPos} className="flex shrink-0 items-center gap-1 text-xs font-semibold text-[#1f3d6e]"><RefreshCw size={13} className={loading ? 'animate-spin' : ''} />อ่านพิกัดใหม่</button>
           </div>
           {loading && <div className="text-xs text-slate-500">กำลังอ่านตำแหน่งจาก GPS…</div>}
           {gpsErr && <div className="text-xs">{gpsErr} (ยังบันทึกได้โดยไม่มีพิกัด)</div>}
@@ -389,14 +476,14 @@ function VisitForm({ c, onClose, save, setCustPos }: { c: Customer; onClose: () 
           {pos && <label className="mt-1 flex items-center gap-2 text-xs"><input type="checkbox" checked={setShop} onChange={e => setSetShop(e.target.checked)} className="h-4 w-4" />ตั้งพิกัดนี้เป็นตำแหน่งร้าน{c.lat != null ? ' (แทนที่ของเดิม)' : ''}</label>}
         </div>
         <div className="flex flex-wrap gap-2">
-          {OUTCOMES.map(o => <button key={o} onClick={() => setOutcome(o)} className={`rounded-full px-3 py-2 text-sm ${outcome === o ? 'bg-[#14284b] font-semibold text-white' : 'border border-slate-200 bg-white'}`}>{o}</button>)}
+          {OUTCOMES.map(o => <button key={o} onClick={() => setOutcome(o)} className={`rounded-full px-3 py-2 text-sm ${outcome === o ? 'bg-[#1f3d6e] font-semibold text-white' : 'border border-slate-200 bg-white'}`}>{o}</button>)}
         </div>
         <Field l="หมายเหตุ"><textarea value={note} onChange={e => setNote(e.target.value)} rows={2} className={inputCls} placeholder="เช่น สินค้าเหลือครึ่งหนึ่ง ให้กลับมาอาทิตย์หน้า" /></Field>
         <div>
           <H>รูปถ่าย (ใส่ลายน้ำวันที่-เวลา-พิกัดอัตโนมัติ)</H>
           <div className="flex flex-wrap gap-2">
             {photos.map(p => <img key={p.id} src={p.url} alt="" className="h-20 w-20 rounded-lg object-cover" />)}
-            <label className="grid h-20 w-20 cursor-pointer place-items-center rounded-lg border-2 border-dashed border-[#14284b] text-[#14284b]">
+            <label className="grid h-20 w-20 cursor-pointer place-items-center rounded-lg border-2 border-dashed border-[#1f3d6e] text-[#1f3d6e]">
               <span className="flex flex-col items-center text-[11px] font-semibold"><Camera size={22} />ถ่ายรูป</span>
               <input type="file" accept="image/*" capture="environment" multiple className="hidden" onChange={e => { addPhotos(e.target.files); e.target.value = '' }} />
             </label>
@@ -416,7 +503,7 @@ function TaskForm({ c, onClose, save }: { c: Customer; onClose: () => void; save
     <Sheet title="เพิ่มงานติดตาม" onClose={onClose} z={60}>
       <div className="space-y-4 p-4">
         <div className="text-sm text-slate-600">{cname(c)}</div>
-        <div className="flex flex-wrap gap-2">{TASK_TYPES.map(t => <button key={t} onClick={() => setType(t)} className={`rounded-full px-3 py-2 text-sm ${type === t ? 'bg-[#14284b] font-semibold text-white' : 'border border-slate-200 bg-white'}`}>{t}</button>)}</div>
+        <div className="flex flex-wrap gap-2">{TASK_TYPES.map(t => <button key={t} onClick={() => setType(t)} className={`rounded-full px-3 py-2 text-sm ${type === t ? 'bg-[#1f3d6e] font-semibold text-white' : 'border border-slate-200 bg-white'}`}>{t}</button>)}</div>
         <Field l="รายละเอียด"><input value={title} onChange={e => setTitle(e.target.value)} className={inputCls} placeholder="เช่น โทรถามออเดอร์" /></Field>
         <Field l="กำหนด">
           <div className="flex gap-2"><input type="date" value={due} onChange={e => setDue(e.target.value)} className={inputCls} />
@@ -447,7 +534,7 @@ function OrderForm({ c, db, usual, onClose, save }: { c: Customer; db: DB; usual
             <div className="min-w-0 flex-1"><div className="truncate text-sm font-semibold">{p.name}</div><div className="text-xs text-slate-500">{p.code} · ฿{baht(p.price)}</div></div>
             <button aria-label="ลด" onClick={() => set(p.code, -1)} className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white"><Minus size={16} /></button>
             <span className="w-7 text-center font-bold">{qty[p.code] || 0}</span>
-            <button aria-label="เพิ่ม" onClick={() => set(p.code, 1)} className="grid h-9 w-9 place-items-center rounded-full bg-[#14284b] text-white"><Plus size={16} /></button>
+            <button aria-label="เพิ่ม" onClick={() => set(p.code, 1)} className="grid h-9 w-9 place-items-center rounded-full bg-[#1f3d6e] text-white"><Plus size={16} /></button>
           </div>
         ))}
         {sorted.length === 0 && <p className="py-6 text-center text-sm text-slate-500">ไม่พบสินค้า — นำเข้าสินค้าได้ที่ตั้งค่า</p>}
@@ -466,9 +553,9 @@ function OrderDone({ b, c, s, byId, say, close }: { b: Bill; c?: Customer; s: Se
     <>
       <Sheet title="บันทึกออเดอร์แล้ว" onClose={close} z={75}>
         <div className="space-y-3 p-4">
-          <div className="rounded-xl bg-[#f7f9fc] p-3 text-sm"><b>{b.no}</b> · {c ? cname(c) : b.customerId}<div className="text-lg font-bold text-[#14284b]">฿{baht(billTotals(b).total)}</div></div>
+          <div className="rounded-xl bg-[#ffffff] p-3 text-sm"><b>{b.no}</b> · {c ? cname(c) : b.customerId}<div className="text-lg font-bold text-[#1f3d6e]">฿{baht(billTotals(b).total)}</div></div>
           <a href={lineShare(companyOrderText(b, c, s))} target="_blank" rel="noreferrer" className={`${act} bg-[#06c755] text-white`}><Building2 size={19} />แจ้งออเดอร์ให้บริษัททาง LINE</a>
-          <a href={lineShare(msg)} target="_blank" rel="noreferrer" className={`${act} border border-[#14284b]/40 text-[#14284b]`}><MessageCircle size={19} />ส่งยอด+ลิงก์บิลให้ลูกค้า (LINE)</a>
+          <a href={lineShare(msg)} target="_blank" rel="noreferrer" className={`${act} border border-[#1f3d6e]/40 text-[#1f3d6e]`}><MessageCircle size={19} />ส่งยอด+ลิงก์บิลให้ลูกค้า (LINE)</a>
           <div className="flex gap-2">
             <a href={smsLink(c?.phone || '', msg)} className={`${act} flex-1 border border-slate-400`}>SMS</a>
             <button onClick={async () => say((await copyText(msg)) ? 'คัดลอกข้อความแล้ว' : 'คัดลอกไม่สำเร็จ')} className={`${act} flex-1 border border-slate-400`}>คัดลอก</button>

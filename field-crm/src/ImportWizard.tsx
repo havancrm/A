@@ -154,7 +154,7 @@ export default function ImportWizard({ db, setDb, close, say }: { db: DB; setDb:
           <input type="file" accept=".txt,.csv,.tsv,.ttx,text/*" onChange={e => { const f = e.target.files?.[0]; if (f) loadFile(f) }} className={inputCls} />
           {raw.length > 0 && (
             <>
-              <div className="rounded-xl bg-[#f7f9fc] p-3">ไฟล์ <b>{fileName}</b> · {raw.length} แถว · เข้ารหัส {encUsed}</div>
+              <div className="rounded-xl bg-[#ffffff] p-3">ไฟล์ <b>{fileName}</b> · {raw.length} แถว · เข้ารหัส {encUsed}</div>
               <div className="grid grid-cols-2 gap-3">
                 <Field l="ตัวคั่น"><select value={delim} onChange={e => reparse(e.target.value)} className={inputCls}><option value=",">, (คอมมา)</option><option value={'\t'}>Tab</option><option value="|">| (ขีดตั้ง)</option><option value=";">; (เซมิโคลอน)</option></select></Field>
                 <Field l="ตัวอักษรเพี้ยน?"><select value={encUsed} onChange={e => file && loadFile(file, e.target.value as 'utf-8' | 'windows-874')} className={inputCls}><option value="utf-8">UTF-8</option><option value="windows-874">Windows-874 (ไฟล์ไทยเก่า)</option></select></Field>
@@ -191,10 +191,10 @@ export default function ImportWizard({ db, setDb, close, say }: { db: DB; setDb:
 
       {step === 3 && (
         <div className="text-sm">
-          <div className="sticky top-0 z-10 space-y-2 border-b border-slate-200 bg-[#eef2f8] p-3">
+          <div className="sticky top-0 z-10 space-y-2 border-b border-slate-200 bg-[#f3f5f4] p-3">
             <div className="flex flex-wrap gap-1.5">
               {([['all', `ทั้งหมด ${rows.length}`], ['bad', `ต้องแก้ ${nBad}`], ['dup', `แจ้งเตือน ${nWarn}`], ['skip', `ข้าม ${rows.filter(r => r.skip).length}`]] as const).map(([k, t]) => (
-                <button key={k} onClick={() => { setTab(k); setLimit(100) }} className={`rounded-full px-3 py-1.5 text-xs ${tab === k ? 'bg-[#14284b] font-semibold text-white' : 'border border-slate-200 bg-white'}`}>{t}</button>
+                <button key={k} onClick={() => { setTab(k); setLimit(100) }} className={`rounded-full px-3 py-1.5 text-xs ${tab === k ? 'bg-[#1f3d6e] font-semibold text-white' : 'border border-slate-200 bg-white'}`}>{t}</button>
               ))}
             </div>
             <div className="flex gap-2">
@@ -210,7 +210,7 @@ export default function ImportWizard({ db, setDb, close, say }: { db: DB; setDb:
                 <div className="text-xs">
                   <span className="mr-1 font-bold text-slate-400">#{i + 1}</span>
                   {c.e.map(m => <span key={m} className="mr-1 inline-flex items-center gap-0.5 rounded bg-[#c2410c] px-1.5 py-0.5 text-white"><AlertTriangle size={10} />{m}</span>)}
-                  {c.w.map(m => <span key={m} className="mr-1 rounded bg-[#e0a82e]/30 px-1.5 py-0.5 text-[#7a5200]">{m}</span>)}
+                  {c.w.map(m => <span key={m} className="mr-1 rounded bg-[#2c5aa0]/30 px-1.5 py-0.5 text-[#7a5200]">{m}</span>)}
                 </div>
                 <button onClick={() => flagSkip(i, !r.skip)} aria-label="ข้ามแถว" className="shrink-0 rounded p-1 text-slate-500 active:bg-slate-200">{r.skip ? 'คืนค่า' : <Trash2 size={16} />}</button>
               </div>
@@ -218,14 +218,14 @@ export default function ImportWizard({ db, setDb, close, say }: { db: DB; setDb:
                 {def.fields.filter(([k]) => map[k] >= 0).map(([k, l, req]) => (
                   <label key={k} className={target === 'customers' && (k === 'name' || k === 'address') ? 'col-span-2' : target !== 'customers' && k === 'name' ? 'col-span-2' : ''}>
                     <span className="text-[10px] text-slate-500">{l}</span>
-                    <input value={r.v[k]} onChange={e => setCell(i, k, e.target.value)} className={`w-full rounded-lg border px-2 py-1.5 text-[13px] outline-none focus:border-[#14284b] ${req && !r.v[k] ? 'border-[#c2410c] bg-white' : 'border-slate-200 bg-white'}`} />
+                    <input value={r.v[k]} onChange={e => setCell(i, k, e.target.value)} className={`w-full rounded-lg border px-2 py-1.5 text-[13px] outline-none focus:border-[#1f3d6e] ${req && !r.v[k] ? 'border-[#c2410c] bg-white' : 'border-slate-200 bg-white'}`} />
                   </label>
                 ))}
               </div>
             </div>
           ))}
-          {view.length > limit && <button onClick={() => setLimit(limit + 200)} className="w-full py-4 text-sm font-semibold text-[#14284b]">แสดงเพิ่ม (เหลือ {view.length - limit})</button>}
-          <div className="sticky bottom-0 flex gap-2 border-t border-slate-200 bg-[#eef2f8] p-3">
+          {view.length > limit && <button onClick={() => setLimit(limit + 200)} className="w-full py-4 text-sm font-semibold text-[#1f3d6e]">แสดงเพิ่ม (เหลือ {view.length - limit})</button>}
+          <div className="sticky bottom-0 flex gap-2 border-t border-slate-200 bg-[#f3f5f4] p-3">
             <button onClick={() => setStep(2)} className={`${btnGhost} flex-1`}>กลับ</button>
             <button disabled={!ready.length} onClick={apply} className={`${btnPrimary} flex-[2]`}>นำเข้า {ready.length} แถว</button>
           </div>

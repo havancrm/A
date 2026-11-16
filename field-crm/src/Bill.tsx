@@ -23,7 +23,7 @@ export function BillPaper({ d, s, tpl }: { d: PaperData; s: Pick<Settings, 'comp
           {(s.companyPhone || s.companyTaxId) && <div className="text-slate-600">{s.companyPhone && `โทร ${s.companyPhone}`}{s.companyTaxId && ` · เลขผู้เสียภาษี ${s.companyTaxId}`}</div>}
         </div>
         <div className={slip ? 'mt-2 border-y border-dashed border-slate-400 py-1 font-bold' : 'text-right'}>
-          <div className={`font-bold ${slip ? '' : 'text-base text-[#14284b]'}`}>{TITLE[tpl]}</div>
+          <div className={`font-bold ${slip ? '' : 'text-base text-[#1f3d6e]'}`}>{TITLE[tpl]}</div>
           <div>เลขที่ {d.no}</div><div>วันที่ {fmt(d.date)}</div>
         </div>
       </div>
@@ -67,7 +67,7 @@ export function BillDetail({ b, c, s, close, say, byId }: { b: Bill; c?: Custome
       <div className="space-y-3 p-3">
         <div className="no-print flex gap-2">
           {([['invoice', 'ใบส่งของ'], ['receipt', 'ใบเสร็จ'], ['slip', 'สลิป 80มม.']] as const).map(([k, t]) => (
-            <button key={k} onClick={() => setTpl(k)} className={`flex-1 rounded-full py-2 text-xs ${tpl === k ? 'bg-[#14284b] font-bold text-white' : 'border border-slate-200 bg-white'}`}>{t}</button>
+            <button key={k} onClick={() => setTpl(k)} className={`flex-1 rounded-full py-2 text-xs ${tpl === k ? 'bg-[#1f3d6e] font-bold text-white' : 'border border-slate-200 bg-white'}`}>{t}</button>
           ))}
         </div>
         <div className="overflow-x-auto"><BillPaper d={toPaper(b, c)} s={s} tpl={tpl} /></div>
@@ -81,7 +81,7 @@ export function BillDetail({ b, c, s, close, say, byId }: { b: Bill; c?: Custome
           <button className={act} onClick={() => downloadCSV(`bill-${b.no}.csv`, billRows([b], byId))}><Download size={19} />CSV</button>
           <a className={`${act} col-span-2`} href={lineShare(companyOrderText(b, c, s))} target="_blank" rel="noreferrer"><Building2 size={19} />แจ้งบริษัททาง LINE</a>
         </div>
-        <details className="no-print rounded-xl bg-[#f7f9fc] p-3 text-xs">
+        <details className="no-print rounded-xl bg-[#ffffff] p-3 text-xs">
           <summary className="cursor-pointer font-semibold">ดูข้อความที่จะส่งให้ลูกค้า</summary>
           <pre className="mt-2 whitespace-pre-wrap font-[inherit] text-slate-700">{msg}</pre>
         </details>
@@ -100,7 +100,7 @@ export function Bills({ bills, byId, s, say }: { bills: Bill[]; byId: Record<str
   const exportBills = rows.filter(b => sel.has(b.no)).length ? rows.filter(b => sel.has(b.no)) : rows
   return (
     <div>
-      <div className="sticky top-0 z-10 space-y-2 bg-[#eef2f8] px-4 pb-2 pt-3">
+      <div className="sticky top-0 z-10 space-y-2 bg-[#f3f5f4] px-4 pb-2 pt-3">
         <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3"><Search size={17} className="text-slate-400" />
           <input value={q} onChange={e => { setQ(e.target.value); setLimit(60) }} placeholder="เลขที่บิล หรือ ชื่อร้าน" className="h-11 w-full bg-transparent text-[15px] outline-none" /></label>
         <div className="flex gap-2">
@@ -115,14 +115,14 @@ export function Bills({ bills, byId, s, say }: { bills: Bill[]; byId: Record<str
           <div key={b.no} className="flex items-center gap-2 border-b border-slate-200 px-4 py-2.5">
             <input type="checkbox" checked={sel.has(b.no)} onChange={() => toggle(b.no)} aria-label="เลือกบิล" className="h-5 w-5 shrink-0" />
             <button onClick={() => setOpen(b)} className="flex min-w-0 flex-1 items-center justify-between gap-2 text-left">
-              <span className="min-w-0"><span className="block truncate text-[15px] font-semibold">{c ? <><span className="mr-1.5 rounded bg-[#14284b]/10 px-1.5 py-0.5 text-[11px] font-bold text-[#14284b]">{c.id}</span>{c.name}</> : [b.customerId, b.customerName].filter(Boolean).join(' · ')}</span>
+              <span className="min-w-0"><span className="block truncate text-[15px] font-semibold">{c ? <><span className="mr-1.5 rounded bg-[#1f3d6e]/10 px-1.5 py-0.5 text-[11px] font-bold text-[#1f3d6e]">{c.id}</span>{c.name}</> : [b.customerId, b.customerName].filter(Boolean).join(' · ')}</span>
                 <span className="block text-xs text-slate-500">#{b.no} · {fmt(b.date)} · {b.items.length} รายการ</span></span>
-              <span className="shrink-0 font-bold text-[#14284b]">฿{baht(t.total)}</span>
+              <span className="shrink-0 font-bold text-[#1f3d6e]">฿{baht(t.total)}</span>
             </button>
           </div>
         )
       })}
-      {rows.length > limit && <button onClick={() => setLimit(limit + 100)} className="w-full py-4 text-sm font-semibold text-[#14284b]">แสดงเพิ่ม</button>}
+      {rows.length > limit && <button onClick={() => setLimit(limit + 100)} className="w-full py-4 text-sm font-semibold text-[#1f3d6e]">แสดงเพิ่ม</button>}
       {rows.length === 0 && <p className="p-10 text-center text-sm text-slate-500">ไม่พบบิล</p>}
       {open && <BillDetail b={open} c={byId[open.customerId]} s={s} byId={byId} say={say} close={() => setOpen(null)} />}
     </div>
@@ -136,7 +136,7 @@ export function SharedBillPage({ d }: { d: SharedBill }) {
   return (
     <div className="min-h-[100dvh] bg-slate-200 p-3">
       <div className="no-print mx-auto mb-3 flex max-w-[560px] gap-2">
-        {([['invoice', 'ใบแจ้งยอด'], ['receipt', 'ใบเสร็จ']] as const).map(([k, t]) => <button key={k} onClick={() => setTpl(k)} className={`flex-1 rounded-full py-2 text-sm ${tpl === k ? 'bg-[#14284b] font-bold text-white' : 'bg-white'}`}>{t}</button>)}
+        {([['invoice', 'ใบแจ้งยอด'], ['receipt', 'ใบเสร็จ']] as const).map(([k, t]) => <button key={k} onClick={() => setTpl(k)} className={`flex-1 rounded-full py-2 text-sm ${tpl === k ? 'bg-[#1f3d6e] font-bold text-white' : 'bg-white'}`}>{t}</button>)}
         <button onClick={() => window.print()} className="flex items-center gap-1 rounded-full bg-white px-4 text-sm font-semibold"><Printer size={16} />พิมพ์/PDF</button>
       </div>
       <BillPaper d={{ no: d.n, date: d.d, customer: d.c, items: d.i, vatMode: d.v, paymentTerm: d.p }} s={s} tpl={tpl} />

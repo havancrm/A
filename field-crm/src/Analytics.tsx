@@ -13,7 +13,7 @@ function Bars({ rows, fmtV = baht }: { rows: [string, number][]; fmtV?: (n: numb
       {rows.map(([k, v]) => (
         <div key={k} className="text-xs">
           <div className="flex justify-between"><span className="truncate pr-2">{k}</span><b>{fmtV(v)}</b></div>
-          <div className="h-1.5 rounded-full bg-slate-200"><div className="h-1.5 rounded-full bg-gradient-to-r from-[#14284b] to-[#3a5a94]" style={{ width: `${(v / max) * 100}%` }} /></div>
+          <div className="h-1.5 rounded-full bg-slate-200"><div className="h-1.5 rounded-full bg-gradient-to-r from-[#1f3d6e] to-[#3a5a94]" style={{ width: `${(v / max) * 100}%` }} /></div>
         </div>
       ))}
     </div>
@@ -52,15 +52,15 @@ export default function Analytics({ db, openC }: { db: DB; openC: (id: string) =
   const maxM = Math.max(1, ...A.months.map(m => A.monthly[m]))
   return (
     <div className="space-y-5 p-4">
-      <div className="flex gap-2">{PERIODS.map(([k, t]) => <button key={k} onClick={() => setP(k)} className={`flex-1 rounded-full py-2 text-xs ${p === k ? 'bg-[#14284b] font-bold text-white' : 'border border-slate-200 bg-white'}`}>{t}</button>)}</div>
+      <div className="flex gap-2">{PERIODS.map(([k, t]) => <button key={k} onClick={() => setP(k)} className={`flex-1 rounded-full py-2 text-xs ${p === k ? 'bg-[#1f3d6e] font-bold text-white' : 'border border-slate-200 bg-white'}`}>{t}</button>)}</div>
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-2xl bg-[#14284b] p-4 text-white">
+        <div className="rounded-2xl bg-[#1f3d6e] p-4 text-white">
           <div className="text-xs opacity-70">ยอดขาย</div><div className="text-2xl font-bold">฿{baht(Math.round(A.rev))}</div>
           {delta != null && <div className="mt-0.5 flex items-center gap-1 text-xs">{delta >= 0 ? <TrendingUp size={13} /> : <TrendingDown size={13} />}{delta > 999 ? 'มากกว่า +999' : (delta >= 0 ? '+' : '') + delta.toFixed(1)}% เทียบช่วงก่อนหน้า</div>}
         </div>
         <div className="grid gap-2">
-          <div className="rounded-xl border border-slate-200 bg-[#f7f9fc] px-3 py-2"><div className="text-[11px] text-slate-500">บิล · เฉลี่ย/บิล</div><b>{A.n} · ฿{baht(Math.round(A.rev / Math.max(A.n, 1)))}</b></div>
-          <div className="rounded-xl border border-slate-200 bg-[#f7f9fc] px-3 py-2"><div className="text-[11px] text-slate-500">ลูกค้าที่สั่งซื้อ</div><b>{A.active} / {db.customers.length} ราย</b></div>
+          <div className="rounded-xl border border-slate-200 bg-[#ffffff] px-3 py-2"><div className="text-[11px] text-slate-500">บิล · เฉลี่ย/บิล</div><b>{A.n} · ฿{baht(Math.round(A.rev / Math.max(A.n, 1)))}</b></div>
+          <div className="rounded-xl border border-slate-200 bg-[#ffffff] px-3 py-2"><div className="text-[11px] text-slate-500">ลูกค้าที่สั่งซื้อ</div><b>{A.active} / {db.customers.length} ราย</b></div>
         </div>
       </div>
 
@@ -69,7 +69,7 @@ export default function Analytics({ db, openC }: { db: DB; openC: (id: string) =
           <div className="flex h-32 items-end gap-1">
             {A.months.map(m => (
               <div key={m} className="flex h-full flex-1 flex-col items-center justify-end gap-1" title={`${m}: ฿${baht(Math.round(A.monthly[m]))}`}>
-                <div className="w-full rounded-t bg-[#14284b]" style={{ height: `${Math.max(3, (A.monthly[m] / maxM) * 100)}%` }} />
+                <div className="w-full rounded-t bg-[#1f3d6e]" style={{ height: `${Math.max(3, (A.monthly[m] / maxM) * 100)}%` }} />
                 <span className="text-[9px] text-slate-500">{m.slice(5)}</span>
               </div>
             ))}
@@ -80,7 +80,7 @@ export default function Analytics({ db, openC }: { db: DB; openC: (id: string) =
       <section><H>ลูกค้ายอดสูงสุด</H>
         {A.byCust.map(([id, v], i) => (
           <button key={id} onClick={() => openC(id)} className="flex w-full items-center justify-between border-b border-slate-200 py-2 text-left text-sm">
-            <span className="truncate"><b className="mr-2 text-[#14284b]">{i + 1}</b>{A.byC[id] ? cname(A.byC[id]) : id}</span><b>฿{baht(Math.round(v))}</b>
+            <span className="truncate"><b className="mr-2 text-[#1f3d6e]">{i + 1}</b>{A.byC[id] ? cname(A.byC[id]) : id}</span><b>฿{baht(Math.round(v))}</b>
           </button>))}
       </section>
       {A.bySales.length > 1 && <section><H>ตามพนักงานขาย</H><Bars rows={A.bySales.map(([k, v]) => [k, Math.round(v)])} /></section>}
