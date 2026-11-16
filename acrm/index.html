@@ -54,7 +54,7 @@ a{color:inherit;text-decoration:none}button,input,select,textarea{font:inherit;c
 input,select,textarea{width:100%;min-height:46px;font-size:16px;border:1px solid var(--ln);border-radius:10px;padding:8px 11px;background:#fff}textarea{min-height:76px;resize:vertical}
 label.l{display:block;font-size:12px;color:var(--mu);margin:8px 0 3px}.er{color:#c62828;font-size:12px;margin-top:3px}.er:empty{display:none}
 .xw{position:relative;display:block}.xi{padding-right:36px!important}.xc{position:absolute;right:6px;top:50%;margin-top:-13px;width:26px;height:26px;border:0;border-radius:13px;background:#d5dae6;color:#475069;font-size:18px;line-height:1;display:none;align-items:center;justify-content:center;padding:0;cursor:pointer}.xc.xt{top:8px;margin-top:0}
-.sr{position:relative}.sr .ic{position:absolute;left:12px;top:50%;margin-top:-9px;width:18px;height:18px;color:var(--mu);pointer-events:none}.sr input{padding-left:38px}
+.sr{position:relative}.sr .ic{position:absolute;left:12px;top:50%;margin-top:-9px;width:18px;height:18px;color:var(--mu);pointer-events:none;z-index:2}.sr input{padding-left:38px}
 /* ===== ตาราง / รายการ ===== */
 .tb{width:100%;border-collapse:collapse;font-size:12.5px}.tb th{color:var(--mu);font-weight:500;text-align:left;padding:7px 4px 5px;border-bottom:1px solid var(--ln)}.tb td{padding:6px 4px;border-bottom:1px solid var(--ln2);vertical-align:middle}.tb tr:last-child td{border-bottom:0}.tb .r{text-align:right;white-space:nowrap}.tb td .t{font-size:11px}
 .grow>b,.grow>.t{display:block}
@@ -565,7 +565,7 @@ R.home=function(){var L=ranked(),need=L.filter(function(x){return x.y.rank<=2}),
  n=function(st){return need.filter(function(x){return x.y.st===st}).length};
  var row=function(n,cls,t,s,h){return '<a class="li" href="#'+h+'"><span class="pill '+cls+'" style="min-width:40px;text-align:center;font-size:15px">'+n+'</span><span class="grow"><b>'+t+'</b><span class="t">'+s+'</span></span>'+ic('chev')+'</a>'};
  var todo=(due||wait)?(due?row(due,'p-amb','งานถึงกำหนด','โทรกลับ · นัดหมาย · ติดตาม','tasks'):'')+(wait?row(wait,'p-blu','ออเดอร์รอส่ง','แตะเพื่อดูรายการ','orders'):''):'<div class="t" style="padding:8px 0">ไม่มีงานค้างวันนี้</div>';
- page({body:srch('ค้นหาอะไรก็ได้ ชื่อ · รหัส · เบอร์ · ป้าย · เลขบิล · เดือน')+'<div id="hs"></div>'
+ page({body:srch('ค้นหาอัจฉริยะ  ชื่อ รหัส เบอร์ ป้าย เลขบิล เดือน')+'<div id="hs"></div>'
   +sec('ต้องทำวันนี้','',todo)
   +'<div class="g4"><a class="ab p" href="#order">'+ic('cart')+'รับออเดอร์</a><a class="ab" href="#cycle">'+ic('clock')+'รอบลูกค้า</a><a class="ab" href="#map">'+ic('map')+'แผนที่</a><a class="ab" href="#cform/new">'+ic('plus')+'ร้านใหม่</a></div>'
   +'<a class="c row" href="#sales" style="background:var(--n);color:#fff"><span><span class="t" style="color:#c9d4ea">ยอดขาย '+ymLabel(cm)+' · ถึงวันที่ '+dn+'</span><br><b style="font-size:22px">'+money(cur)+'</b></span><span class="t" style="color:#c9d4ea;text-align:right">เทียบ 1–'+dn+' '+MTH[+pm.slice(5,7)-1]+'<br>'+money(prev)+' ('+(pc>0?'+':'')+pc+'%)</span></a>'
