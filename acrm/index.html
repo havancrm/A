@@ -387,14 +387,18 @@ function iso(){return new Date().toISOString()}
 function ono8(x){x=String(x||'').trim();return /^\d{7}$/.test(x)?'0'+x:x}
 function sameKey(a,b){a=String(a).trim();b=String(b).trim();return a===b||(/^\d+$/.test(a)&&/^\d+$/.test(b)&&a.replace(/^0+/,'')===b.replace(/^0+/,''))}
 var Sheet={mcp:null,state:'init',err:'',pulling:false,
- init:function(){var s=this;if(!window.claude||!window.claude.use){s.state='none';return Promise.resolve(null)}
+ api:function(){var a=DB&&DB.cfg&&DB.cfg.api;return a&&a.url&&a.token?a:null},
+ rpc:function(action,p){var a=this.api();if(!a)return Promise.reject(new Error('no api'));p=p||{};p.action=action;p.token=a.token;
+  return fetch(a.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)}).then(function(r){return r.json()}).then(function(j){if(!j||!j.ok){var e=new Error(j&&j.error||'api');e.code=j&&j.error==='unauthorized'?'api_unauthorized':'tool_error';throw e}return j})},
+ init:function(){var s=this;if(s.api()){s.mcp={api:1};s.state='ready';s.err='';refreshStatus();return Promise.resolve(s.mcp)}
+  if(!window.claude||!window.claude.use){s.state='none';return Promise.resolve(null)}
   return window.claude.use('mcp').then(function(m){s.mcp=m;s.state=m?'ready':'none';refreshStatus();return m},function(){s.state='none';refreshStatus();return null})},
  ok:function(){return !!this.mcp},
- call:function(server,tool,input){return this.mcp.callTool(server,tool,input).then(function(r){var p=r&&r.payload;if(p&&p.content&&!p.values&&!p.id)p=p.content;return p})},
- get:function(range){return this.call(GS,'get_values',{spreadsheetId:SHEET_ID,range:range}).then(function(p){return p&&p.values||[]})},
- append:function(sheet,rows){return this.call(GS,'append_values',{spreadsheetId:SHEET_ID,range:sheet+'!A1',values:rows})},
- update:function(range,rows){return this.call(GS,'update_values',{spreadsheetId:SHEET_ID,range:range,values:rows})},
- errText:function(e){var c=e&&e.code;return c==='needs_reauth'?'ต้องเชื่อม Google ใหม่ (claude.ai › Settings › Connectors)':c==='server_not_connected'?'ยังไม่ได้เพิ่ม Google Sheets/Drive ใน Connectors':c==='approval_required'||c==='not_in_manifest'||c==='consent_required'?'ต้องกดอนุญาตให้แอปใช้ Google Sheets':c==='tool_error'?'ชีตตอบกลับว่าผิดพลาด: '+String(e.message||'').slice(0,80):'เชื่อมต่อไม่ได้ชั่วคราว'}};
+ call:function(server,tool,input){if(this.api()){if(tool==='create_file')return this.rpc('photo',{name:input.title,base64:input.base64Content,mime:input.contentMimeType,folder:input.parentId}).then(function(j){return{id:j.id}});return Promise.reject(new Error('unsupported'))}return this.mcp.callTool(server,tool,input).then(function(r){var p=r&&r.payload;if(p&&p.content&&!p.values&&!p.id)p=p.content;return p})},
+ get:function(range){if(this.api())return this.rpc('get',{range:range}).then(function(j){return j.values||[]});return this.call(GS,'get_values',{spreadsheetId:SHEET_ID,range:range}).then(function(p){return p&&p.values||[]})},
+ append:function(sheet,rows){if(this.api())return this.rpc('append',{sheet:sheet,rows:rows});return this.call(GS,'append_values',{spreadsheetId:SHEET_ID,range:sheet+'!A1',values:rows})},
+ update:function(range,rows){if(this.api())return this.rpc('update',{range:range,rows:rows});return this.call(GS,'update_values',{spreadsheetId:SHEET_ID,range:range,values:rows})},
+ errText:function(e){var c=e&&e.code;return c==='api_unauthorized'?'รหัสลับ (API_TOKEN) ไม่ตรงกับ Apps Script · ตั้งค่า › เชื่อมชีต A':c==='needs_reauth'?'ต้องเชื่อม Google ใหม่ (claude.ai › Settings › Connectors)':c==='server_not_connected'?'ยังไม่ได้เพิ่ม Google Sheets/Drive ใน Connectors':c==='approval_required'||c==='not_in_manifest'||c==='consent_required'?'ต้องกดอนุญาตให้แอปใช้ Google Sheets':c==='tool_error'?'ชีตตอบกลับว่าผิดพลาด: '+String(e.message||'').slice(0,80):'เชื่อมต่อไม่ได้ชั่วคราว'}};
 
 // ---------- อ่านเป็นช่วง (ตารางใหญ่) ----------
 function getChunks(sheet,lastCol,from,size,acc){acc=acc||[];return Sheet.get(sheet+'!A'+from+':'+lastCol+(from+size-1)).then(function(v){acc=acc.concat(v);return v.length<size?acc:getChunks(sheet,lastCol,from+size,size,acc)})}
@@ -742,12 +746,15 @@ function optUse(k,v){var f=OPTF[k];if(k==='ป้ายกำกับ')return D
 R.settings=function(){var T=R.settings.t||'gen',b='';
  if(T==='gen')b=sec('บัญชี','',kv('อีเมล',E(DB.user.email))+kv('สิทธิ์','ผู้ดูแล')+kv('ชื่อพนักงานขายในบิล',E(DB.cfg.seller)+' '+tlink('แก้','edit','seller')))
   +sec('กติกาตัวเลข',tlink('แก้','edit','go','rules'),kv('ใกล้ถึง / ถึง / เลยรอบ',DB.rules.near+'% / '+DB.rules.due+'% / '+DB.rules.over+'%')+kv('คอมมิชชั่น',DB.rules.comm+'%'))
+  +sec('เชื่อมชีต A','',kv('สถานะ',DB.cfg.api?'ตั้งค่าแล้ว '+tlink('แก้','edit','apiSet'):'ยังไม่ได้ตั้งค่า '+tlink('ตั้งค่า','edit','apiSet')))
   +btn('ออกจากระบบ',null,'logout',null,'d');
  if(T==='data')b='<div class="t">ตัวเลือกที่ใช้ในฟอร์มทั้งระบบ · ตัวเลขคือจำนวนร้านที่ใช้</div>'+Object.keys(DB.opts).map(function(k){var L=DB.opts[k];return '<details class="sec"'+(R.settings.o===k?' open':'')+' data-k="'+E(k)+'"><summary class="sh" style="list-style:none;cursor:pointer"><span>'+E(k)+' <span class="t">('+L.length+')</span></span>'+ic('chev')+'</summary>'
   +L.map(function(v,i){var n=optUse(k,v);return '<div class="kv"><span style="color:var(--ink)">'+E(v)+(n!=null?' <span class="t">· '+n+' ร้าน</span>':'')+'</span><b>'+(k==='เงื่อนไข VAT'?'<span class="t">ล็อก</span>':tlink('ลบ','trash','delOpt',k+'|'+i))+'</b></div>'}).join('')
   +(k==='เงื่อนไข VAT'?'':'<div class="row" style="padding:6px 0 8px"><input data-new="'+E(k)+'" placeholder="เพิ่มตัวเลือก">'+btn('เพิ่ม',null,'addOpt',k,'o sm')+'</div>')+'</details>'}).join('');
  page({title:'ตั้งค่า',back:'back',bl:'หลังบ้าน',body:seg([['gen','ทั่วไป'],['data','ตัวเลือกในฟอร์ม']],T,'tab')+b,
  on:{tab:function(v){R.settings.t=v;route()},logout:function(){ask('ออกจากระบบ','<div class="t">ข้อมูลยังอยู่ในเครื่อง '+(Sync.pending().length?'และมี '+Sync.pending().length+' รายการรอซิงก์':'')+'</div>','ออกจากระบบ',function(){DB.user=null;save();go('login',true)},true)},
+  apiSet:function(){var a=DB.cfg.api||{};ask('เชื่อมชีต A (Apps Script)','<div class="t">URL ที่ลงท้าย /exec และรหัสลับ API_TOKEN ที่ตั้งไว้ใน Apps Script</div><input id="apu" value="'+E(a.url||'')+'" placeholder="https://script.google.com/macros/s/…/exec" style="margin-top:8px"><input id="apt" type="password" value="'+E(a.token||'')+'" placeholder="รหัสลับ" style="margin-top:8px">','บันทึก',function(){var u=document.getElementById('apu').value.trim(),t=document.getElementById('apt').value.trim();if(u&&!/^https:\/\/script\.google\.com\/.+\/exec$/.test(u)){toast('URL ต้องลงท้ายด้วย /exec');return false}
+   DB.cfg.api=u&&t?{url:u,token:t}:null;save();Sheet.state='init';Sheet.mcp=null;Sheet.err='';Sheet.init().then(function(m){refreshStatus();if(m&&DB.user&&DB.src!=='sheet')firstPull();rerender()});toast(DB.cfg.api?'บันทึกแล้ว กำลังเชื่อมชีต…':'ยกเลิกการเชื่อมแล้ว')})},
   seller:function(){editText('ชื่อพนักงานขายในบิล',DB.cfg.seller,'rows="1"',function(t){if(!t)return false;DB.cfg.seller=t;commit('ตั้งค่า','ชื่อพนักงานขาย '+t);rerender()})},
   addOpt:function(k){var i=document.querySelector('[data-new="'+k+'"]'),v=i.value.trim();if(!v)return toast('พิมพ์ตัวเลือกก่อน');if(DB.opts[k].indexOf(v)>-1)return toast('มีตัวเลือกนี้แล้ว');DB.opts[k].push(v);R.settings.o=k;commit('ตั้งค่า','เพิ่ม '+k+' · '+v);rerender()},
   delOpt:function(x){var p=x.split('|'),k=p[0],v=DB.opts[k][+p[1]],n=optUse(k,v);ask('ลบ "'+E(v)+'"','<div class="t">'+(n?'มี '+n+' ร้านใช้อยู่ · ร้านเหล่านั้นยังเก็บค่าเดิม':'ยังไม่มีร้านใช้')+'</div>','ลบ',function(){DB.opts[k].splice(+p[1],1);if(k==='ป้ายกำกับ')DB.customers.forEach(function(c){c.tags=c.tags.filter(function(t){return t!==v})});R.settings.o=k;commit('ตั้งค่า','ลบ '+k+' · '+v);rerender()},true)}},
