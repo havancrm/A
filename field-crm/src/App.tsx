@@ -40,7 +40,7 @@ function App() {
   const [tab, setTab] = useState<'today' | 'customers' | 'checkin' | 'bills' | 'more'>('today'); const [page, setPage] = useState<'tasks' | 'analytics' | null>(null)
   const [openId, setOpenId0] = useState<string | null>(null); const [openSub, setOpenSub] = useState<'visit' | 'task' | 'order' | undefined>()
   const setOpenId = (id: string | null, sb?: 'visit' | 'task' | 'order') => { setOpenSub(sb); setOpenId0(id) }
-  const [cog, setCog] = useState(false)
+  const [cog, setCog] = useState(false); const [newC, setNewC] = useState(false)
   const [toast, setToast] = useState('')
   const [pos, setPos] = useState<Pos | null>(null)
   const [doneBill, setDoneBill] = useState<Bill | null>(null)
@@ -65,6 +65,8 @@ function App() {
   const addVisit = (v: Omit<Visit, 'id' | 'at'>) => { upd(d => ({ visits: [...d.visits, { ...v, id: uid('V'), at: new Date().toISOString() }] })); setToast('บันทึกการเยี่ยมแล้ว') }
   const addTask = (t: Omit<Task, 'id' | 'status'>) => { upd(d => ({ tasks: [...d.tasks, { ...t, id: uid('T'), status: 'open' }] })); setToast('เพิ่มงานแล้ว') }
   const toggleTask = (id: string) => upd(d => ({ tasks: d.tasks.map(t => (t.id === id ? { ...t, status: t.status === 'done' ? 'open' : 'done' } : t)) }))
+  const addCustomer = (c: Customer) => { upd(d => ({ customers: [c, ...d.customers] })); setToast('เพิ่มร้านใหม่แล้ว'); setOpenId(c.id) }
+  const nextId = () => { const nums = db.customers.map(c => parseInt(c.id)).filter(n => !isNaN(n)); return String(nums.length ? Math.max(...nums) + 1 : 1) }
   const logCall = (c: Customer) => upd(d => ({ activities: [...d.activities, { id: uid('A'), customerId: c.id, type: 'โทร', at: new Date().toISOString(), note: c.phone }] }))
   const setCustPos = (id: string, lat: number, lng: number) => {
     upd(d => ({ customers: d.customers.map(c => (c.id === id ? { ...c, lat, lng } : c)), patches: { ...d.patches, [id]: { ...d.patches?.[id], lat, lng } } })); setToast('บันทึกพิกัดร้านแล้ว')
@@ -110,7 +112,7 @@ function App() {
         {page === 'tasks' && <Tasks db={db} byId={byId} openC={setOpenId} toggleTask={toggleTask} />}
         {page === 'analytics' && <Analytics db={db} openC={setOpenId} />}
         {!page && tab === 'today' && <Today db={db} byId={byId} lastVisit={lastVisit} pos={pos} locate={locate} openC={setOpenId} toggleTask={toggleTask} goPage={setPage} />}
-        {!page && tab === 'customers' && <Customers db={db} lastVisit={lastVisit} pos={pos} locate={locate} openC={setOpenId} />}
+        {!page && tab === 'customers' && <Customers db={db} lastVisit={lastVisit} pos={pos} locate={locate} openC={setOpenId} onNew={() => setNewC(true)} />}
         {!page && tab === 'checkin' && <CheckinPick db={db} pos={pos} locate={locate} lastVisit={lastVisit} openC={setOpenId} />}
         {!page && tab === 'bills' && <Bills bills={db.bills} byId={byId} s={settings} say={setToast} />}
         {!page && tab === 'more' && (
@@ -118,6 +120,7 @@ function App() {
             <h2 className="px-1 text-base font-bold">เพิ่มเติม</h2>
             <div className="overflow-hidden rounded-[14px] border border-[#e3e8e5] bg-white shadow-[0_1px_2px_rgba(20,40,70,.05),0_4px_12px_rgba(20,40,70,.04)]">
               {[
+                [Plus, 'เพิ่มร้านใหม่', 'บันทึกร้านที่เจอหน้างาน พร้อมพิกัด', () => setNewC(true)],
                 [ListChecks, 'งานติดตาม', `${lateTasks} งานวันนี้และที่เลยกำหนด`, () => setPage('tasks')],
                 [BarChart3, 'สรุปและวิเคราะห์การขาย', 'ยอดขาย สินค้า ลูกค้า เซลล์', () => setPage('analytics')],
                 [FileUp, 'นำเข้าข้อมูลและเชื่อมชีท', 'ไฟล์ .txt/.csv จากโปรแกรมบัญชี · ชีท A', () => setCog(true)],
@@ -151,6 +154,7 @@ function App() {
           addVisit={addVisit} addTask={addTask} addOrder={addOrder} logCall={logCall} toggleTask={toggleTask} setCustPos={setCustPos} />
       )}
       {doneBill && <OrderDone b={doneBill} c={byId[doneBill.customerId]} s={settings} byId={byId} say={setToast} close={() => setDoneBill(null)} />}
+      {newC && <NewCustomer id={nextId()} onClose={() => setNewC(false)} save={c => { addCustomer(c); setNewC(false) }} />}
       {cog && <SettingsSheet db={db} setDb={setDb} s={settings} setS={setSettings} close={() => setCog(false)} say={setToast} />}
       {toast && <div className="fixed bottom-24 left-1/2 z-[90] max-w-[90vw] -translate-x-1/2 rounded-2xl bg-slate-900 px-4 py-2 text-center text-sm text-white shadow-lg">{toast}</div>}
     </div>
@@ -274,7 +278,7 @@ function CheckinPick({ db, pos, locate, lastVisit, openC }: { db: DB; pos: Pos |
   )
 }
 
-function Customers({ db, lastVisit, pos, locate, openC }: { db: DB; lastVisit: Record<string, string>; pos: Pos | null; locate: () => void; openC: (id: string) => void }) {
+function Customers({ db, lastVisit, pos, locate, openC, onNew }: { onNew: () => void; db: DB; lastVisit: Record<string, string>; pos: Pos | null; locate: () => void; openC: (id: string) => void }) {
   const [q, setQ] = useState(''); const [type, setType] = useState('ทั้งหมด'); const [limit, setLimit] = useState(60); const [late, setLate] = useState(false)
   const types = ['ทั้งหมด', ...Array.from(new Set(db.customers.map(c => c.type)))]
   const rows = useMemo(() => db.customers
@@ -294,7 +298,7 @@ function Customers({ db, lastVisit, pos, locate, openC }: { db: DB; lastVisit: R
           <button onClick={() => { setLate(!late); setLimit(60) }} className={`shrink-0 rounded-full px-3 py-1.5 text-xs ${late ? 'bg-[#c2410c] font-semibold text-white' : 'border border-[#c2410c]/40 bg-white text-[#c2410c]'}`}>⚠ เลยรอบ</button>
           {types.map(t => <button key={t} onClick={() => { setType(t); setLimit(60) }} className={`shrink-0 rounded-full px-3 py-1.5 text-xs ${type === t ? 'bg-[#1f3d6e] font-semibold text-white' : 'border border-slate-200 bg-white'}`}>{t}</button>)}
         </div>
-        <div className="text-xs text-slate-500">{rows.length} ราย</div>
+        <div className="flex items-center justify-between text-xs text-slate-500"><span>{rows.length} ราย</span><button onClick={onNew} className="flex items-center gap-1 rounded-full bg-[#1f3d6e] px-3 py-1.5 text-xs font-semibold text-white"><Plus size={13} />ร้านใหม่</button></div>
       </div>
       <div className={`${CARD} overflow-hidden`}>
       {rows.slice(0, limit).map(c => <CustomerRow key={c.id} c={c} last={lastVisit[c.id]} dist={pos ? kmTo(c, pos) : undefined} onClick={() => openC(c.id)} />)}
@@ -352,7 +356,7 @@ function CustomerSheet({ c, db, byId, s, pos, lastVisit, close, say, addVisit, a
   addOrder: (id: string, items: BillItem[], vat: Bill['vatMode']) => void; logCall: (c: Customer) => void; toggleTask: (id: string) => void
   setCustPos: (id: string, lat: number, lng: number) => void; initSub?: 'visit' | 'task' | 'order'
 }) {
-  const [sub, setSub] = useState<null | 'visit' | 'task' | 'order'>(initSub ?? null); const [bill, setBill] = useState<Bill | null>(null); const [allBills, setAllBills] = useState(false)
+  const [sub, setSub] = useState<null | 'visit' | 'task' | 'order'>(initSub ?? null); const [bill, setBill] = useState<Bill | null>(null); const [allBills, setAllBills] = useState(false); const [reorder, setReorder] = useState<BillItem[] | null>(null)
   const st = status(c, lastVisit)
   const visits = db.visits.filter(v => v.customerId === c.id).sort((a, b) => b.at.localeCompare(a.at)).slice(0, 6)
   const bills = useMemo(() => db.bills.filter(b => b.customerId === c.id).sort((a, b) => b.date.localeCompare(a.date) || b.no.localeCompare(a.no)), [db.bills, c.id])
@@ -360,6 +364,22 @@ function CustomerSheet({ c, db, byId, s, pos, lastVisit, close, say, addVisit, a
   const tasks = db.tasks.filter(t => t.customerId === c.id && t.status === 'open')
   const usual = Object.values(bills.slice(0, 12).flatMap(b => b.items).reduce<Record<string, BillItem & { n: number }>>((m, i) => {
     m[i.code || i.name] = m[i.code || i.name] ? { ...m[i.code || i.name], n: m[i.code || i.name].n + 1 } : { ...i, n: 1 }; return m }, {})).sort((a, b) => b.n - a.n).slice(0, 5)
+  const insights = useMemo(() => {
+    const out: ['bad' | 'warn' | 'tip', string][] = []
+    const now = Date.now(), dAgo = (d: string) => (now - new Date(d + 'T00:00:00').getTime()) / 86400000
+    const sum = (a: number, b: number) => bills.filter(x => dAgo(x.date) > a && dAgo(x.date) <= b).reduce((t, x) => t + billTotals(x).total, 0)
+    const l90 = sum(-1, 90), p90 = sum(90, 180)
+    if (p90 >= 1000 && l90 <= p90 * 0.6) out.push(['bad', `ยอด 90 วันล่าสุดลด ${Math.round((1 - l90 / p90) * 100)}% (฿${baht(Math.round(l90))} จาก ฿${baht(Math.round(p90))}) — ควรถามสาเหตุ`])
+    const st0 = status(c, lastVisit)
+    if (st0.s === 'new') out.push(['tip', 'ยังไม่มีประวัติเยี่ยม — เช็กอินครั้งแรกเพื่อเริ่มนับรอบ'])
+    else if (st0.s === 'overdue') out.push(['warn', `ไม่ได้เข้าเยี่ยมมา ${st0.days} วัน (รอบ ${c.visitCycleDays} วัน)`])
+    const bought = new Set(bills.flatMap(b => b.items.map(i => i.code || i.name)))
+    const peers = new Set(db.customers.filter(x => x.type === c.type && x.id !== c.id).map(x => x.id)); const cnt: Record<string, { n: number; name: string }> = {}
+    db.bills.filter(b => peers.has(b.customerId)).forEach(b => b.items.forEach(i => { const k = i.code || i.name; if (!bought.has(k)) cnt[k] = { n: (cnt[k]?.n || 0) + 1, name: i.name } }))
+    const top = Object.values(cnt).sort((a, b) => b.n - a.n)[0]
+    if (top && top.n >= 2) out.push(['tip', `ร้าน${c.type}ร้านอื่นซื้อ "${top.name}" บ่อย แต่ร้านนี้ยังไม่เคยซื้อ`])
+    return out
+  }, [bills, c, lastVisit, db.customers, db.bills])
   const act = 'flex flex-1 flex-col items-center gap-1 rounded-xl py-3 text-xs font-semibold active:opacity-70'
   const grabPos = async () => { try { const p = await getPosition(); setCustPos(c.id, p.lat, p.lng) } catch (e) { say((e as Error).message) } }
   return (
@@ -405,6 +425,17 @@ function CustomerSheet({ c, db, byId, s, pos, lastVisit, close, say, addVisit, a
                 </div>))}
             </section>
           )}
+          {insights.length > 0 && (
+            <section><H>ผู้ช่วยวิเคราะห์</H>
+              <div className="overflow-hidden rounded-[14px] border border-[#e3e8e5] bg-white">
+                {insights.map(([k, t], i) => (
+                  <div key={i} className="flex items-start gap-2 border-b border-[#e3e8e5] px-3 py-2 text-sm last:border-0">
+                    <span className="flex-1">{t}</span>
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${k === 'bad' ? 'bg-[#fcebe8] text-[#b02a1f]' : k === 'warn' ? 'bg-[#fdf3e1] text-[#8a5508]' : 'bg-[#e8eef8] text-[#1f3d6e]'}`}>{k === 'bad' ? 'ควรดู' : k === 'warn' ? 'เตือน' : 'แนะนำ'}</span>
+                  </div>))}
+              </div>
+            </section>
+          )}
           {usual.length > 0 && (
             <section><H>สินค้าที่สั่งประจำ</H>
               <div className="flex flex-wrap gap-1.5">{usual.map(u => <span key={u.code || u.name} className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs">{u.name}</span>)}</div>
@@ -424,10 +455,13 @@ function CustomerSheet({ c, db, byId, s, pos, lastVisit, close, say, addVisit, a
             <div className="mb-1 flex items-center justify-between"><H>บิลย้อนหลัง ({bills.length}) · รวม ฿{baht(Math.round(spend))}</H></div>
             {bills.length === 0 && <p className="text-sm text-slate-500">ยังไม่มีบิล</p>}
             {(allBills ? bills : bills.slice(0, 4)).map(b => (
-              <button key={b.no} onClick={() => setBill(b)} className="block w-full border-b border-slate-200 py-2 text-left text-sm">
-                <div className="flex justify-between"><b>#{b.no} · {fmt(b.date)}</b><b>฿{baht(billTotals(b).total)}</b></div>
-                <div className="truncate text-xs text-slate-500">{b.items.map(i => `${i.name} ×${i.qty}`).join(', ')}</div>
-              </button>))}
+              <div key={b.no} className="flex items-center gap-2 border-b border-slate-200 py-2 text-sm">
+                <button onClick={() => setBill(b)} className="min-w-0 flex-1 text-left">
+                  <div className="flex justify-between"><b>#{b.no} · {fmt(b.date)}</b><b>฿{baht(billTotals(b).total)}</b></div>
+                  <div className="truncate text-xs text-slate-500">{b.items.map(i => `${i.name} ×${i.qty}`).join(', ')}</div>
+                </button>
+                <button onClick={() => { setReorder(b.items); setSub('order') }} className="shrink-0 rounded-full border border-[#1f3d6e]/30 px-2.5 py-1 text-xs font-semibold text-[#1f3d6e] active:bg-[#e8eef8]">สั่งซ้ำ</button>
+              </div>))}
             {bills.length > 4 && <button onClick={() => setAllBills(!allBills)} className="py-2 text-xs font-semibold text-[#1f3d6e]">{allBills ? 'แสดงน้อยลง' : `ดูทั้งหมด ${bills.length} บิล`}</button>}
           </section>
         </div>
@@ -435,7 +469,7 @@ function CustomerSheet({ c, db, byId, s, pos, lastVisit, close, say, addVisit, a
       {bill && <BillDetail b={bill} c={c} s={s} byId={byId} say={say} close={() => setBill(null)} />}
       {sub === 'visit' && <VisitForm c={c} onClose={() => setSub(null)} save={addVisit} setCustPos={setCustPos} />}
       {sub === 'task' && <TaskForm c={c} onClose={() => setSub(null)} save={addTask} />}
-      {sub === 'order' && <OrderForm c={c} db={db} usual={usual} onClose={() => setSub(null)} save={(i, v) => { addOrder(c.id, i, v) }} />}
+      {sub === 'order' && <OrderForm c={c} db={db} usual={reorder || usual} onClose={() => { setSub(null); setReorder(null) }} save={(i, v) => { addOrder(c.id, i, v) }} />}
     </>
   )
 }
@@ -612,5 +646,32 @@ function SettingsSheet({ db, setDb, s, setS, close, say }: { db: DB; setDb: (d: 
       </Sheet>
       {imp && <ImportWizard db={db} setDb={d => { setDb(d) }} close={() => setImp(false)} say={say} />}
     </>
+  )
+}
+
+function NewCustomer({ id, onClose, save }: { id: string; onClose: () => void; save: (c: Customer) => void }) {
+  const [f, setF] = useState({ name: '', phone: '', type: 'นวด/สปา', area: '', paymentTerm: 'เงินสด', cycle: '14', note: '' })
+  const [gps, setGps] = useState<Pos | null>(null); const [busy, setBusy] = useState(false); const [err, setErr] = useState('')
+  const set = (k: string, v: string) => setF(x => ({ ...x, [k]: v }))
+  const locate = async () => { setBusy(true); setErr(''); try { setGps(await getPosition()) } catch (e) { setErr((e as Error).message) } setBusy(false) }
+  const ok = f.name.trim().length > 0
+  return (
+    <Sheet title="เพิ่มร้านใหม่" onClose={onClose} z={65}>
+      <div className="space-y-3 p-4">
+        <div className="text-xs text-slate-500">รหัสร้าน (ออกให้อัตโนมัติ): <b className="text-[#1f3d6e]">{id}</b></div>
+        <Field l="ชื่อร้าน *"><input autoFocus value={f.name} onChange={e => set('name', e.target.value)} placeholder="ชื่อร้านค้า" className={inputCls} /></Field>
+        <Field l="เบอร์โทร"><input value={f.phone} onChange={e => set('phone', e.target.value)} inputMode="tel" placeholder="08x-xxx-xxxx" className={inputCls} /></Field>
+        <div className="grid grid-cols-2 gap-2">
+          <Field l="ประเภท"><select value={f.type} onChange={e => set('type', e.target.value)} className={inputCls}>{['นวด/สปา', 'เสริมสวย/ซาลอน', 'เพ็ทช็อป/กรูมมิ่ง', 'คาร์แคร์/ติดฟิล์ม', 'ค้าปลีก/ค้าส่ง', 'โรงแรม/ที่พัก', 'ร้านขายยา', 'อื่น ๆ'].map(t => <option key={t}>{t}</option>)}</select></Field>
+          <Field l="โซน/พื้นที่"><input value={f.area} onChange={e => set('area', e.target.value)} className={inputCls} /></Field>
+          <Field l="เงื่อนไขชำระ"><select value={f.paymentTerm} onChange={e => set('paymentTerm', e.target.value)} className={inputCls}>{['เงินสด', 'โอน', 'เครดิต 15 วัน', 'เครดิต 30 วัน'].map(t => <option key={t}>{t}</option>)}</select></Field>
+          <Field l="รอบเยี่ยม (วัน)"><select value={f.cycle} onChange={e => set('cycle', e.target.value)} className={inputCls}>{['7', '14', '21', '30'].map(t => <option key={t}>{t}</option>)}</select></Field>
+        </div>
+        <button onClick={locate} disabled={busy} className={`${btnGhost} flex w-full items-center justify-center gap-1.5`}><MapPin size={16} />{busy ? 'กำลังหาตำแหน่ง…' : gps ? `บันทึกพิกัดแล้ว ±${Math.round(gps.accuracy)} ม. (กดเพื่อใหม่)` : 'บันทึกพิกัดร้าน (ยืนอยู่หน้าร้าน)'}</button>
+        {err && <p className="text-xs text-[#b02a1f]">{err}</p>}
+        <Field l="โน้ต"><textarea value={f.note} onChange={e => set('note', e.target.value)} rows={2} className={inputCls} /></Field>
+        <button disabled={!ok} onClick={() => save({ id, name: f.name.trim(), type: f.type, address: '', phone: f.phone.trim(), contactName: '', paymentTerm: f.paymentTerm, lat: gps?.lat, lng: gps?.lng, visitCycleDays: +f.cycle || 14, area: f.area.trim() || '-', labels: [f.area.trim(), f.type].filter(Boolean), note: f.note.trim() })} className={`${btnPrimary} w-full`}>บันทึกร้านใหม่</button>
+      </div>
+    </Sheet>
   )
 }
