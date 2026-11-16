@@ -192,7 +192,7 @@ function cyc(id){if(CC[id])return CC[id];var ds=[];billsOf(id).forEach(function(
  if(ds.length>1){var g=[];for(var i=1;i<ds.length;i++)g.push(daysBetween(ds[i-1],ds[i]));g.sort(function(a,b){return a-b});
   var m=g.length%2?g[(g.length-1)/2]:(g[g.length/2-1]+g[g.length/2])/2;o.m=Math.max(1,Math.round(m));o.r=Math.round(o.since/o.m*100);o.next=addDays(o.last,o.m);
   var R=DB.rules;o.st=o.r>=R.over?'OVER':o.r>=R.due?'DUE':o.r>=R.near?'NEAR':'OK'}
- var k=CYC[o.st];o.lbl=k[0];o.cls=k[1];o.col=k[2];o.rank=k[3];CC[id]=o;return o}
+ var k=CYC[o.st];o.lbl=k[0];o.cls=k[1];o.col=k[2];o.rank=k[3];var cu=cust(id);if(cu&&cu.status==='closed'){o.lbl='เลิกกิจการ';o.col='#8a94a6'}CC[id]=o;return o}
 function lastVisit(id){return DB.visits.filter(function(v){return v.cid===id&&v.done}).sort(by('end',true))[0]||null}
 function isActive(y){return y.last&&y.since<=365}
 
@@ -610,7 +610,7 @@ R.cust=function(a){var c=cust(a[0]);if(!c)return go('customers',true);var T=R.cu
   note:function(){editText('โน้ตก่อนเข้าพบ',c.note,'placeholder="เช่น เจ้าของอยู่ช่วงบ่าย ชอบโปรแถม"',function(t){c.note=t;saveCust(c,'แก้โน้ต · '+c.name);rerender()})},
   alias:function(){editText('คำเรียกพิเศษ',c.alias,'rows="1"',function(t){c.alias=t;saveCust(c,'คำเรียก · '+c.name);rerender()})},
   vcyc:function(){ask('รอบเข้าพบของร้านนี้',pick('vc',['ไม่ตั้ง','7 วัน','14 วัน','30 วัน','60 วัน','90 วัน'],c.visitCycle?c.visitCycle+' วัน':'ไม่ตั้ง'),'บันทึก',function(){c.visitCycle=parseInt(pickVal('vc'),10)||0;saveCust(c,'รอบเข้าพบ '+(c.visitCycle||'ไม่ตั้ง')+' · '+c.name);rerender()})},
-  status:function(){ask('สถานะร้าน',pick('st',['ปกติ','เลิกกิจการ'],c.status==='closed'?'เลิกกิจการ':'ปกติ')+'<div class="t" style="margin-top:6px">ร้านเลิกกิจการจะไม่ขึ้นในรายการต้องตาม</div>','บันทึก',function(){c.status=pickVal('st')==='เลิกกิจการ'?'closed':'active';saveCust(c,'สถานะ '+pickVal('st')+' · '+c.name);rerender()})},
+  status:function(){ask('สถานะร้าน',pick('st',['ปกติ','เลิกกิจการ'],c.status==='closed'?'เลิกกิจการ':'ปกติ')+'<div class="t" style="margin-top:6px">ร้านเลิกกิจการจะไม่ขึ้นในรายการต้องตาม</div>','บันทึก',function(){c.status=pickVal('st')==='เลิกกิจการ'?'closed':'active';delete CC[c.id];saveCust(c,'สถานะ '+pickVal('st')+' · '+c.name);rerender()})},
   tags:function(){var all=DB.opts['ป้ายกำกับ'];ask('ป้ายกำกับ',pick('tg',all,c.tags,true)+'<div class="row" style="margin-top:8px"><input id="ntg" placeholder="ป้ายใหม่"><button type="button" class="b o sm" data-a="newTag">เพิ่ม</button></div>','บันทึก',function(){var nt=pickVal('tg'),add=nt.filter(function(t){return c.tags.indexOf(t)<0}),n0=c.tags.length;c.tags=nt;saveCust(c,'ป้ายกำกับ · '+c.name,add.length?[W_append('customer_labels',add.map(function(t,i){return[c.id,n0+i+1,t]}))]:[]);rerender()});
    PA.newTag=function(){var t=document.getElementById('ntg').value.trim();if(!t)return;if(all.indexOf(t)<0)all.push(t);document.getElementById('pk_tg').insertAdjacentHTML('beforeend','<button type="button" class="chip on" data-a="pick" data-v="'+E(t)+'">'+E(t)+'</button>');document.getElementById('ntg').value=''}},
   shopCap:function(){capture(function(p){if(!p.lat)return;c.lat=p.lat;c.lng=p.lng;c.photo=p.img;saveCust(c,'เก็บพิกัด+รูปหน้าร้าน · '+c.name,[W_photo(p,c.id,'','store','@op'),gpsRow(c.id,p,'','พิกัดหน้าร้าน')]);toast('บันทึกพิกัดร้านแล้ว');rerender()})}},
