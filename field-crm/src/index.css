@@ -4,3 +4,11 @@
 body{margin:0}
 .print-only{display:none}
 @media print{#root{display:none!important}.print-only{display:block!important}body{background:#fff!important}.print-only>div{box-shadow:none!important;max-width:none!important}}
+
+html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+main{scrollbar-width:none}main::-webkit-scrollbar{display:none}
+button{touch-action:manipulation;transition:transform .12s,background-color .15s,opacity .15s}
+button:active:not(:disabled){transform:scale(.985)}
+select{appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%2314284b' stroke-width='2'%3E%3Cpath d='M1 1l5 5 5-5'/%3E%3C/svg%3E") no-repeat right .75rem center;padding-right:2rem!important}
+input[type=checkbox]{accent-color:#14284b;width:1.1rem;height:1.1rem}
+::selection{background:#e0a82e55}

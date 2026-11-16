@@ -163,7 +163,7 @@ export default function ImportWizard({ db, setDb, close, say }: { db: DB; setDb:
               <Field l="นำเข้าเป็นข้อมูลชนิด">
                 <select value={target} onChange={e => setTarget(e.target.value as keyof typeof TARGETS)} className={inputCls}>{Object.entries(TARGETS).map(([k, t]) => <option key={k} value={k}>{t.label}</option>)}</select>
               </Field>
-              <div className="overflow-x-auto rounded-xl border border-slate-300 bg-white">
+              <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
                 <table className="w-full text-xs"><tbody>{raw.slice(0, 4).map((r, i) => <tr key={i} className={i === 0 && hasHeader ? 'bg-slate-100 font-bold' : ''}>{r.slice(0, 8).map((c, j) => <td key={j} className="max-w-[120px] truncate border-b border-slate-200 px-2 py-1">{c}</td>)}</tr>)}</tbody></table>
               </div>
               <button onClick={goMap} className={`${btnPrimary} w-full`}>ถัดไป: จับคู่คอลัมน์</button>
@@ -191,16 +191,16 @@ export default function ImportWizard({ db, setDb, close, say }: { db: DB; setDb:
 
       {step === 3 && (
         <div className="text-sm">
-          <div className="sticky top-0 z-10 space-y-2 border-b border-slate-300 bg-[#eef2f8] p-3">
+          <div className="sticky top-0 z-10 space-y-2 border-b border-slate-200 bg-[#eef2f8] p-3">
             <div className="flex flex-wrap gap-1.5">
               {([['all', `ทั้งหมด ${rows.length}`], ['bad', `ต้องแก้ ${nBad}`], ['dup', `แจ้งเตือน ${nWarn}`], ['skip', `ข้าม ${rows.filter(r => r.skip).length}`]] as const).map(([k, t]) => (
-                <button key={k} onClick={() => { setTab(k); setLimit(100) }} className={`rounded-full px-3 py-1.5 text-xs ${tab === k ? 'bg-[#14284b] font-semibold text-white' : 'border border-slate-300 bg-white'}`}>{t}</button>
+                <button key={k} onClick={() => { setTab(k); setLimit(100) }} className={`rounded-full px-3 py-1.5 text-xs ${tab === k ? 'bg-[#14284b] font-semibold text-white' : 'border border-slate-200 bg-white'}`}>{t}</button>
               ))}
             </div>
             <div className="flex gap-2">
               <input value={q} onChange={e => setQ(e.target.value)} placeholder="กรอง/ค้นหาในแถว" className={`${inputCls} !py-2`} />
-              <button onClick={tidy} className="flex shrink-0 items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 text-xs"><Wand2 size={14} />ล้างช่องว่าง</button>
-              <button onClick={skipBad} className="shrink-0 rounded-xl border border-slate-300 bg-white px-3 text-xs">ข้ามแถวเสีย</button>
+              <button onClick={tidy} className="flex shrink-0 items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 text-xs"><Wand2 size={14} />ล้างช่องว่าง</button>
+              <button onClick={skipBad} className="shrink-0 rounded-xl border border-slate-200 bg-white px-3 text-xs">ข้ามแถวเสีย</button>
             </div>
           </div>
           {view.length === 0 && <p className="p-8 text-center text-slate-500">ไม่มีแถวในตัวกรองนี้</p>}
@@ -218,14 +218,14 @@ export default function ImportWizard({ db, setDb, close, say }: { db: DB; setDb:
                 {def.fields.filter(([k]) => map[k] >= 0).map(([k, l, req]) => (
                   <label key={k} className={target === 'customers' && (k === 'name' || k === 'address') ? 'col-span-2' : target !== 'customers' && k === 'name' ? 'col-span-2' : ''}>
                     <span className="text-[10px] text-slate-500">{l}</span>
-                    <input value={r.v[k]} onChange={e => setCell(i, k, e.target.value)} className={`w-full rounded-lg border px-2 py-1.5 text-[13px] outline-none focus:border-[#14284b] ${req && !r.v[k] ? 'border-[#c2410c] bg-white' : 'border-slate-300 bg-white'}`} />
+                    <input value={r.v[k]} onChange={e => setCell(i, k, e.target.value)} className={`w-full rounded-lg border px-2 py-1.5 text-[13px] outline-none focus:border-[#14284b] ${req && !r.v[k] ? 'border-[#c2410c] bg-white' : 'border-slate-200 bg-white'}`} />
                   </label>
                 ))}
               </div>
             </div>
           ))}
           {view.length > limit && <button onClick={() => setLimit(limit + 200)} className="w-full py-4 text-sm font-semibold text-[#14284b]">แสดงเพิ่ม (เหลือ {view.length - limit})</button>}
-          <div className="sticky bottom-0 flex gap-2 border-t border-slate-300 bg-[#eef2f8] p-3">
+          <div className="sticky bottom-0 flex gap-2 border-t border-slate-200 bg-[#eef2f8] p-3">
             <button onClick={() => setStep(2)} className={`${btnGhost} flex-1`}>กลับ</button>
             <button disabled={!ready.length} onClick={apply} className={`${btnPrimary} flex-[2]`}>นำเข้า {ready.length} แถว</button>
           </div>

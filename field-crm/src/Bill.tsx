@@ -27,7 +27,7 @@ export function BillPaper({ d, s, tpl }: { d: PaperData; s: Pick<Settings, 'comp
           <div>เลขที่ {d.no}</div><div>วันที่ {fmt(d.date)}</div>
         </div>
       </div>
-      <div className="mt-3 rounded border border-slate-300 p-2">
+      <div className="mt-3 rounded border border-slate-200 p-2">
         <div className="font-semibold">ลูกค้า: {d.customer}</div>
         {d.address && <div className="text-slate-600">{d.address}</div>}
         <div className="text-slate-600">เงื่อนไขชำระ: {d.paymentTerm || 'เงินสด'}</div>
@@ -59,7 +59,7 @@ const toPaper = (b: Bill, c: Customer | undefined): PaperData => ({
 
 export function BillDetail({ b, c, s, close, say, byId }: { b: Bill; c?: Customer; s: Settings; close: () => void; say: (t: string) => void; byId: Record<string, Customer> }) {
   const [tpl, setTpl] = useState<Template>('invoice')
-  const act = 'flex flex-col items-center gap-1 rounded-xl border border-slate-300 bg-white py-2.5 text-[11px] font-semibold active:bg-slate-100'
+  const act = 'flex flex-col items-center gap-1 rounded-2xl shadow-sm border border-slate-200 bg-white py-2.5 text-[11px] font-semibold active:bg-slate-100'
   const link = billLink(b, c, s), msg = customerBillText(b, c, s)
   const cp = async (t: string, ok: string) => say((await copyText(t)) ? ok : 'คัดลอกไม่สำเร็จ — กดค้างที่ข้อความเพื่อคัดลอกเอง')
   return (
@@ -67,7 +67,7 @@ export function BillDetail({ b, c, s, close, say, byId }: { b: Bill; c?: Custome
       <div className="space-y-3 p-3">
         <div className="no-print flex gap-2">
           {([['invoice', 'ใบส่งของ'], ['receipt', 'ใบเสร็จ'], ['slip', 'สลิป 80มม.']] as const).map(([k, t]) => (
-            <button key={k} onClick={() => setTpl(k)} className={`flex-1 rounded-full py-2 text-xs ${tpl === k ? 'bg-[#14284b] font-bold text-white' : 'border border-slate-300 bg-white'}`}>{t}</button>
+            <button key={k} onClick={() => setTpl(k)} className={`flex-1 rounded-full py-2 text-xs ${tpl === k ? 'bg-[#14284b] font-bold text-white' : 'border border-slate-200 bg-white'}`}>{t}</button>
           ))}
         </div>
         <div className="overflow-x-auto"><BillPaper d={toPaper(b, c)} s={s} tpl={tpl} /></div>
@@ -101,10 +101,10 @@ export function Bills({ bills, byId, s, say }: { bills: Bill[]; byId: Record<str
   return (
     <div>
       <div className="sticky top-0 z-10 space-y-2 bg-[#eef2f8] px-4 pb-2 pt-3">
-        <label className="flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3"><Search size={17} className="text-slate-400" />
+        <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3"><Search size={17} className="text-slate-400" />
           <input value={q} onChange={e => { setQ(e.target.value); setLimit(60) }} placeholder="เลขที่บิล หรือ ชื่อร้าน" className="h-11 w-full bg-transparent text-[15px] outline-none" /></label>
         <div className="flex gap-2">
-          <select value={month} onChange={e => { setMonth(e.target.value); setLimit(60) }} className="h-10 flex-1 rounded-xl border border-slate-300 bg-white px-2 text-sm">{months.map(m => <option key={m}>{m}</option>)}</select>
+          <select value={month} onChange={e => { setMonth(e.target.value); setLimit(60) }} className="h-10 flex-1 rounded-xl border border-slate-200 bg-white px-2 text-sm">{months.map(m => <option key={m}>{m}</option>)}</select>
           <button onClick={() => downloadCSV(`bills-${month}.csv`, billRows(exportBills, byId))} className={`${btnGhost} flex shrink-0 items-center gap-1 px-3 !py-0 text-xs`}><Download size={15} />ส่งออก CSV ({exportBills.length})</button>
         </div>
         <div className="text-xs text-slate-500">{rows.length} บิล · ติ๊กเลือกเพื่อส่งออกเฉพาะบิลที่เลือก</div>

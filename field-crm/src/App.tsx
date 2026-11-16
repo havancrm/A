@@ -82,12 +82,12 @@ function App() {
   const titles = { today: 'งานวันนี้', customers: 'ลูกค้า', tasks: 'งานติดตาม', bills: 'บิลย้อนหลัง', analytics: 'สรุป / วิเคราะห์การขาย' }
   return (
     <div className="mx-auto flex h-[100dvh] max-w-md flex-col bg-[#eef2f8] text-slate-900" style={{ fontFamily: "'Sarabun','Noto Sans Thai',system-ui,sans-serif" }}>
-      <header className="flex items-center justify-between bg-[#14284b] px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))] text-[#eef2f8] border-b-[3px] border-[#e0a82e]">
+      <header className="flex items-center justify-between bg-gradient-to-b from-[#1b3560] to-[#14284b] px-4 pb-2.5 pt-[max(.75rem,env(safe-area-inset-top))] text-[#eef2f8] shadow-[0_2px_0_#e0a82e]">
         <div>
           <div className="text-[11px] tracking-wide opacity-70">{new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}{db.syncedAt ? ` · ซิงก์ชีท ${new Date(db.syncedAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}` : ' · ข้อมูลตัวอย่าง'}</div>
-          <div className="text-lg font-bold leading-tight">{titles[tab]}</div>
+          <div className="text-[17px] font-bold leading-tight tracking-tight">{titles[tab]}</div>
         </div>
-        <button aria-label="ตั้งค่า" onClick={() => setCog(true)} className="rounded-full p-2 active:bg-white/15"><Cog size={20} /></button>
+        <button aria-label="ตั้งค่า" onClick={() => setCog(true)} className="grid h-9 w-9 place-items-center rounded-full bg-white/10 active:bg-white/20"><Cog size={18} /></button>
       </header>
 
       <main className="flex-1 overflow-y-auto pb-4">
@@ -98,10 +98,11 @@ function App() {
         {tab === 'analytics' && <Analytics db={db} openC={setOpenId} />}
       </main>
 
-      <nav className="grid grid-cols-5 border-t border-slate-300 bg-[#f7f9fc] pb-[env(safe-area-inset-bottom)]">
+      <nav className="grid grid-cols-5 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_16px_rgba(20,40,75,.06)]">
         {TABS.map(([k, Icon, t]) => (
-          <button key={k} onClick={() => setTab(k)} className={`flex flex-col items-center gap-0.5 py-2.5 text-[11px] ${tab === k ? 'font-bold text-[#14284b]' : 'text-slate-500'}`}>
-            <Icon size={20} strokeWidth={tab === k ? 2.5 : 1.8} />{t}
+          <button key={k} onClick={() => setTab(k)} className={`relative flex flex-col items-center gap-0.5 py-2 text-[11px] ${tab === k ? 'font-bold text-[#14284b]' : 'text-slate-400'}`}>
+            {tab === k && <span className="absolute top-0 h-[3px] w-8 rounded-b-full bg-[#e0a82e]" />}
+            <Icon size={20} strokeWidth={tab === k ? 2.4 : 1.7} />{t}
           </button>
         ))}
       </nav>
@@ -149,7 +150,7 @@ function Today({ db, byId, lastVisit, pos, locate, openC, toggleTask }: {
     .sort((a, b) => (pos ? a.d! - b.d! : b.st.days - b.c.visitCycleDays - (a.st.days - a.c.visitCycleDays)))
   return (
     <div>
-      <div className="grid grid-cols-4 gap-px border-b border-slate-300 bg-slate-300 text-center">
+      <div className="grid grid-cols-4 gap-px border-b border-slate-200 bg-slate-300 text-center">
         {[['เยี่ยมวันนี้', todayVisits], ['งานครบกำหนด', due.length], ['ถึงรอบเยี่ยม', list.length], ['ยอดวันนี้', baht(Math.round(todaySales))]].map(([k, v]) => (
           <div key={k as string} className="bg-[#f7f9fc] py-3"><div className="text-lg font-bold text-[#14284b]">{v}</div><div className="text-[10px] text-slate-500">{k}</div></div>
         ))}
@@ -184,14 +185,14 @@ function Customers({ db, lastVisit, pos, locate, openC }: { db: DB; lastVisit: R
     <div>
       <div className="sticky top-0 z-10 space-y-2 bg-[#eef2f8] px-4 pb-2 pt-3">
         <div className="flex gap-2">
-          <label className="flex flex-1 items-center gap-2 rounded-xl border border-slate-300 bg-white px-3">
+          <label className="flex flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3">
             <Search size={17} className="text-slate-400" />
             <input value={q} onChange={e => { setQ(e.target.value); setLimit(60) }} placeholder="ค้นหาชื่อร้าน เบอร์ โซน รหัส" className="h-11 w-full bg-transparent text-[15px] outline-none" />
           </label>
-          <button onClick={locate} aria-label="ใกล้ฉัน" className={`grid h-11 w-11 place-items-center rounded-xl border ${pos ? 'border-[#14284b] bg-[#14284b] text-white' : 'border-slate-300 bg-white'}`}><LocateFixed size={19} /></button>
+          <button onClick={locate} aria-label="ใกล้ฉัน" className={`grid h-11 w-11 place-items-center rounded-xl border ${pos ? 'border-[#14284b] bg-[#14284b] text-white' : 'border-slate-200 bg-white'}`}><LocateFixed size={19} /></button>
         </div>
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
-          {types.map(t => <button key={t} onClick={() => { setType(t); setLimit(60) }} className={`shrink-0 rounded-full px-3 py-1.5 text-xs ${type === t ? 'bg-[#14284b] font-semibold text-white' : 'border border-slate-300 bg-white'}`}>{t}</button>)}
+          {types.map(t => <button key={t} onClick={() => { setType(t); setLimit(60) }} className={`shrink-0 rounded-full px-3 py-1.5 text-xs ${type === t ? 'bg-[#14284b] font-semibold text-white' : 'border border-slate-200 bg-white'}`}>{t}</button>)}
         </div>
         <div className="text-xs text-slate-500">{rows.length} ราย</div>
       </div>
@@ -223,7 +224,7 @@ function Tasks({ db, byId, openC, toggleTask }: { db: DB; byId: Record<string, C
   return (
     <div>
       <div className="flex gap-2 px-4 py-3">
-        {([['open', 'ค้างอยู่'], ['done', 'เสร็จแล้ว']] as const).map(([k, t]) => <button key={k} onClick={() => setF(k)} className={`rounded-full px-4 py-1.5 text-sm ${f === k ? 'bg-[#14284b] font-semibold text-white' : 'border border-slate-300 bg-white'}`}>{t}</button>)}
+        {([['open', 'ค้างอยู่'], ['done', 'เสร็จแล้ว']] as const).map(([k, t]) => <button key={k} onClick={() => setF(k)} className={`rounded-full px-4 py-1.5 text-sm ${f === k ? 'bg-[#14284b] font-semibold text-white' : 'border border-slate-200 bg-white'}`}>{t}</button>)}
       </div>
       {rows.length === 0 && <p className="px-4 py-10 text-center text-sm text-slate-500">ไม่มีรายการ</p>}
       {rows.map(t => <TaskRow key={t.id} t={t} c={byId[t.customerId]} openC={openC} toggle={toggleTask} />)}
@@ -275,9 +276,9 @@ function CustomerSheet({ c, db, byId, s, pos, lastVisit, close, say, addVisit, a
               : <span className={`${act} bg-slate-200 text-slate-400`}><MessageCircle size={22} />LINE</span>}
           </div>
           <div className="flex gap-2">
-            <button onClick={() => setSub('visit')} className={`${act} border-2 border-[#14284b] text-[#14284b]`}><Camera size={20} />เช็กอิน+รูป</button>
-            <button onClick={() => setSub('order')} className={`${act} border-2 border-[#14284b] text-[#14284b]`}><ShoppingCart size={20} />รับออเดอร์</button>
-            <button onClick={() => setSub('task')} className={`${act} border-2 border-[#14284b] text-[#14284b]`}><Plus size={20} />เพิ่มงาน</button>
+            <button onClick={() => setSub('visit')} className={`${act} border border-[#14284b]/40 text-[#14284b]`}><Camera size={20} />เช็กอิน+รูป</button>
+            <button onClick={() => setSub('order')} className={`${act} border border-[#14284b]/40 text-[#14284b]`}><ShoppingCart size={20} />รับออเดอร์</button>
+            <button onClick={() => setSub('task')} className={`${act} border border-[#14284b]/40 text-[#14284b]`}><Plus size={20} />เพิ่มงาน</button>
           </div>
 
           <div className="space-y-1.5 rounded-xl bg-[#f7f9fc] p-3 text-sm">
@@ -304,7 +305,7 @@ function CustomerSheet({ c, db, byId, s, pos, lastVisit, close, say, addVisit, a
           )}
           {usual.length > 0 && (
             <section><H>สินค้าที่สั่งประจำ</H>
-              <div className="flex flex-wrap gap-1.5">{usual.map(u => <span key={u.code || u.name} className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs">{u.name}</span>)}</div>
+              <div className="flex flex-wrap gap-1.5">{usual.map(u => <span key={u.code || u.name} className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs">{u.name}</span>)}</div>
             </section>
           )}
           <section><H>ประวัติเยี่ยม</H>
@@ -373,7 +374,7 @@ function VisitForm({ c, onClose, save, setCustPos }: { c: Customer; onClose: () 
           {pos && <label className="mt-1 flex items-center gap-2 text-xs"><input type="checkbox" checked={setShop} onChange={e => setSetShop(e.target.checked)} className="h-4 w-4" />ตั้งพิกัดนี้เป็นตำแหน่งร้าน{c.lat != null ? ' (แทนที่ของเดิม)' : ''}</label>}
         </div>
         <div className="flex flex-wrap gap-2">
-          {OUTCOMES.map(o => <button key={o} onClick={() => setOutcome(o)} className={`rounded-full px-3 py-2 text-sm ${outcome === o ? 'bg-[#14284b] font-semibold text-white' : 'border border-slate-300 bg-white'}`}>{o}</button>)}
+          {OUTCOMES.map(o => <button key={o} onClick={() => setOutcome(o)} className={`rounded-full px-3 py-2 text-sm ${outcome === o ? 'bg-[#14284b] font-semibold text-white' : 'border border-slate-200 bg-white'}`}>{o}</button>)}
         </div>
         <Field l="หมายเหตุ"><textarea value={note} onChange={e => setNote(e.target.value)} rows={2} className={inputCls} placeholder="เช่น สินค้าเหลือครึ่งหนึ่ง ให้กลับมาอาทิตย์หน้า" /></Field>
         <div>
@@ -400,11 +401,11 @@ function TaskForm({ c, onClose, save }: { c: Customer; onClose: () => void; save
     <Sheet title="เพิ่มงานติดตาม" onClose={onClose} z={60}>
       <div className="space-y-4 p-4">
         <div className="text-sm text-slate-600">{cname(c)}</div>
-        <div className="flex flex-wrap gap-2">{TASK_TYPES.map(t => <button key={t} onClick={() => setType(t)} className={`rounded-full px-3 py-2 text-sm ${type === t ? 'bg-[#14284b] font-semibold text-white' : 'border border-slate-300 bg-white'}`}>{t}</button>)}</div>
+        <div className="flex flex-wrap gap-2">{TASK_TYPES.map(t => <button key={t} onClick={() => setType(t)} className={`rounded-full px-3 py-2 text-sm ${type === t ? 'bg-[#14284b] font-semibold text-white' : 'border border-slate-200 bg-white'}`}>{t}</button>)}</div>
         <Field l="รายละเอียด"><input value={title} onChange={e => setTitle(e.target.value)} className={inputCls} placeholder="เช่น โทรถามออเดอร์" /></Field>
         <Field l="กำหนด">
           <div className="flex gap-2"><input type="date" value={due} onChange={e => setDue(e.target.value)} className={inputCls} />
-            {[['พรุ่งนี้', 1], ['+7 วัน', 7]].map(([t, n]) => <button key={t as string} onClick={() => quick(n as number)} className="shrink-0 rounded-xl border border-slate-300 bg-white px-3 text-xs">{t}</button>)}</div>
+            {[['พรุ่งนี้', 1], ['+7 วัน', 7]].map(([t, n]) => <button key={t as string} onClick={() => quick(n as number)} className="shrink-0 rounded-xl border border-slate-200 bg-white px-3 text-xs">{t}</button>)}</div>
         </Field>
         <Field l="หมายเหตุ"><input value={note} onChange={e => setNote(e.target.value)} className={inputCls} /></Field>
         <button onClick={() => { save({ customerId: c.id, type, title: title || type, dueAt: due, note }); onClose() }} className={`${btnPrimary} w-full`}>เพิ่มงาน</button>
@@ -429,7 +430,7 @@ function OrderForm({ c, db, usual, onClose, save }: { c: Customer; db: DB; usual
         {sorted.map(p => (
           <div key={p.code} className="flex items-center gap-2 border-b border-slate-200 py-2.5">
             <div className="min-w-0 flex-1"><div className="truncate text-sm font-semibold">{p.name}</div><div className="text-xs text-slate-500">{p.code} · ฿{baht(p.price)}</div></div>
-            <button aria-label="ลด" onClick={() => set(p.code, -1)} className="grid h-9 w-9 place-items-center rounded-full border border-slate-300 bg-white"><Minus size={16} /></button>
+            <button aria-label="ลด" onClick={() => set(p.code, -1)} className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white"><Minus size={16} /></button>
             <span className="w-7 text-center font-bold">{qty[p.code] || 0}</span>
             <button aria-label="เพิ่ม" onClick={() => set(p.code, 1)} className="grid h-9 w-9 place-items-center rounded-full bg-[#14284b] text-white"><Plus size={16} /></button>
           </div>
@@ -452,7 +453,7 @@ function OrderDone({ b, c, s, byId, say, close }: { b: Bill; c?: Customer; s: Se
         <div className="space-y-3 p-4">
           <div className="rounded-xl bg-[#f7f9fc] p-3 text-sm"><b>{b.no}</b> · {c ? cname(c) : b.customerId}<div className="text-lg font-bold text-[#14284b]">฿{baht(billTotals(b).total)}</div></div>
           <a href={lineShare(companyOrderText(b, c, s))} target="_blank" rel="noreferrer" className={`${act} bg-[#06c755] text-white`}><Building2 size={19} />แจ้งออเดอร์ให้บริษัททาง LINE</a>
-          <a href={lineShare(msg)} target="_blank" rel="noreferrer" className={`${act} border-2 border-[#14284b] text-[#14284b]`}><MessageCircle size={19} />ส่งยอด+ลิงก์บิลให้ลูกค้า (LINE)</a>
+          <a href={lineShare(msg)} target="_blank" rel="noreferrer" className={`${act} border border-[#14284b]/40 text-[#14284b]`}><MessageCircle size={19} />ส่งยอด+ลิงก์บิลให้ลูกค้า (LINE)</a>
           <div className="flex gap-2">
             <a href={smsLink(c?.phone || '', msg)} className={`${act} flex-1 border border-slate-400`}>SMS</a>
             <button onClick={async () => say((await copyText(msg)) ? 'คัดลอกข้อความแล้ว' : 'คัดลอกไม่สำเร็จ')} className={`${act} flex-1 border border-slate-400`}>คัดลอก</button>
