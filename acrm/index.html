@@ -44,7 +44,7 @@ a{color:inherit;text-decoration:none}button,input,select,textarea{font:inherit;c
 .b{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:46px;padding:10px 12px;border:0;border-radius:12px;background:var(--n);color:#fff;font-weight:700;cursor:pointer;text-align:center}
 .b.o{background:#fff;color:var(--n);border:1px solid var(--ln)}.b.d{background:#fff;color:var(--red);border:1px solid #f0c4bf}.b.sm{width:auto;min-height:44px;padding:7px 12px;font-size:var(--fs3)}
 .b.off,.b:disabled{opacity:.45;pointer-events:none}.b .ic{width:19px;height:19px}
-.tb td:last-child:not(:first-child){width:44px;padding-left:6px}.tb td:first-child{word-break:break-word}.ch .nm{font-size:var(--fs5);font-weight:700;line-height:1.35;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ch .ad{margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}.ch .ad.open{white-space:normal}
+.tb td:last-child:not(:first-child){width:44px;padding-left:6px}.tb td:first-child{word-break:break-word}.ch .nm{font-size:var(--fs5);font-weight:700;line-height:1.35;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ha{display:flex;border-top:1px solid var(--ln);margin-top:10px}.ha a{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px 2px;color:var(--n);font-size:10.5px;font-weight:700;text-align:center;line-height:1.2}.ha a+a{border-left:1px solid var(--ln)}.ha .ic{width:22px;height:22px}.ha a.off{opacity:.35}
 .ha.dk{border-top-color:rgba(255,255,255,.25)}.ha.dk a{color:#fff}.ha.dk a+a{border-left-color:rgba(255,255,255,.25)}
 .ha.rd{border:0;gap:8px}.ha.rd a{justify-content:center;background:var(--soft);border-radius:12px;padding:8px 2px}.ha.rd a+a{border:0}
@@ -608,13 +608,14 @@ R.customers=function(){var F=R.customers.f||'all',all=DB.customers.map(function(
 // 17) Customer 360
 // =====================================================================
 // หัวหน้าลูกค้า 3 แบบ (ตามดีไซน์ A/B/C): ชื่อบรรทัดเดียว · ปุ่มติดต่อเป็นไอคอน ไม่มีกรอบหนัก
-function custHead(c,y,CV,open,nC){var sub=[c.id,c.type,c.area].filter(Boolean).map(E).join(' · '),nm=E(c.name)+(c.alias?' <span class="t">('+E(c.alias)+')</span>':''),
- ed=tlink('แก้','edit','go','cform/'+c.id),ad=c.addr?'<div class="ad t">'+E(c.addr)+'</div>':'',
+function custHead(c,y,CV,open,nC){var nm=E(c.id)+' '+E(c.name)+(c.alias?' <span class="t">('+E(c.alias)+')</span>':''),
+ ed=tlink('แก้','edit','go','cform/'+c.id),
  A=[['โทร','phone',c.ph[0]?'tel:'+digits(c.ph[0]):'',0],[open?'กลับไปเข้าพบ':'บันทึกเข้าพบ','pin','#visit/'+c.id,0],['สร้างออเดอร์'+(nC?' ('+nC+')':''),'cart','#order/'+c.id,0],['แชร์','chat','#stmt/'+c.id,0],['นำทาง','nav',c.lat||c.addr?mapUrl(c):'',1]],
  acts=function(cls){return '<div class="ha '+cls+'">'+A.map(function(a){return '<a'+(a[2]?' href="'+a[2]+'"'+(a[3]?' target="_blank" rel="noopener"':''):' class="off"')+'>'+ic(a[1])+'<span>'+a[0]+'</span></a>'}).join('')+'</div>'};
- if(CV==='B')return '<div class="c ch hb"><div class="row"><span class="nm">'+nm+'</span>'+ed+'</div><div class="t">'+sub+'</div>'+ad+acts('dk')+'</div>';
- if(CV==='C'){var ini=(String(c.name).replace(/^[เแโใไ\s.]+/,'').charAt(0)||'?');return '<div class="c ch"><div class="row" style="align-items:flex-start;gap:10px"><div class="av">'+E(ini)+'</div><div style="flex:1;min-width:0"><div class="nm">'+nm+'</div><div class="t">'+sub+'</div></div><span style="display:flex;align-items:center;flex:none">'+pill(y.lbl,y.cls)+ed+'</span></div>'+ad+acts('rd')+'</div>'}
- return '<div class="c ch"><div class="row"><span class="nm">'+nm+'</span><span style="display:flex;align-items:center;gap:2px;flex:none">'+pill(y.lbl,y.cls)+ed+'</span></div><div class="t">'+sub+'</div>'+ad+acts('')+'</div>'}
+ var pe='<span style="display:flex;align-items:center;gap:2px;flex:none">'+pill(y.lbl,y.cls)+ed+'</span>';
+ if(CV==='B')return '<div class="c ch hb"><div class="row"><span class="nm">'+nm+'</span>'+pe+'</div>'+acts('dk')+'</div>';
+ if(CV==='C'){var ini=(String(c.name).replace(/^[เแโใไ\s.]+/,'').charAt(0)||'?');return '<div class="c ch"><div class="row" style="gap:10px"><div class="av">'+E(ini)+'</div><span class="nm">'+nm+'</span>'+pe+'</div>'+acts('rd')+'</div>'}
+ return '<div class="c ch"><div class="row"><span class="nm">'+nm+'</span>'+pe+'</div>'+acts('')+'</div>'}
 function adviceOf(y,open){if(open)return 'กำลังเข้าพบอยู่ · กดกลับไปบันทึก';if(y.st==='OVER')return 'เลยรอบซื้อ '+Math.max(0,y.since-y.m)+' วัน · ควรโทรหรือเข้าพบวันนี้';if(y.st==='DUE')return 'ถึงรอบซื้อแล้ว · ควรโทรถามออเดอร์';if(y.st==='NEAR')return 'ใกล้ถึงรอบ · คาดว่าซื้อ '+dt(y.next);if(y.st==='OK')return 'ยังไม่ถึงรอบ · คาดว่าซื้อ '+dt(y.next);if(y.st==='LOST')return 'ห่างหายเกิน 1 ปี · ลองโทรชวนกลับมา';if(y.st==='NONE')return 'ยังไม่เคยซื้อ · เข้าพบเพื่อเปิดการขาย';return 'ประวัติซื้อยังน้อย · ยังประเมินรอบไม่ได้'}
 function reorderRow(lb){return lb?kv('บิลล่าสุด',dt(lb.d)+' · '+money(bt(lb))+' '+tlink('สั่งซ้ำ','repeat','billAgain',lb.no)):''}
 function latestBill(bs){return bs.slice().sort(function(a,b){return a.d<b.d?1:-1})[0]}
@@ -659,7 +660,7 @@ R.cust=function(a){var c=cust(a[0]);if(!c)return go('customers',true);var T=R.cu
  ys=bs.filter(function(b){return b.d.slice(0,4)===yr}).reduce(function(s,b){return s+bt(b)},0),avg=bs.length?bs.reduce(function(s,b){return s+bt(b)},0)/bs.length:0,
  tk=DB.tasks.filter(function(t){return t.cid===c.id&&!t.done}).sort(by('due')),nC=CART&&CART.cid===c.id?CART.items.length:0,open=one(DB.visits.filter(function(x){return x.cid===c.id}),'done',false),nbs=DB.acts.filter(function(x){return x.cid===c.id&&x.type==='โน้ต'}).sort(by('at',true));
  var plus=function(i){return '<button type="button" class="pl" data-a="add" data-v="'+i.c+'" aria-label="ใส่ในออเดอร์">'+ic('plus')+'</button>'},b='';
- if(T==='ov'){var sCt=sec('ติดต่อ',tlink('แก้','edit','go','cform/'+c.id),(c.ph.length?c.ph.map(function(p){return '<div class="kv"><span>'+E(p)+'</span><a class="lk ico" href="tel:'+digits(p)+'" aria-label="โทร">'+ic('phone')+'</a></div>'}).join(''):kv('เบอร์','<span class="t">ยังไม่มี</span>'))+kv('ID LINE',c.lineId?E(c.lineId):'<span class="t">ยังไม่มี</span>')+kv('วันเกิด',c.birthday?bdFmt(c.birthday):'<span class="t">ยังไม่มี</span>')+kv('ผู้ติดต่อ',c.owner?E(c.owner):'<span class="t">—</span>'));
+ if(T==='ov'){var sCt=sec('ติดต่อ',tlink('แก้','edit','go','cform/'+c.id),(c.ph.length?c.ph.map(function(p){return '<div class="kv"><span>'+E(p)+'</span><a class="lk ico" href="tel:'+digits(p)+'" aria-label="โทร">'+ic('phone')+'</a></div>'}).join(''):kv('เบอร์','<span class="t">ยังไม่มี</span>'))+kv('ID LINE',c.lineId?E(c.lineId):'<span class="t">ยังไม่มี</span>')+kv('วันเกิด',c.birthday?bdFmt(c.birthday):'<span class="t">ยังไม่มี</span>')+kv('ผู้ติดต่อ',c.owner?E(c.owner):'<span class="t">—</span>')+kv('ที่อยู่',c.addr?E(c.addr):'<span class="t">ยังไม่มี</span>')+kv('ประเภท / พื้นที่',[c.type,c.area].filter(Boolean).map(E).join(' · ')||'<span class="t">—</span>')+kv('ป้ายกำกับ',c.tags.length?E(c.tags.join(', ')):'<span class="t">—</span>'));
   var sDoc=sec('เอกสาร','',(c.vat!==VATMAP.VAT_IN&&!c.rcpt?kv('ใบกำกับภาษี / ใบเสร็จ','-'):kv('ใบกำกับภาษี',c.vat===VATMAP.VAT_IN?'ต้องการ':'-')+(c.vat===VATMAP.VAT_IN?kv('ชื่อ / ที่อยู่ออกใบ',E((c.taxName||'-')+' · '+(c.taxAddr||'-')))+kv('สาขา / เลขภาษี',E((c.taxBranch||'-')+' / '+(c.taxId||'-'))):'')+(c.vat===VATMAP.VAT_IN||c.rcpt?kv('ใบเสร็จรับเงิน',c.rcpt?'ต้องการ':'-'):'')+(c.docNote?kv('หมายเหตุเอกสาร',E(c.docNote)):'')));
   var sSum=sec('สรุปร้าน','',kv('ยอดซื้อปี '+(+yr+543),money(ys))+kv('ซื้อล่าสุด',y.last?dt(y.last)+' <span class="t">· '+y.since+' วันก่อน</span>':'ยังไม่มี')+kv('เฉลี่ยต่อบิล',money(avg)+' <span class="t">· '+bs.length+' บิล</span>')
    +kv('รอบซื้อ',y.m?'<span class="'+(y.rank<=1?'rd':'')+'">'+(y.since>=y.m?'เกินรอบ '+(y.since-y.m)+' วัน':'อีก '+(y.m-y.since)+' วัน')+'</span> <span class="t">· ทุก '+y.m+' วัน</span>':'ต้องมีบิลอย่างน้อย 3 วัน')
@@ -1197,5 +1198,5 @@ Store.open().then(function(){return Store.get(KEY)}).then(function(d){DB=d&&d.v=
 route();
  Sheet.init().then(function(m){refreshStatus();if(!m||!DB.user)return;
   if(DB.src!=='sheet')firstPull();else pull().then(function(){rerender();Sync.run()},function(){Sync.run()})})});
-document.addEventListener('click',function(e){var k=e.target.closest&&e.target.closest('.kv,.ad');if(k&&!e.target.closest('a,button'))k.classList.toggle('open')});
+document.addEventListener('click',function(e){var k=e.target.closest&&e.target.closest('.kv');if(k&&!e.target.closest('a,button'))k.classList.toggle('open')});
 </script></body></html>
