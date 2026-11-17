@@ -45,9 +45,9 @@ a{color:inherit;text-decoration:none}button,input,select,textarea{font:inherit;c
 .b.o{background:#fff;color:var(--n);border:1px solid var(--ln)}.b.d{background:#fff;color:var(--red);border:1px solid #f0c4bf}.b.sm{width:auto;min-height:44px;padding:7px 12px;font-size:var(--fs3)}
 .b.off,.b:disabled{opacity:.45;pointer-events:none}.b .ic{width:19px;height:19px}
 .tb td:last-child:not(:first-child){width:44px;padding-left:6px}.tb td:first-child{word-break:break-word}.ch .nm{font-size:var(--fs5);font-weight:700;line-height:1.35;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ch .ad{margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}.ch .ad.open{white-space:normal}
-.ha{display:flex;border-top:1px solid var(--ln);margin-top:10px}.ha a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 2px;color:var(--n);font-size:var(--fs1);font-weight:700}.ha a+a{border-left:1px solid var(--ln)}.ha .ic{width:22px;height:22px}.ha a.off{opacity:.35}
+.ha{display:flex;border-top:1px solid var(--ln);margin-top:10px}.ha a{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px 2px;color:var(--n);font-size:10.5px;font-weight:700;text-align:center;line-height:1.2}.ha a+a{border-left:1px solid var(--ln)}.ha .ic{width:22px;height:22px}.ha a.off{opacity:.35}
 .ha.dk{border-top-color:rgba(255,255,255,.25)}.ha.dk a{color:#fff}.ha.dk a+a{border-left-color:rgba(255,255,255,.25)}
-.ha.rd{border:0;gap:8px}.ha.rd a{flex-direction:row;justify-content:center;gap:6px;background:var(--soft);border-radius:20px;padding:9px 0}.ha.rd a+a{border:0}
+.ha.rd{border:0;gap:8px}.ha.rd a{justify-content:center;background:var(--soft);border-radius:12px;padding:8px 2px}.ha.rd a+a{border:0}
 .hb{background:var(--n);color:#fff}.hb .t{color:rgba(255,255,255,.75)}.hb .lk{color:#fff}
 .av{width:44px;height:44px;flex:none;border-radius:50%;background:var(--soft);color:var(--n);font-weight:700;font-size:var(--fs5);display:flex;align-items:center;justify-content:center}
 .vs{margin:8px 0 0}.vs .seg a{padding:6px 2px;font-size:var(--fs2)}
@@ -608,9 +608,9 @@ R.customers=function(){var F=R.customers.f||'all',all=DB.customers.map(function(
 // 17) Customer 360
 // =====================================================================
 // หัวหน้าลูกค้า 3 แบบ (ตามดีไซน์ A/B/C): ชื่อบรรทัดเดียว · ปุ่มติดต่อเป็นไอคอน ไม่มีกรอบหนัก
-function custHead(c,y,CV){var sub=[c.id,c.type,c.area].filter(Boolean).map(E).join(' · '),nm=E(c.name)+(c.alias?' <span class="t">('+E(c.alias)+')</span>':''),
+function custHead(c,y,CV,open,nC){var sub=[c.id,c.type,c.area].filter(Boolean).map(E).join(' · '),nm=E(c.name)+(c.alias?' <span class="t">('+E(c.alias)+')</span>':''),
  ed=tlink('แก้','edit','go','cform/'+c.id),ad=c.addr?'<div class="ad t">'+E(c.addr)+'</div>':'',
- A=[['โทร','phone',c.ph[0]?'tel:'+digits(c.ph[0]):'',0],['LINE','chat','#stmt/'+c.id,0],['นำทาง','nav',c.lat||c.addr?mapUrl(c):'',1]],
+ A=[['โทร','phone',c.ph[0]?'tel:'+digits(c.ph[0]):'',0],[open?'กลับไปเข้าพบ':'บันทึกเข้าพบ','pin','#visit/'+c.id,0],['สร้างออเดอร์'+(nC?' ('+nC+')':''),'cart','#order/'+c.id,0],['แชร์','chat','#stmt/'+c.id,0],['นำทาง','nav',c.lat||c.addr?mapUrl(c):'',1]],
  acts=function(cls){return '<div class="ha '+cls+'">'+A.map(function(a){return '<a'+(a[2]?' href="'+a[2]+'"'+(a[3]?' target="_blank" rel="noopener"':''):' class="off"')+'>'+ic(a[1])+'<span>'+a[0]+'</span></a>'}).join('')+'</div>'};
  if(CV==='B')return '<div class="c ch hb"><div class="row"><span class="nm">'+nm+'</span>'+ed+'</div><div class="t">'+sub+'</div>'+ad+acts('dk')+'</div>';
  if(CV==='C'){var ini=(String(c.name).replace(/^[เแโใไ\s.]+/,'').charAt(0)||'?');return '<div class="c ch"><div class="row" style="align-items:flex-start;gap:10px"><div class="av">'+E(ini)+'</div><div style="flex:1;min-width:0"><div class="nm">'+nm+'</div><div class="t">'+sub+'</div></div><span style="display:flex;align-items:center;flex:none">'+pill(y.lbl,y.cls)+ed+'</span></div>'+ad+acts('rd')+'</div>'}
@@ -677,10 +677,9 @@ R.cust=function(a){var c=cust(a[0]);if(!c)return go('customers',true);var T=R.cu
    +kv('คำเรียกพิเศษ',(c.alias?E(c.alias)+' ':'')+tlink(c.alias?'แก้':'เพิ่ม',c.alias?'edit':'plus','alias'))+kv('รอบเข้าพบ',(c.visitCycle?'ทุก '+c.visitCycle+' วัน ':'ยังไม่ตั้ง ')+tlink('ตั้ง','edit','vcyc'))
    +kv('สถานะร้าน',(c.status==='closed'?'<span class="rd">เลิกกิจการ</span> ':'ปกติ ')+tlink('เปลี่ยน','edit','status'))+kv('ข้อมูลร้าน',tlink('แก้ไข','edit','go','cform/'+c.id)))
   +sec('กิจกรรมล่าสุด',tlink('เพิ่ม','plus','go','act/'+c.id),L.length?tbl([['วันที่'],['ประเภท'],['รายละเอียด']],L.slice(0,30).map(function(x){return '<tr><td style="white-space:nowrap">'+dt(x.at)+'</td><td>'+pill(x.t,'p-gry')+'</td><td>'+E(x.s)+'</td></tr>'})):empty('ยังไม่มีกิจกรรม · บันทึกเข้าพบหรือโทรแล้วจะขึ้นที่นี่'))}
- page({back:'customers',bl:'ลูกค้า',body:custHead(c,y,CV)
+ page({back:'customers',bl:'ลูกค้า',body:custHead(c,y,CV,open,nC)
   +(open?'<a class="note w" href="#visit/'+c.id+'">'+ic('pin')+' กำลังเข้าพบร้านนี้อยู่ · แตะเพื่อกลับไปบันทึก</a>':'')
   +seg([['ov','ภาพรวม'],['bill','บิล'],['prod','สินค้า'],['act','กิจกรรม']],T,'tab')+(T==='ov'?'<div class="vs">'+seg([['A','A สรุป'],['B','B วันนี้'],['C','C ตัวเลข']],CV,'cv')+'</div>':'')+b,
-  foot:lnk(open?'กลับไปเข้าพบ':'บันทึกเข้าพบ','pin','#visit/'+c.id,'o')+lnk('สร้างออเดอร์'+(nC?' ('+nC+')':''),'cart','#order/'+c.id),
  on:{tab:function(v){R.cust.t=v;route()},cv:function(v){R.cust.v=v;cvSet(v);route()},add:function(code){var i=one(top,'c',code);cartAdd(c.id,{c:i.c,n:i.n,q:i.q||1,p:i.p});rerender()},
   note:function(){editText('โน้ตก่อนเข้าพบ',c.note,'placeholder="เช่น เจ้าของอยู่ช่วงบ่าย ชอบโปรแถม"',function(t){c.note=t;saveCust(c,'แก้โน้ต · '+c.name);rerender()})},
   nb:function(){editText('โน้ตใหม่','','rows="6" placeholder="เขียนอะไรก็ได้ เช่น ของที่ลูกค้าบอก เรื่องที่ต้องจำ"',function(t){if(!t)return;var ac={id:'A-'+uid().toUpperCase(),cid:c.id,at:now(),type:'โน้ต',note:t};DB.acts.push(ac);track(ac,commit('กิจกรรม','โน้ต · '+c.name,c.id,[actRow(ac.id,c.id,'โน้ต',ac.at,t)]));toast('บันทึกโน้ตแล้ว');rerender()})},
