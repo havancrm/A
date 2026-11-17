@@ -179,7 +179,7 @@ var Sync={busy:false,t:null,
  failed:function(){return DB.queue.filter(function(o){return o.st==='fail'})},
  state:function(){if(DB.src!=='sheet')return Sheet.pulling?{k:'load',lbl:'กำลังโหลดจากชีต A…',dot:'w'}:{k:'demo',lbl:Sheet.err||(Sheet.state==='init'?'กำลังเชื่อมชีต…':'ข้อมูลตัวอย่าง · ยังไม่เชื่อมชีต'),dot:'x'};
   if(Sheet.pulling)return{k:'load',lbl:'กำลังอัปเดตจากชีต…',dot:'w'};if(!this.online())return{k:'off',lbl:navigator.onLine===false||DB.cfg.forceOffline?'ออฟไลน์':'ยังไม่เชื่อมชีต',dot:'x'};
-  var f=this.failed().length,p=this.pending().length;if(f)return{k:'err',lbl:'ส่งไม่สำเร็จ '+f+' · แตะลองใหม่',dot:'e'};if(p)return{k:'wait',lbl:'รอส่งขึ้นชีต '+p,dot:'w'};return{k:'ok',lbl:'ซิงก์กับชีต A แล้ว',dot:''}},
+  var f=this.failed().length,p=this.pending().length;if(f)return{k:'err',lbl:'ส่งไม่สำเร็จ '+f+' · แตะลองใหม่',dot:'e'};if(p)return{k:'wait',lbl:'รอส่งขึ้นชีต '+p,dot:'w'};return{k:'ok',lbl:'ปกติ',dot:''}},
  soon:function(){var s=this;clearTimeout(s.t);s.t=setTimeout(function(){s.run()},1200)},
  run:function(manual){var s=this;if(s.busy)return;if(!s.online()){if(manual)toast(DB.src!=='sheet'?'ยังไม่ได้เชื่อมชีต A':'ออฟไลน์อยู่ · ข้อมูลเก็บในเครื่องแล้ว จะส่งเมื่อมีสัญญาณ');refreshStatus();return}
   var L=DB.queue.filter(function(o){return o.st==='wait'||(manual&&o.st==='fail')});if(!L.length){if(manual)pull().then(function(){toast('อัปเดตจากชีตแล้ว');rerender()},function(){toast(Sheet.err)});refreshStatus();return}
@@ -384,7 +384,7 @@ document.addEventListener('click',function(e){var t=e.target.closest&&e.target.c
 
 // โครงหน้า: หัว ART · ปุ่มย้อน+ชื่อหน้า · เนื้อหา · ปุ่มติดล่าง · เมนูล่าง
 function header(){var s=Sync.state(),n=Sync.failed().length+DB.tasks.filter(function(t){return !t.done&&t.due<=TD}).length;
- return '<div class="hd"><div class="row"><span class="brand"><i></i>ART<small>ระบบใหม่</small></span><span class="hi"><a href="#tasks" aria-label="งานและแจ้งเตือน">'+ic('bell')+(n?'<i class="bdg">'+(n>99?'99+':n)+'</i>':'')+'</a><a href="#settings" aria-label="ตั้งค่า">'+ic('user')+'</a></span></div>'
+ return '<div class="hd"><div class="row"><span class="brand"><i></i>ART</span><span class="hi"><a href="#tasks" aria-label="งานและแจ้งเตือน">'+ic('bell')+(n?'<i class="bdg">'+(n>99?'99+':n)+'</i>':'')+'</a><a href="#settings" aria-label="ตั้งค่า">'+ic('user')+'</a></span></div>'
  +'<a class="st" data-a="syncNow" aria-label="ซิงก์ตอนนี้">'+dtFull(TD)+' · <i class="dot '+s.dot+'"></i><span id="sst">'+s.lbl+'</span></a></div>'}
 function refreshStatus(){var e=document.getElementById('sst');if(!e)return;var s=Sync.state();e.textContent=s.lbl;e.previousElementSibling.className='dot '+s.dot}
 function nav(on){return '<nav class="nv">'+[['home','หน้าหลัก','home'],['customers','ลูกค้า','people'],['checkin','เช็คอิน','pin'],['orders','ออเดอร์','receipt'],['back','หลังบ้าน','grid']].map(function(x){
