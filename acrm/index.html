@@ -30,8 +30,8 @@ a{color:inherit;text-decoration:none}button,input,select,textarea{font:inherit;c
 /* ===== การ์ด / ข้อความ ===== */
 .c{background:var(--card);border-radius:var(--r);padding:10px 12px;display:block}
 .sec{background:var(--card);border-radius:var(--r);padding:0 14px 6px}
-.sh{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:36px;font-weight:700;font-size:var(--fs3);border-bottom:1px solid var(--ln)}.sh a,.sh button{font-weight:700;color:var(--n)}
-.kv{display:flex;justify-content:space-between;align-items:center;gap:8px;height:40px;padding:0;border-bottom:1px solid var(--ln2);font-size:var(--fs3);cursor:default}.kv.open{height:auto;min-height:40px;padding:6px 0}.kv:last-child{border-bottom:0}.kv>span{color:var(--mu);flex:none;max-width:46%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kv>b{text-align:right;font-weight:600;min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kv.open>b{white-space:normal;overflow:visible}
+.sh{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:32px;font-weight:700;font-size:var(--fs3);border-bottom:1px solid var(--ln)}.sh a,.sh button{font-weight:700;color:var(--n)}
+.kv{display:flex;justify-content:space-between;align-items:center;gap:8px;height:36px;padding:0;border-bottom:1px solid var(--ln2);font-size:var(--fs3);cursor:default}.kv.open{height:auto;min-height:40px;padding:6px 0}.kv:last-child{border-bottom:0}.kv>span{color:var(--mu);flex:none;max-width:46%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kv>b{text-align:right;font-weight:600;min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kv.open>b{white-space:normal;overflow:visible}
 .t{font-size:var(--fs2);color:var(--mu)}.tl{font-size:var(--fs3);font-weight:700}.big{font-size:var(--fs6);font-weight:700;color:var(--n)}.rd{color:var(--red)}.gn{color:var(--grn)}
 .row{display:flex;justify-content:space-between;align-items:center;gap:8px}.row>.grow{flex:1;min-width:0}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
@@ -691,7 +691,7 @@ function smartCard(c,y,bs,tk,open){var wait=DB.orders.filter(function(o){return 
  if(y.m)rows+=kv('รอบซื้อปกติ','ทุก '+y.m+' วัน · ล่าสุด '+y.since+' วันก่อน');
  if(lv&&lv.end)rows+=kv('เข้าพบล่าสุด',dt(lv.end.slice(0,10))+' · '+since(lv.end.slice(0,10))+' วันก่อน');
  if(due||wait)rows+=kv('ค้างอยู่',(due?due+' งานถึงกำหนด':'')+(due&&wait?' · ':'')+(wait?wait+' ออเดอร์รอส่ง':''));
- return sec('สรุปอัจฉริยะ','',rows+reorderRow(lb))}
+ return '<div class="sec">'+rows+reorderRow(lb)+'</div>'}
 R.cust=function(a){var c=cust(a[0]);if(!c)return go('customers',true);var T=R.cust.t||'ov',y=cyc(c.id),v=lastVisit(c.id),bs=billsOf(c.id),top=bought(c.id),yr=TD.slice(0,4),
  ys=bs.filter(function(b){return b.d.slice(0,4)===yr}).reduce(function(s,b){return s+bt(b)},0),avg=bs.length?bs.reduce(function(s,b){return s+bt(b)},0)/bs.length:0,
  tk=DB.tasks.filter(function(t){return t.cid===c.id&&!t.done}).sort(by('due')),nC=CART&&CART.cid===c.id?CART.items.length:0,open=one(DB.visits.filter(function(x){return x.cid===c.id}),'done',false),nbs=DB.acts.filter(function(x){return x.cid===c.id&&x.type==='โน้ต'}).sort(by('at',true));
