@@ -346,6 +346,14 @@ function editText(title,cur,opt,fn){ask(title,'<textarea id="ev" '+(opt||'')+'>'
 function showImg(src,title){modal((title?'<div class="tl">'+E(title)+'</div><div class="t">กดค้างที่รูปเพื่อบันทึกหรือแชร์</div>':'')+'<img src="'+src+'" alt="" style="width:100%;border-radius:10px;margin-top:8px">'+btn('ปิด',null,'close',null,'o'))}
 function copyTxt(t){var ok=function(){toast('คัดลอกแล้ว · วางในไลน์ได้เลย')},fb=function(){modal('<div class="tl">คัดลอกข้อความ</div><textarea id="cpt" rows="9">'+E(t)+'</textarea>'+btn('ปิด',null,'close',null,'o'));var x=document.getElementById('cpt');x.select();try{if(document.execCommand('copy')){closeModal();ok()}}catch(e){}};
  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(ok,fb);else fb()}
+function shareCust(c){if(!c)return;var txt=c.name+(c.addr?'\n'+c.addr:'')+'\nแผนที่: '+mapUrl(c);
+ var textOnly=function(){if(navigator.share)return navigator.share({text:txt,title:c.name}).catch(function(){});window.open(lineUrl(txt),'_blank')};
+ if(!c.photo)return textOnly();
+ try{var m=/^data:([^;]+);base64,(.*)$/.exec(c.photo);if(!m)return textOnly();var bin=atob(m[2]),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+  var f=new File([u],'shop-'+c.id+'.jpg',{type:m[1]});
+  if(navigator.canShare&&navigator.canShare({files:[f]}))return navigator.share({files:[f],text:txt,title:c.name}).catch(function(){});
+ }catch(e){}
+ toast('ส่งรูปพร้อมลิงก์ไม่ได้ในเครื่องนี้ · ส่งลิงก์แผนที่แทน');textOnly()}
 function shareFile(dataUrl,name,title){fetch(dataUrl).then(function(r){return r.blob()}).then(function(bl){var f=new File([bl],name,{type:bl.type});
  if(navigator.canShare&&navigator.canShare({files:[f]}))return navigator.share({files:[f],title:title}).catch(function(){});showImg(dataUrl,title)}).catch(function(){showImg(dataUrl,title)})}
 
@@ -358,7 +366,7 @@ function go(h,replace){if(h!==CUR&&!replace)HIST.push(CUR);if(HIST.length>30)HIS
 function back(fallback){var h=HIST.pop();CUR=h&&h!=='login'?h:fallback||'home';route()}
 function route(){closeModal();var p=CUR.split('/'),k=p[0];if(!DB.user&&k!=='login'){CUR='login';k='login'}PA={};(R[k]||R.home)(p.slice(1).map(decodeURIComponent))}
 A.go=function(v){go(v)};A.close=closeModal;A.back=function(v){back(v)};A.syncNow=function(){Sync.run(true)};
-A.billImg=function(no){shareBill(one(DB.bills,'no',no))};A.billAgain=function(no){var b=one(DB.bills,'no',no);cartFrom(b.cid,b.items);go('order/'+b.cid)};
+A.shareCust=function(cid){shareCust(cust(cid))};A.billImg=function(no){shareBill(one(DB.bills,'no',no))};A.billAgain=function(no){var b=one(DB.bills,'no',no);cartFrom(b.cid,b.items);go('order/'+b.cid)};
 A.orderImg=function(no){shareSlip(one(DB.orders,'no',no))};A.copy=function(k){copyTxt(PA._txt[k])};
 document.addEventListener('click',function(e){var t=e.target.closest&&e.target.closest('a,button,[data-a]');if(!t||!document.getElementById('app').contains(t))return;
  var a=t.dataset.a;if(a){var f=PA[a]||A[a];if(f){e.preventDefault();e.stopPropagation();f(t.dataset.v,t,e)}return}
@@ -628,8 +636,8 @@ R.customers=function(){var F=R.customers.f||'all',all=DB.customers.map(function(
 // หัวหน้าลูกค้า 3 แบบ (ตามดีไซน์ A/B/C): ชื่อบรรทัดเดียว · ปุ่มติดต่อเป็นไอคอน ไม่มีกรอบหนัก
 function custHead(c,y,open,nC){var nm=E(c.id)+' '+E(c.name)+(c.alias?' <span class="t">('+E(c.alias)+')</span>':''),
  ed=tlink('แก้','edit','go','cform/'+c.id),
- A=[['โทร','phone',c.ph[0]?'tel:'+digits(c.ph[0]):'',0],[open?'กลับไปเข้าพบ':'บันทึกเข้าพบ','pin','#visit/'+c.id,0],['สร้างออเดอร์'+(nC?' ('+nC+')':''),'cart','#order/'+c.id,0],['แชร์','chat','#stmt/'+c.id,0],['นำทาง','nav',c.lat||c.addr?mapUrl(c):'',1]],
- acts=function(cls){return '<div class="ha '+cls+'">'+A.map(function(a){return '<a'+(a[2]?' href="'+a[2]+'"'+(a[3]?' target="_blank" rel="noopener"':''):' class="off"')+'>'+ic(a[1])+'<span>'+a[0]+'</span></a>'}).join('')+'</div>'};
+ A=[['โทร','phone',c.ph[0]?'tel:'+digits(c.ph[0]):'',0],[open?'กลับไปเข้าพบ':'บันทึกเข้าพบ','pin','#visit/'+c.id,0],['สร้างออเดอร์'+(nC?' ('+nC+')':''),'cart','#order/'+c.id,0],['แชร์','chat','act:shareCust:'+c.id,0],['นำทาง','nav',c.lat||c.addr?mapUrl(c):'',1]],
+ acts=function(cls){return '<div class="ha '+cls+'">'+A.map(function(a){var ac=String(a[2]||'').split(':');if(ac[0]==='act')return '<a role="button" tabindex="0" data-a="'+ac[1]+'" data-v="'+ac[2]+'">'+ic(a[1])+'<span>'+a[0]+'</span></a>';return '<a'+(a[2]?' href="'+a[2]+'"'+(a[3]?' target="_blank" rel="noopener"':''):' class="off"')+'>'+ic(a[1])+'<span>'+a[0]+'</span></a>'}).join('')+'</div>'};
  var pe='<span style="display:flex;align-items:center;gap:2px;flex:none">'+pill(y.lbl,y.cls)+ed+'</span>';
  return '<div class="c ch"><div class="row"><span class="nm">'+nm+'</span>'+pe+'</div>'+(c.type?'<div class="t" style="margin-top:2px">'+E(c.type)+'</div>':'')+acts('')+'</div>'}
 function adviceOf(y,open){if(open)return 'กำลังเข้าพบอยู่ · กดกลับไปบันทึก';if(y.st==='OVER')return 'เลยรอบซื้อ '+Math.max(0,y.since-y.m)+' วัน · ควรโทรหรือเข้าพบวันนี้';if(y.st==='DUE')return 'ถึงรอบซื้อแล้ว · ควรโทรถามออเดอร์';if(y.st==='NEAR')return 'ใกล้ถึงรอบ · คาดว่าซื้อ '+dt(y.next);if(y.st==='OK')return 'ยังไม่ถึงรอบ · คาดว่าซื้อ '+dt(y.next);if(y.st==='LOST')return 'ห่างหายเกิน 1 ปี · ลองโทรชวนกลับมา';if(y.st==='NONE')return 'ยังไม่เคยซื้อ · เข้าพบเพื่อเปิดการขาย';return 'ประวัติซื้อยังน้อย · ยังประเมินรอบไม่ได้'}
