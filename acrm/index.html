@@ -616,6 +616,7 @@ function custHead(c,y,CV,open,nC){var sub=[c.id,c.type,c.area].filter(Boolean).m
  if(CV==='C'){var ini=(String(c.name).replace(/^[เแโใไ\s.]+/,'').charAt(0)||'?');return '<div class="c ch"><div class="row" style="align-items:flex-start;gap:10px"><div class="av">'+E(ini)+'</div><div style="flex:1;min-width:0"><div class="nm">'+nm+'</div><div class="t">'+sub+'</div></div><span style="display:flex;align-items:center;flex:none">'+pill(y.lbl,y.cls)+ed+'</span></div>'+ad+acts('rd')+'</div>'}
  return '<div class="c ch"><div class="row"><span class="nm">'+nm+'</span><span style="display:flex;align-items:center;gap:2px;flex:none">'+pill(y.lbl,y.cls)+ed+'</span></div><div class="t">'+sub+'</div>'+ad+acts('')+'</div>'}
 function adviceOf(y,open){if(open)return 'กำลังเข้าพบอยู่ · กดกลับไปบันทึก';if(y.st==='OVER')return 'เลยรอบซื้อ '+Math.max(0,y.since-y.m)+' วัน · ควรโทรหรือเข้าพบวันนี้';if(y.st==='DUE')return 'ถึงรอบซื้อแล้ว · ควรโทรถามออเดอร์';if(y.st==='NEAR')return 'ใกล้ถึงรอบ · คาดว่าซื้อ '+dt(y.next);if(y.st==='OK')return 'ยังไม่ถึงรอบ · คาดว่าซื้อ '+dt(y.next);if(y.st==='LOST')return 'ห่างหายเกิน 1 ปี · ลองโทรชวนกลับมา';if(y.st==='NONE')return 'ยังไม่เคยซื้อ · เข้าพบเพื่อเปิดการขาย';return 'ประวัติซื้อยังน้อย · ยังประเมินรอบไม่ได้'}
+function reorderRow(lb){return lb?kv('บิลล่าสุด',dt(lb.d)+' · '+money(bt(lb))+' '+tlink('สั่งซ้ำ','repeat','billAgain',lb.no)):''}
 function latestBill(bs){return bs.slice().sort(function(a,b){return a.d<b.d?1:-1})[0]}
 function cvGet(){try{return localStorage.getItem('acrm.cv')||'A'}catch(e){return 'A'}}
 function cvSet(v){try{localStorage.setItem('acrm.cv',v)}catch(e){}}
@@ -629,14 +630,14 @@ function monthBars(bs){var y=+TD.slice(0,4),m=+TD.slice(5,7),M=[],TH=['','ม.�
  return '<div class="mb">'+M.map(function(x){return '<div><em>'+(x.s?(x.s>=1000?Math.round(x.s/100)/10+'k':Math.round(x.s)):'-')+'</em><i style="height:'+Math.max(3,Math.round(x.s/mx*70))+'px"></i><span>'+TH[x.m]+'</span></div>'}).join('')+'</div>'}
 // ดีไซน์หน้าลูกค้าให้เลือก: A สรุป (เดิม) · B วันนี้ · C ตัวเลข  (x = {c,y,v,bs,top,ys,avg,tk,nbs,open,S})
 function vB(x){var c=x.c,y=x.y,lb=latestBill(x.bs),L=timeline(c.id).slice(0,5),S=x.S;
- return sec('วันนี้กับร้านนี้','','<div style="padding:10px 0 2px;font-weight:700;font-size:var(--fs4);line-height:1.4">'+E(adviceOf(y,x.open))+'</div>'+cycBar(y)+'<div style="margin:8px 0 8px">'+(lb?btn('สั่งซ้ำบิลล่าสุด','repeat','billAgain',lb.no):lnk('สร้างออเดอร์','cart','#order/'+c.id,''))+'</div>')
+ return sec('วันนี้กับร้านนี้','','<div style="padding:10px 0 2px;font-weight:700;font-size:var(--fs4);line-height:1.4">'+E(adviceOf(y,x.open))+'</div>'+cycBar(y)+reorderRow(lb))
  +'<div class="kg kg3">'+kpi('ยอดซื้อปีนี้',money(x.ys))+kpi('เฉลี่ย/บิล',money(x.avg))+kpi('เข้าพบล่าสุด',x.v&&x.v.end?dt(x.v.end.slice(0,10)):'ยังไม่มี')+'</div>'
  +S.top
  +sec('ความเคลื่อนไหวล่าสุด',tlink('ทั้งหมด',null,'tab','act'),L.length?L.map(function(e){return '<div class="kv"><span>'+dt(e.at)+'</span><b>'+E(e.t)+' · '+E(e.s)+'</b></div>'}).join(''):empty('ยังไม่มีกิจกรรม'))
  +fold('ข้อมูลร้าน · ติดต่อ เอกสาร โน้ต',S.ct+S.doc+S.note+S.nb+S.ph)}
 function vC(x){var c=x.c,y=x.y,lb=latestBill(x.bs),S=x.S,tp=x.top.slice(0,5),mx=tp.length?tp[0].t:1,td=[],due=x.tk.filter(function(t){return t.due<=TD});
  td.push(kv('ควรทำ',E(adviceOf(y,x.open))));
- if(lb)td.push(kv('สั่งซ้ำบิลล่าสุด',tlink('ทำเลย','repeat','billAgain',lb.no)));
+ if(lb)td.push(reorderRow(lb));
  due.slice(0,2).forEach(function(t){td.push(kv('งานถึงกำหนด',E(t.title)+' · '+dt(t.due)))});
  if(!c.lat)td.push(kv('พิกัดร้าน',tlink('ถ่ายรูป + พิกัด','cam','shopCap')));
  if(!c.lineId)td.push(kv('ID LINE',tlink('เพิ่ม','plus','go','cform/'+c.id)));
@@ -653,7 +654,7 @@ function smartCard(c,y,bs,tk,open){var wait=DB.orders.filter(function(o){return 
  if(tp.length)rows+=kv('ซื้อบ่อย',E(tp.map(function(i){return i.n}).join(', ')));
  if(lv&&lv.end)rows+=kv('เข้าพบล่าสุด',dt(lv.end.slice(0,10))+' · '+since(lv.end.slice(0,10))+' วันก่อน');
  if(due||wait)rows+=kv('ค้างอยู่',(due?due+' งานถึงกำหนด':'')+(due&&wait?' · ':'')+(wait?wait+' ออเดอร์รอส่ง':''));
- return sec('สรุปอัจฉริยะ','',rows+'<div style="margin:6px 0 8px">'+(lb?btn('สั่งซ้ำบิลล่าสุด','repeat','billAgain',lb.no):lnk('สร้างออเดอร์','cart','#order/'+c.id,''))+'</div>')}
+ return sec('สรุปอัจฉริยะ','',rows+reorderRow(lb))}
 R.cust=function(a){var c=cust(a[0]);if(!c)return go('customers',true);var T=R.cust.t||'ov',CV=R.cust.v||cvGet(),y=cyc(c.id),v=lastVisit(c.id),bs=billsOf(c.id),top=bought(c.id),yr=TD.slice(0,4),
  ys=bs.filter(function(b){return b.d.slice(0,4)===yr}).reduce(function(s,b){return s+bt(b)},0),avg=bs.length?bs.reduce(function(s,b){return s+bt(b)},0)/bs.length:0,
  tk=DB.tasks.filter(function(t){return t.cid===c.id&&!t.done}).sort(by('due')),nC=CART&&CART.cid===c.id?CART.items.length:0,open=one(DB.visits.filter(function(x){return x.cid===c.id}),'done',false),nbs=DB.acts.filter(function(x){return x.cid===c.id&&x.type==='โน้ต'}).sort(by('at',true));
