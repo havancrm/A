@@ -614,7 +614,6 @@ function addClear(root){var els=(root||document).querySelectorAll('input,textare
   b.addEventListener('mousedown',function(e){e.preventDefault()});b.addEventListener('touchstart',function(e){e.preventDefault();clr(e)},{passive:false});b.addEventListener('click',clr)})}
 
 function salesTo(ym,day){return DB.bills.filter(function(b){return b.d.slice(0,7)===ym&&+b.d.slice(8,10)<=day}).reduce(function(s,b){return s+bt(b)},0)}
-function hcard(x){var c=x.c,y=x.y;return '<div class="c" style="padding:10px;border-left:4px solid '+y.col+';display:flex;flex-direction:column;gap:6px"><div class="row" style="align-items:flex-start"><b style="font-size:var(--fs2);line-height:1.25">'+c.id+'<br>'+E(c.name)+'</b></div>'+pill(y.lbl,y.cls)+'<div class="t">ซื้อล่าสุด '+(y.last?dt(y.last):'-')+'</div><div class="acts">'+telBtn(c,'o sm')+lnk('ออเดอร์','cart','#order/'+c.id,'sm')+'</div></div>'}
 R.home=function(){var L=ranked(),need=L.filter(function(x){return x.y.rank<=2}),cm=ymOf(0),pm=ymOf(1),lb=DB.bills.map(function(b){return b.d}).sort().pop()||TD,
  dn=lb.slice(0,7)===cm?+lb.slice(8,10):+TD.slice(8,10),cur=salesTo(cm,dn),prev=salesTo(pm,dn),pc=prev?Math.round((cur-prev)/prev*100):0,
  due=DB.tasks.filter(function(t){return !t.done&&t.due<=TD}).length,wait=DB.orders.filter(function(o){return o.st==='รอส่ง'}).length,
@@ -628,7 +627,7 @@ page({body:srch('ค้นหาลูกค้า เลขบิล')+'<div id
   +'<a class="c nvc" href="#sales" style="display:block;padding:14px 16px"><div class="t">ยอดขายเดือนนี้ · ถึงวันที่ '+dn+'</div><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:4px"><b style="font-size:var(--fs6)">'+fm(Math.round(cur))+'</b><span style="font-size:var(--fs1);padding:3px 10px;border-radius:99px;background:rgba(255,255,255,.16)">'+(pc>=0?'▲':'▼')+' '+Math.abs(pc)+'%</span></div></a>'
   +'<div class="g4"><a class="ab p" href="#order">'+ic('cart')+'รับออเดอร์</a><a class="ab" href="#cycle">'+ic('clock')+'รอบลูกค้า</a><a class="ab" href="#map">'+ic('map')+'แผนที่</a><a class="ab" href="#cform/new">'+ic('plus')+'ร้านใหม่</a></div>'
   +'<div class="row" style="margin-top:8px"><b>ร้านที่ถึงเวลาติดต่อ <span class="t">('+need.length+')</span></b><a class="lk" href="#cycle">ดูทั้งหมด'+ic('chev')+'</a></div>'
-  +('<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+need.slice(0,6).map(function(x){return hcard(x)}).join('')+'</div>')||'<div class="c">'+empty('ไม่มีร้านถึงเวลาติดต่อ')+'</div>',
+  +(need.slice(0,5).map(function(x){return custCard(x.c,x.y)}).join('')||'<div class="c">'+empty('ไม่มีร้านถึงเวลาติดต่อ')+'</div>'),
  after:function(){onInput('#q',function(){var q=this.value.trim();document.getElementById('hs').innerHTML=q?quickList(q):''})}})};
 
 // =====================================================================
