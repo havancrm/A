@@ -616,13 +616,13 @@ R.home=function(){var L=ranked(),need=L.filter(function(x){return x.y.rank<=2}),
  dn=lb.slice(0,7)===cm?+lb.slice(8,10):+TD.slice(8,10),cur=salesTo(cm,dn),prev=salesTo(pm,dn),pc=prev?Math.round((cur-prev)/prev*100):0,
  due=DB.tasks.filter(function(t){return !t.done&&t.due<=TD}).length,wait=DB.orders.filter(function(o){return o.st==='รอส่ง'}).length,
  away=DB.customers.filter(function(c){return c.status!=='closed'&&cyc(c.id).st==='LOST'}).length,
- n=function(st){return need.filter(function(x){return x.y.st===st}).length};
+ n=function(st){return need.filter(function(x){return x.y.st===st}).length},nx=need[0];
  var row=function(n,cls,t,s,h){return '<a class="li" href="#'+h+'"><span class="pill '+cls+'" style="min-width:40px;text-align:center;font-size:var(--fs4)">'+n+'</span><span class="grow"><b>'+t+'</b><span class="t">'+s+'</span></span>'+ic('chev')+'</a>'};
  var todo=(due||wait)?(due?row(due,'p-amb','งานถึงกำหนด','โทรกลับ · นัดหมาย · ติดตาม','tasks'):'')+(wait?row(wait,'p-blu','ออเดอร์รอส่ง','แตะเพื่อดูรายการ','orders'):''):'<div class="t" style="padding:8px 0">ไม่มีงานค้างวันนี้</div>';
  page({body:srch('ค้นหาอัจฉริยะ  ชื่อ รหัส เบอร์ ป้าย เลขบิล เดือน')+'<div id="hs"></div>'
   +sec('ต้องทำวันนี้','',todo)
   +'<div class="g4"><a class="ab p" href="#order">'+ic('cart')+'รับออเดอร์</a><a class="ab" href="#cycle">'+ic('clock')+'รอบลูกค้า</a><a class="ab" href="#map">'+ic('map')+'แผนที่</a><a class="ab" href="#cform/new">'+ic('plus')+'ร้านใหม่</a></div>'
-  +'<a class="c row nvc" href="#sales"><span><span class="t">ยอดขาย '+ymLabel(cm)+' · ถึงวันที่ '+dn+'</span><br><b style="font-size:var(--fs6)">'+money(cur)+'</b></span><span class="t" style="text-align:right">'+MTH[+pm.slice(5,7)-1]+' 1–'+dn+' · '+fm(Math.round(prev))+' ('+(pc>0?'+':'')+pc+'%)</span></a>'
+  +(nx?'<div class="c nvc"><div class="t">ร้านถัดไปที่ควรไป</div><b style="font-size:var(--fs5)">'+E(nx.c.id)+' · '+E(nx.c.name)+'</b><div class="t" style="color:#c9d4ea">'+E(nx.y.lbl)+'</div><div class="g2" style="margin-top:8px"><a href="'+(nx.c.ph&&nx.c.ph[0]?'tel:'+digits(nx.c.ph[0]):'#cust/'+nx.c.id)+'" style="background:#fff;color:var(--n);border-radius:10px;padding:10px;text-align:center;font-weight:700;text-decoration:none">โทร</a><a href="'+mapUrl(nx.c)+'" target="_blank" rel="noopener" style="background:#fff;color:var(--n);border-radius:10px;padding:10px;text-align:center;font-weight:700;text-decoration:none">นำทาง</a></div></div>':'')
   +'<div class="row"><b>ร้านที่ถึงเวลาติดต่อ <span class="t">('+need.length+')</span></b><a class="lk" href="#cycle">ดูทั้งหมด'+ic('chev')+'</a></div>'
   +'<div class="t">เลยรอบ '+n('OVER')+' · ถึงรอบ '+n('DUE')+'</div>'
   +(need.slice(0,5).map(function(x){return custCard(x.c,x.y)}).join('')||'<div class="c">'+empty('ไม่มีร้านถึงเวลาติดต่อ')+'</div>'),
