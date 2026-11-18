@@ -178,6 +178,8 @@ textarea{min-height:68px;resize:vertical}
     <button class="crow" onclick="openBills()"><div style="min-width:0"><div class="cn">บิลขาย</div><div class="cm">ค้นหาบิลตามเลขบิลหรือชื่อร้าน</div></div></button>
     <button class="crow" onclick="openProducts()"><div style="min-width:0"><div class="cn">สินค้า</div><div class="cm">รายการสินค้าทั้งหมด ค้นหาได้</div></div></button>
     <button class="crow" onclick="openContacts()"><div style="min-width:0"><div class="cn">สมุดโทร</div><div class="cm">รายชื่อร้านเรียงตามตัวอักษร โทรได้ทันที</div></div></button>
+    <button class="crow" onclick="openPick('stmt')"><div style="min-width:0"><div class="cn">แจ้งยอดทาง LINE</div><div class="cm">ใบแจ้งยอดรายเดือนของร้าน ส่งทาง LINE</div></div></button>
+    <button class="crow" onclick="openX('msgtpl')"><div style="min-width:0"><div class="cn">ข้อความแจ้งยอด</div><div class="cm">ตั้งค่าหัวข้อ บัญชี และท้ายข้อความ</div></div></button>
     <button class="crow" onclick="openX('cform')"><div style="min-width:0"><div class="cn">ลูกค้าใหม่</div><div class="cm">เพิ่มร้านใหม่ลงชีต customers</div></div></button>
     <button class="crow" onclick="openX('home')"><div style="min-width:0"><div class="cn">หน้าหลัก</div><div class="cm">ร้านที่ถึงรอบและควรติดตามวันนี้</div></div></button>
     <button class="crow" onclick="openX('tasks')"><div style="min-width:0"><div class="cn">งานติดตาม</div><div class="cm">นัดติดตามวันนี้ เลยกำหนด และที่เสร็จแล้ว</div></div></button>
@@ -756,10 +758,12 @@ function lastPrice(code){
 }
 function cartTotals(c){var pre=c.items.reduce(function(s,i){return s+i.q*i.p},0);var vat=c.vat==='VAT_OUT'?Math.round(pre*7)/100:0;return{pre:pre,vat:vat,tot:pre+vat,comm:Math.round(pre*loadRules().comm)/100}}
 function xHead(title,back,label){return '<div class="subh"><button class="back" onclick="'+back+'">‹ '+label+'</button></div><div class="bar" style="padding-top:4px"><b>'+esc(title)+'</b></div>'}
-function openX(v,a){if(v==="orders")DB.xf="all";DB.xv=v;DB.xa=a==null?null:a;if(v==='orders'||v==='map'||v==='pick'||v==='tasks'||v==='cycle'||v==='checkin'||v==='home'||v==='cform')DB.xq='';show('x');renderX()}
+function openX(v,a){if(v==="orders")DB.xf="all";DB.xv=v;DB.xa=a==null?null:a;if(v==='stmt')DB.xm=null;if(v==='orders'||v==='map'||v==='pick'||v==='tasks'||v==='cycle'||v==='checkin'||v==='home'||v==='cform')DB.xq='';show('x');renderX()}
 function renderX(){
   var v=DB.xv,b='';
-  if(v==='cform')b=cformHtml();
+  if(v==='stmt')b=stmtHtml(DB.xa);
+  else if(v==='msgtpl')b=msgtplHtml();
+  else if(v==='cform')b=cformHtml();
   else if(v==='home')b=homeHtml();
   else if(v==='tasks')b=tasksHtml();
   else if(v==='cycle')b=cycleHtml();
@@ -771,7 +775,7 @@ function renderX(){
   else if(v==='cart')b=cartHtml(DB.xa);
   else if(v==='map')b=mapHtml();
   else if(v==='visit')b=visitHtml(DB.xa);
-  var heads={cform:['ลูกค้าใหม่','openBack()','หลังบ้าน'],home:['หน้าหลัก','openBack()','หลังบ้าน'],tasks:['งานติดตาม','openBack()','หลังบ้าน'],cycle:['รอบซื้อ','openBack()','หลังบ้าน'],checkin:['เช็กอินใกล้ฉัน','openBack()','หลังบ้าน'],bill:['บิล '+(DB.xa||''),"openBack()",'หลังบ้าน'],orders:['ออเดอร์','openBack()','หลังบ้าน'],odet:['ใบออเดอร์ '+(DB.xa||''),"openX('orders')",'ออเดอร์'],pick:[DB.xnext==='visit'?'เข้าพบ · เลือกร้าน':'รับออเดอร์ · เลือกร้าน','openBack()','หลังบ้าน'],cart:['รับออเดอร์',"openPick('cart')",'เลือกร้าน'],map:['แผนที่ร้าน','openBack()','หลังบ้าน'],visit:['เข้าพบ',"openPick('visit')",'เลือกร้าน']}[v];
+  var heads={stmt:['แจ้งยอดทาง LINE',"openPick('stmt')",'เลือกร้าน'],msgtpl:['ข้อความแจ้งยอด','openBack()','หลังบ้าน'],cform:['ลูกค้าใหม่','openBack()','หลังบ้าน'],home:['หน้าหลัก','openBack()','หลังบ้าน'],tasks:['งานติดตาม','openBack()','หลังบ้าน'],cycle:['รอบซื้อ','openBack()','หลังบ้าน'],checkin:['เช็กอินใกล้ฉัน','openBack()','หลังบ้าน'],bill:['บิล '+(DB.xa||''),"openBack()",'หลังบ้าน'],orders:['ออเดอร์','openBack()','หลังบ้าน'],odet:['ใบออเดอร์ '+(DB.xa||''),"openX('orders')",'ออเดอร์'],pick:[DB.xnext==='visit'?'เข้าพบ · เลือกร้าน':DB.xnext==='stmt'?'แจ้งยอด · เลือกร้าน':'รับออเดอร์ · เลือกร้าน','openBack()','หลังบ้าน'],cart:['รับออเดอร์',"openPick('cart')",'เลือกร้าน'],map:['แผนที่ร้าน','openBack()','หลังบ้าน'],visit:['เข้าพบ',"openPick('visit')",'เลือกร้าน']}[v];
   $('#xBody').innerHTML=xHead(heads[0],heads[1],heads[2])+b;
 }
 function xSearch(q){DB.xq=q;renderX();var e=$('#xq');if(e){e.focus();e.setSelectionRange(q.length,q.length)}}
@@ -780,7 +784,7 @@ function openPick(next){DB.xnext=next;DB.xq='';openX('pick')}
 function pickHtml(){
   var q=(DB.xq||'').toLowerCase();
   var L=DB.cust.filter(function(c){return isActive(c)&&(!q||(c.name+' '+c.id+' '+(c.aliases||'')+' '+(c.phone||'')).toLowerCase().indexOf(q)>-1)}).slice(0,60);
-  var go=DB.xnext==='visit'?'visit':'cart';
+  var go=DB.xnext==='visit'?'visit':DB.xnext==='stmt'?'stmt':'cart';
   return '<div class="card"><input id="xq" type="search" placeholder="ค้นหาร้าน" value="'+esc(DB.xq)+'" oninput="xSearch(this.value)"></div>'+
     '<div class="count">'+L.length+' ร้าน</div>'+
     L.map(function(c){return '<button class="crow" onclick="openX(\''+go+'\',\''+esc(c.id)+'\')"><div style="min-width:0"><div class="cn">'+esc(c.id)+' · '+esc(c.name)+'</div><div class="cm">'+esc(c.area||c.type||'')+'</div></div></button>'}).join('');
@@ -1012,6 +1016,54 @@ function billHtml(no){
     '<div class="card"><div class="ctitle">รายการ</div>'+its.map(function(i){return '<div class="pr"><div style="min-width:0;flex:1"><div class="pn">'+esc(i.name)+'</div><div class="cm">'+esc(i.code)+' · '+fm(i.price)+' × '+esc(i.qty)+'</div></div><b>'+fm(i.amount)+'</b></div>'}).join('')+
     '<div class="r" style="margin-top:8px"><span class="k">รวม</span><span class="v"><b>'+fm(tot)+'</b></span></div></div>';
 }
+
+/* ---------- แจ้งยอดทาง LINE · ข้อความแจ้งยอด ---------- */
+// ค่าข้อความ: ค่าล่าสุดของแถว stmt- ในแท็บ systemSettings (ค่าที่เป็น null ใช้ค่ามาตรฐาน; ค่าว่างจะไม่ถูกส่ง)
+var STD_STMT={h:'ขออนุญาตแจ้งยอดค่ะ',b:'กรุงไทย',a:'029-142-5755',n:'ฮาแวน คอสเมติค',f:'ขอบคุณค่ะ'};
+var STMT_FIELDS=[['h','หัวข้อความ'],['b','ธนาคาร'],['a','เลขที่บัญชี'],['n','ชื่อบัญชี'],['f','ท้ายข้อความ']];
+function stmtCfg(){
+  var best=null;
+  (DB.sets||[]).forEach(function(r){if(/^stmt-/.test(String(r.id||''))&&(!best||String(r.updatedAt)>String(best.updatedAt)))best=r});
+  var saved={};if(best){try{saved=JSON.parse(best.data||'{}')}catch(e){saved={}}}
+  var o={};Object.keys(STD_STMT).forEach(function(k){o[k]=saved[k]==null?STD_STMT[k]:saved[k]});
+  return o;
+}
+function stmtBody(o,tot){
+  return (o.h?o.h+'\n\n':'')+(o.b?'ธนาคาร : '+o.b+'\n':'')+(o.a?'เลขที่บัญชี : '+o.a+'\n':'')+(o.n?'ชื่อบัญชี : '+o.n+'\n':'')+'ยอดโอน : '+fm(tot)+'.-'+(o.f?'\n\n'+o.f:'');
+}
+function monthsOf(cid){var m={};billRows().forEach(function(b){if(b.cid===cid&&b.d)m[ymOf(b.d)]=1});return Object.keys(m).sort().reverse()}
+function stmtTextOf(cid,ym){var tot=billRows().filter(function(b){return b.cid===cid&&ymOf(b.d)===ym}).reduce(function(s,b){return s+b.total},0);return stmtBody(stmtCfg(),tot)}
+function lineShareUrl(t){return 'https://line.me/R/share?text='+encodeURIComponent(t)}
+function xSetMon(m){DB.xm=m;renderX()}
+function xCopy(){var t=DB.xtxt||'';if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){toast('คัดลอกข้อความแล้ว')},function(){toast('คัดลอกไม่ได้')})}else toast('คัดลอกไม่ได้')}
+function stmtHtml(cid){
+  var c=custById(cid)||{id:cid,name:cid,lineId:''},ms=monthsOf(cid);
+  if(!ms.length)return '<div class="empty">ร้านนี้ยังไม่มีบิล</div>';
+  var m=ms.indexOf(DB.xm)>-1?DB.xm:ms[0],tx=stmtTextOf(cid,m);DB.xtxt=tx;
+  return (c.lineId?'<div class="card"><div class="r"><span class="k">ID LINE ร้านนี้</span><span class="v">'+esc(c.lineId)+'</span></div></div>':'')+
+    '<div class="card" style="display:flex;gap:6px;flex-wrap:wrap">'+ms.slice(0,12).map(function(x){return '<button class="btn'+(x===m?' pri':'')+'" onclick="xSetMon(\''+x+'\')">'+esc(ymLabel(x))+'</button>'}).join('')+'</div>'+
+    '<div class="card"><pre style="white-space:pre-wrap;font:inherit;margin:0">'+esc(tx)+'</pre></div>'+
+    '<div class="btns"><button class="btn" onclick="xCopy()">คัดลอกข้อความ</button><a class="btn pri" href="'+lineShareUrl(tx)+'" target="_blank" rel="noopener">ส่งทาง LINE</a></div>';
+}
+function msgtplHtml(){
+  var o=stmtCfg();
+  return '<div class="card">'+STMT_FIELDS.map(function(f){return '<label class="l">'+f[1]+'</label><input id="mt_'+f[0]+'" value="'+esc(o[f[0]])+'" oninput="mtPreview()">'}).join('')+
+    '<div class="err" id="mt_err"></div><div class="btns"><button class="btn" onclick="mtReset()">คืนค่าเดิม</button><button class="btn pri" onclick="mtSave()">บันทึก</button></div></div>'+
+    '<div class="card"><div class="ctitle">ตัวอย่าง</div><pre id="mt_pv" style="white-space:pre-wrap;font:inherit;margin:0">'+esc(stmtBody(o,0))+'</pre></div>'+
+    '<div class="count">ยอดโอนใส่ให้เองจากยอดซื้อรวมของเดือนที่เลือก เว้นช่องไหนว่างไว้ บรรทัดนั้นจะไม่ถูกส่ง ข้อความนี้ใช้ร่วมกันทุกเครื่อง</div>';
+}
+function mtRead(){var o={};STMT_FIELDS.forEach(function(f){var el=$('#mt_'+f[0]);o[f[0]]=el?el.value.trim():''});return o}
+function mtPreview(){var pv=$('#mt_pv');if(pv)pv.textContent=stmtBody(mtRead(),0)}
+function mtWrite(o,label){
+  var ts=nowIso(),op='OP-'+Date.now(),data=JSON.stringify(o);
+  return call({action:'append',sheet:'systemSettings',rows:[['stmt-'+ts,ts,data]]})
+    .then(function(){return call({action:'append',sheet:'changes',rows:[[ts,'ตั้งค่า','stmt-'+ts,label,'',data,op,'web','']]})})
+    .then(function(){toast('บันทึกแล้ว');return pull()})
+    .then(function(){renderX()})
+    .catch(function(e){var el=$('#mt_err');if(el)el.textContent='บันทึกไม่สำเร็จ: '+e.message});
+}
+function mtSave(){return mtWrite(mtRead(),'ข้อความแจ้งยอดทาง LINE')}
+function mtReset(){return mtWrite({},'คืนค่าข้อความแจ้งยอด')}
 
 /* ---------- เริ่มทำงาน ---------- */
 $('#q').addEventListener('input',renderList);
