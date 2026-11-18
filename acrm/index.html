@@ -178,6 +178,10 @@ textarea{min-height:68px;resize:vertical}
     <button class="crow" onclick="openBills()"><div style="min-width:0"><div class="cn">บิลขาย</div><div class="cm">ค้นหาบิลตามเลขบิลหรือชื่อร้าน</div></div></button>
     <button class="crow" onclick="openProducts()"><div style="min-width:0"><div class="cn">สินค้า</div><div class="cm">รายการสินค้าทั้งหมด ค้นหาได้</div></div></button>
     <button class="crow" onclick="openContacts()"><div style="min-width:0"><div class="cn">สมุดโทร</div><div class="cm">รายชื่อร้านเรียงตามตัวอักษร โทรได้ทันที</div></div></button>
+    <button class="crow" onclick="openX('orders')"><div style="min-width:0"><div class="cn">ออเดอร์</div><div class="cm">รายการออเดอร์ รอส่ง ส่งแล้ว ยกเลิก</div></div></button>
+    <button class="crow" onclick="openPick('cart')"><div style="min-width:0"><div class="cn">รับออเดอร์</div><div class="cm">เลือกร้าน เลือกสินค้าจากราคาล่าสุด</div></div></button>
+    <button class="crow" onclick="openX('map')"><div style="min-width:0"><div class="cn">แผนที่ร้าน</div><div class="cm">ร้านที่มีพิกัด เลือกเส้นทางเปิดใน Google Maps</div></div></button>
+    <button class="crow" onclick="openPick('visit')"><div style="min-width:0"><div class="cn">เข้าพบ</div><div class="cm">ถ่ายรูปร้านและบันทึกพิกัด</div></div></button>
     <button class="crow" onclick="openSub('hub')"><div style="min-width:0"><div class="cn">ระบบและกติกา</div><div class="cm">กติกาตัวเลข ตัวเลือก ซิงก์ สำรอง ประวัติ ตรวจข้อมูล</div></div></button>
     <button class="crow" onclick="openSettings()"><div style="min-width:0"><div class="cn">ตั้งค่า</div><div class="cm">เชื่อมชีต A</div></div></button>
   </div>
@@ -206,6 +210,9 @@ textarea{min-height:68px;resize:vertical}
 </section>
 <section id="v-sub" hidden>
   <div id="subBody"></div>
+</section>
+<section id="v-x" hidden>
+  <div id="xBody"></div>
 </section>
 <section id="v-contacts" hidden>
   <div style="padding-top:6px"><button class="back" onclick="openBack()">‹ หลังบ้าน</button></div>
@@ -242,7 +249,7 @@ function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('on');clearT
 function setSync(m){$('#sync').textContent=m}
 
 /* ---------- สถานะ + เรียก Apps Script ---------- */
-var DB={sets:[],loadedAt:null,sub:'hub',prod:[],api:localStorage.getItem('acrm.api')||'',token:localStorage.getItem('acrm.token')||'',cust:[],custH:[],acts:[],bills:[],items:[],cur:null,tab:'info',type:'โทร',pin:false,draft:''};
+var DB={orders:[],oitems:[],cart:null,xv:'orders',xa:null,xf:'all',xq:'',xsel:[],xphotos:[],sets:[],loadedAt:null,sub:'hub',prod:[],api:localStorage.getItem('acrm.api')||'',token:localStorage.getItem('acrm.token')||'',cust:[],custH:[],acts:[],bills:[],items:[],cur:null,tab:'info',type:'โทร',pin:false,draft:''};
 var TYPES=['โทร','เยี่ยม','ส่งของ','โน้ต','นัดติดตาม'];
 
 function call(body){
@@ -271,8 +278,12 @@ function pull(){
     call({action:'get',range:'bills!A1:M'}),
     call({action:'get',range:'bill_items!A1:G'}),
     call({action:'get',range:'products!A1:B'}),
-    call({action:'get',range:'systemSettings!A1:C'})
+    call({action:'get',range:'systemSettings!A1:C'}),
+    call({action:'get',range:'orders!A1:P'}),
+    call({action:'get',range:'order_items!A1:H'})
   ]).then(function(a){
+    DB.orders=toObjs(a[6].values).rows;
+    DB.oitems=toObjs(a[7].values).rows;
     DB.prod=toObjs(a[4].values).rows;
     DB.sets=toObjs(a[5].values).rows;
     DB.loadedAt=new Date();
@@ -319,8 +330,8 @@ function renderList(){
 
 /* ---------- รายละเอียดลูกค้า ---------- */
 function show(v){
-  ['list','detail','settings','back','month','contacts','sales','bills','products','sub'].forEach(function(x){$('#v-'+x).hidden=(x!==v)});
-  var tab={detail:'list',settings:'back',month:'back',contacts:'back',sales:'back',bills:'back',products:'back',sub:'back'}[v]||v;
+  ['list','detail','settings','back','month','contacts','sales','bills','products','sub','x'].forEach(function(x){$('#v-'+x).hidden=(x!==v)});
+  var tab={detail:'list',settings:'back',month:'back',contacts:'back',sales:'back',bills:'back',products:'back',sub:'back',x:'back'}[v]||v;
   document.querySelectorAll('.nav button').forEach(function(b){b.classList.toggle('on',b.dataset.v===tab)});
   window.scrollTo(0,0);
 }
@@ -712,6 +723,173 @@ function checkHtml(){
   var noName=DB.cust.filter(function(c){return !String(c.name||'').trim()}).length;
   return '<div class="stats" style="grid-template-columns:1fr 1fr 1fr"><div class="stat"><span class="k">เบอร์ซ้ำ</span><b>'+dups.length+'</b></div><div class="stat"><span class="k">ไม่มีเบอร์</span><b>'+noPhone+'</b></div><div class="stat"><span class="k">ไม่มีชื่อ</span><b>'+noName+'</b></div></div>'+
     '<div class="card"><div class="ctitle">เบอร์ที่ใช้ซ้ำกัน</div>'+(dups.length?dups.slice(0,50).map(function(k){return '<div class="pr"><span class="pn">'+esc(k)+'</span><span class="pc">'+byPhone[k].map(function(c){return esc(c.name)}).slice(0,2).join(', ')+(byPhone[k].length>2?' และอีก '+(byPhone[k].length-2):'')+'</span></div>'}).join(''):'<div class="empty">ไม่มี</div>')+'</div>';
+}
+
+/* ---------- งานขาย: ออเดอร์ · รับออเดอร์ · แผนที่ · เข้าพบ ---------- */
+var VAT_LBL={NONE:'ไม่มี VAT',VAT_IN:'ขอใบกำกับภาษี (VAT รวมในราคา)',VAT_OUT:'VAT นอก บวกเพิ่ม 7%'};
+var PAY_LBL=['เงินสด','โอน','เครดิต','รับเช็ค'];
+var PHOTO_DIR='1Y0yavF8RJg7siSzW6qdl3_G-ou1Cglcb';
+var STOP_MAX=9;
+function p2(n){return (n<10?'0':'')+n}
+function nowIso(){return new Date().toISOString()}
+function custById(id){for(var i=0;i<DB.cust.length;i++)if(DB.cust[i].id===id)return DB.cust[i];return null}
+function ordRow(o){var r=o._raw;return{no:r[0],date:r[1],cid:r[2],name:r[3],pay:r[7],vat:r[8],st:r[9],bill:r[10],note:r[11],row:o._row,raw:r.concat(Array(Math.max(0,16-r.length)).fill(''))}}
+function isActive(c){return String(c.activeFlag||'').toUpperCase()!=='FALSE'}
+function ordByNo(no){for(var i=0;i<DB.orders.length;i++){var o=ordRow(DB.orders[i]);if(o.no===no)return o}return null}
+function ordNo(at){var n=DB.orders.filter(function(o){return String(o._raw[1]).slice(0,10)===at.slice(0,10)}).length+1;return p2(n)+at.slice(8,10)+at.slice(5,7)+String(+at.slice(0,4)+543).slice(-2)}
+// ราคาล่าสุดของสินค้า: ใช้เฉพาะบรรทัดที่ชื่อตรงกับสินค้า (กันบรรทัดอื่นที่ใช้รหัสซ้ำ เช่น ยอดมัดจำ)
+function lastPrice(code){
+  var prod=DB.prod.filter(function(p){return p.code===code})[0];if(!prod||!prod.name)return 0;
+  var dates={};DB.bills.forEach(function(b){dates[b.no]=String(b.date||'')});
+  var best=null,bd='';
+  DB.items.forEach(function(it){if(it.code!==code||it.name!==prod.name||!(Number(it.price)>0))return;var d=dates[it.billNo]||'';if(!best||d>bd){best=it;bd=d}});
+  return best?Number(best.price):0;
+}
+function cartTotals(c){var pre=c.items.reduce(function(s,i){return s+i.q*i.p},0);var vat=c.vat==='VAT_OUT'?Math.round(pre*7)/100:0;return{pre:pre,vat:vat,tot:pre+vat,comm:Math.round(pre*loadRules().comm)/100}}
+function xHead(title,back,label){return '<div class="subh"><button class="back" onclick="'+back+'">‹ '+label+'</button></div><div class="bar" style="padding-top:4px"><b>'+esc(title)+'</b></div>'}
+function openX(v,a){DB.xv=v;DB.xa=a==null?null:a;if(v==='orders'||v==='map'||v==='pick')DB.xq='';show('x');renderX()}
+function renderX(){
+  var v=DB.xv,b='';
+  if(v==='orders')b=ordersHtml();
+  else if(v==='odet')b=orderDetHtml(DB.xa);
+  else if(v==='pick')b=pickHtml();
+  else if(v==='cart')b=cartHtml(DB.xa);
+  else if(v==='map')b=mapHtml();
+  else if(v==='visit')b=visitHtml(DB.xa);
+  var heads={orders:['ออเดอร์','openBack()','หลังบ้าน'],odet:['ใบออเดอร์ '+(DB.xa||''),"openX('orders')",'ออเดอร์'],pick:[DB.xnext==='visit'?'เข้าพบ · เลือกร้าน':'รับออเดอร์ · เลือกร้าน','openBack()','หลังบ้าน'],cart:['รับออเดอร์',"openPick('cart')",'เลือกร้าน'],map:['แผนที่ร้าน','openBack()','หลังบ้าน'],visit:['เข้าพบ',"openPick('visit')",'เลือกร้าน']}[v];
+  $('#xBody').innerHTML=xHead(heads[0],heads[1],heads[2])+b;
+}
+function xSearch(q){DB.xq=q;renderX();var e=$('#xq');if(e){e.focus();e.setSelectionRange(q.length,q.length)}}
+function xSetF(f){DB.xf=f;renderX()}
+function openPick(next){DB.xnext=next;DB.xq='';openX('pick')}
+function pickHtml(){
+  var q=(DB.xq||'').toLowerCase();
+  var L=DB.cust.filter(function(c){return isActive(c)&&(!q||(c.name+' '+c.id+' '+(c.aliases||'')+' '+(c.phone||'')).toLowerCase().indexOf(q)>-1)}).slice(0,60);
+  var go=DB.xnext==='visit'?'visit':'cart';
+  return '<div class="card"><input id="xq" type="search" placeholder="ค้นหาร้าน" value="'+esc(DB.xq)+'" oninput="xSearch(this.value)"></div>'+
+    '<div class="count">'+L.length+' ร้าน</div>'+
+    L.map(function(c){return '<button class="crow" onclick="openX(\''+go+'\',\''+esc(c.id)+'\')"><div style="min-width:0"><div class="cn">'+esc(c.id)+' · '+esc(c.name)+'</div><div class="cm">'+esc(c.area||c.type||'')+'</div></div></button>'}).join('');
+}
+function ordersHtml(){
+  var F=DB.xf||'all',q=(DB.xq||'').toLowerCase(),A=DB.orders.map(ordRow);
+  var cnt=function(s){return A.filter(function(o){return o.st===s}).length};
+  var S=A.filter(function(o){return (F==='all'||o.st===F)&&(!q||(o.no+' '+o.cid+' '+o.name).toLowerCase().indexOf(q)>-1)}).reverse().slice(0,200);
+  var chips=[['all','ทั้งหมด',A.length],['รอส่ง','รอส่ง',cnt('รอส่ง')],['ส่งแล้ว','ส่งแล้ว',cnt('ส่งแล้ว')],['ยกเลิก','ยกเลิก',cnt('ยกเลิก')]];
+  return '<div class="card" style="display:flex;gap:6px;flex-wrap:wrap">'+chips.map(function(x){return '<button class="btn'+(F===x[0]?' pri':'')+'" onclick="xSetF(\''+x[0]+'\')">'+x[1]+' '+x[2]+'</button>'}).join('')+'</div>'+
+    '<div class="card"><input id="xq" type="search" placeholder="ค้นหา เลขออเดอร์ / รหัส / ชื่อร้าน" value="'+esc(DB.xq)+'" oninput="xSearch(this.value)"></div>'+
+    '<div class="count">แสดง '+S.length+' จาก '+A.length+' ออเดอร์ (ล่าสุดก่อน)</div>'+
+    S.map(function(o){return '<button class="crow" onclick="openX(\'odet\',\''+esc(o.no)+'\')"><div style="min-width:0"><div class="cn">'+esc(o.no)+' · '+esc(o.name||o.cid)+'</div><div class="cm">'+fd(o.date)+' · '+esc(o.st)+'</div></div></button>'}).join('')||'<div class="empty">ไม่พบออเดอร์</div>';
+}
+function orderItems(no){return DB.oitems.filter(function(i){return String(i._raw[0])===no}).map(function(i){return{code:i._raw[2],name:i._raw[3],q:Number(i._raw[4])||0,p:Number(i._raw[5])||0,unit:i._raw[6]||''}})}
+function orderDetHtml(no){
+  var o=ordByNo(no);if(!o)return '<div class="empty">ไม่พบออเดอร์</div>';
+  var items=orderItems(no),pre=items.reduce(function(s,i){return s+i.q*i.p},0);
+  var vat=o.vat==='VAT_OUT'?Math.round(pre*7)/100:0;
+  var st='<div class="r"><span class="k">สถานะ</span><span class="v">'+esc(o.st)+'</span></div>';
+  var rows='<div class="card"><div class="ctitle">'+esc(o.no)+' · '+esc(o.name||o.cid)+'</div>'+st+
+    '<div class="r"><span class="k">วันที่</span><span class="v">'+fd(o.date)+'</span></div>'+
+    '<div class="r"><span class="k">ชำระ</span><span class="v">'+esc(o.pay)+'</span></div>'+
+    '<div class="r"><span class="k">VAT</span><span class="v">'+esc(VAT_LBL[o.vat]||o.vat)+'</span></div>'+
+    (o.note?'<div class="r"><span class="k">หมายเหตุ</span><span class="v">'+esc(o.note)+'</span></div>':'')+'</div>';
+  rows+='<div class="card"><div class="ctitle">รายการสินค้า</div>'+items.map(function(i){return '<div class="pr"><div style="min-width:0;flex:1"><div class="pn">'+esc(i.name)+'</div><div class="cm">'+esc(i.code)+' · '+fm(i.p)+' × '+i.q+'</div></div><b>'+fm(i.q*i.p)+'</b></div>'}).join('')+
+    '<div class="r" style="margin-top:8px"><span class="k">รวมค่าสินค้า</span><span class="v">'+fm(pre)+'</span></div>'+(vat?'<div class="r"><span class="k">VAT 7%</span><span class="v">'+fm(vat)+'</span></div>':'')+
+    '<div class="r"><span class="k">ยอดสุทธิ</span><span class="v"><b>'+fm(pre+vat)+'</b></span></div></div>';
+  var acts='';
+  if(o.st==='รอส่ง')acts+='<div class="btns"><button class="btn pri" onclick="setOrderStatus(\''+esc(o.no)+'\',\'ส่งแล้ว\')">ส่งแล้ว</button><button class="btn" onclick="xOpenCancel(\''+esc(o.no)+'\')">ยกเลิก</button></div>';
+  if(DB.xcancel===no)acts+='<div class="card"><label class="l">เหตุผลที่ยกเลิก</label><input id="xreason" placeholder="เช่น ร้านไม่รับของ"><div class="btns"><button class="btn" onclick="DB.xcancel=null;renderX()">ไม่ยกเลิก</button><button class="btn pri" onclick="xCancel(\''+esc(no)+'\')">ยืนยันยกเลิก</button></div><div class="err" id="x_err"></div></div>';
+  acts+='<div class="btns"><button class="btn" onclick="xRepeat(\''+esc(o.no)+'\')">สั่งซ้ำ</button></div>';
+  return rows+acts;
+}
+function xOpenCancel(no){DB.xcancel=no;renderX()}
+function setOrderStatus(no,st,note){
+  var o=ordByNo(no);if(!o)return toast('ไม่พบออเดอร์');
+  var raw=o.raw.slice();raw[9]=st;if(note)raw[11]=(raw[11]?raw[11]+' · ':'')+note;raw[15]=nowIso();
+  return call({action:'update',range:'orders!A'+o.row+':P'+o.row,rows:[raw]})
+    .then(function(){DB.xcancel=null;toast('บันทึกสถานะ '+st+' แล้ว');return pull()})
+    .then(function(){renderX()})
+    .catch(function(e){toast('บันทึกไม่สำเร็จ: '+e.message)});
+}
+function xCancel(no){var r=($('#xreason')||{}).value||'';r=r.trim();if(!r){var e=$('#x_err');if(e)e.textContent='ต้องระบุเหตุผล';return}setOrderStatus(no,'ยกเลิก',r)}
+function xRepeat(no){
+  var o=ordRow(DB.orders.filter(function(x){return x._raw[0]===no})[0]||{_raw:[],_row:0});
+  DB.cart={cid:o.cid,items:orderItems(no).map(function(i){return{c:i.code,n:i.name,q:i.q,p:lastPrice(i.code)||i.p,u:i.unit}}),vat:o.vat||'NONE',pay:o.pay||PAY_LBL[0],note:'',confirm:false};
+  openX('cart',o.cid);
+}
+function cartHtml(cid){
+  var c=DB.cart;
+  if(!c||c.cid!==cid){c={cid:cid,items:[],vat:'NONE',pay:PAY_LBL[0],note:'',confirm:false};DB.cart=c}
+  var cu=custById(cid)||{name:cid},t=cartTotals(c),q=(DB.xpq||'').toLowerCase();
+  var list=q?DB.prod.filter(function(p){return (p.code+' '+p.name).toLowerCase().indexOf(q)>-1}).slice(0,30):[];
+  var pickRows=list.map(function(p){var pr=lastPrice(p.code);return '<button class="crow" onclick="xAddItem(\''+esc(p.code)+'\')"><div style="min-width:0"><div class="cn">'+esc(p.name)+'</div><div class="cm">'+esc(p.code)+' · '+(pr?fm(pr)+' บาท':'ยังไม่มีราคาล่าสุด')+'</div></div></button>'}).join('');
+  var rows=c.items.map(function(i,k){return '<div class="pr"><div style="min-width:0;flex:1"><div class="pn">'+esc(i.n)+'</div><div class="cm">'+esc(i.c)+' · '+fm(i.p)+' / '+esc(i.u||'ชิ้น')+'</div></div><button class="btn" onclick="xQty('+k+',-1)">−</button><b style="min-width:30px;text-align:center">'+i.q+'</b><button class="btn" onclick="xQty('+k+',1)">+</button></div>'}).join('')||'<div class="empty">ยังไม่มีรายการ</div>';
+  var chips=function(key,opts,cur){return '<div class="btns" style="flex-wrap:wrap">'+opts.map(function(x){return '<button class="btn'+(cur===x[0]?' pri':'')+'" onclick="xSetCart(\''+key+'\',\''+x[0]+'\')">'+esc(x[1])+'</button>'}).join('')+'</div>'};
+  return '<div class="card"><div class="ctitle">'+esc(cu.id||cid)+' · '+esc(cu.name)+'</div>'+
+    '<label class="l">วิธีชำระ</label>'+chips('pay',PAY_LBL.map(function(x){return[x,x]}),c.pay)+
+    '<label class="l">เงื่อนไข VAT</label>'+chips('vat',Object.keys(VAT_LBL).map(function(k){return[k,VAT_LBL[k]]}),c.vat)+
+    '<label class="l">หมายเหตุ</label><input value="'+esc(c.note)+'" placeholder="เช่น ส่งพรุ่งนี้เช้า" onchange="DB.cart.note=this.value"></div>'+
+    '<div class="card"><div class="ctitle">รายการในออเดอร์</div>'+rows+'</div>'+
+    '<div class="card"><div class="ctitle">เพิ่มสินค้า</div><input id="xpq" type="search" placeholder="ค้นหาสินค้า / รหัส" value="'+esc(DB.xpq||'')+'" oninput="xSearchProd(this.value)">'+pickRows+'</div>'+
+    '<div class="card"><div class="r"><span class="k">รวมค่าสินค้า</span><span class="v">'+fm(t.pre)+'</span></div>'+(t.vat?'<div class="r"><span class="k">VAT 7%</span><span class="v">'+fm(t.vat)+'</span></div>':'')+'<div class="r"><span class="k">คอมมิชชั่น '+loadRules().comm+'%</span><span class="v">'+fm(t.comm)+'</span></div><div class="r"><span class="k">ยอดสุทธิ</span><span class="v"><b>'+fm(t.tot)+'</b></span></div></div>'+
+    '<div class="btns"><button class="btn pri" style="width:100%" onclick="xSubmitOrder()">'+(c.confirm?'กดอีกครั้งเพื่อยืนยันออเดอร์':'ยืนยันออเดอร์')+'</button></div>';
+}
+function xSearchProd(q){DB.xpq=q;renderX();var e=$('#xpq');if(e){e.focus();e.setSelectionRange(q.length,q.length)}}
+function xAddItem(code){
+  var c=DB.cart,p=DB.prod.filter(function(x){return x.code===code})[0];if(!c||!p)return;
+  var pr=lastPrice(code);if(!pr)return toast('ยังไม่มีราคาล่าสุดของสินค้านี้');
+  var x=c.items.filter(function(i){return i.c===code})[0];
+  if(x)x.q++;else c.items.push({c:code,n:p.name,q:1,p:pr,u:'ชิ้น'});
+  c.confirm=false;renderX();
+}
+function xQty(k,d){var c=DB.cart;if(!c)return;var i=c.items[k];if(!i)return;i.q+=d;if(i.q<1)c.items.splice(k,1);c.confirm=false;renderX()}
+function xSetCart(key,val){var c=DB.cart;if(!c)return;c[key]=val;c.confirm=false;renderX()}
+function xSubmitOrder(){
+  var c=DB.cart;if(!c||!c.items.length)return toast('ยังไม่มีรายการสินค้า');
+  if(!c.confirm){c.confirm=true;renderX();return}
+  var cu=custById(c.cid)||{name:''},at=nowIso(),no=ordNo(at),op='OP-'+Date.now(),aid='A-'+Date.now()+'-'+Math.random().toString(36).slice(2,6);
+  var t=cartTotals(c);
+  call({action:'append',sheet:'orders',rows:[[no,at.slice(0,10),c.cid,cu.name,'','','',c.pay,c.vat,'รอส่ง','',c.note||'','web','web',op,at]]})
+  .then(function(){return call({action:'append',sheet:'order_items',rows:c.items.map(function(i,k){return[no,k+1,i.c,i.n,i.q,i.p,i.u||'ชิ้น',i.q*i.p]})})})
+  .then(function(){return call({action:'append',sheet:'activities',rows:[[aid,c.cid,'รับออเดอร์',at,'','',no+' · '+fm(t.tot),'','',at,'{}']]})})
+  .then(function(){DB.cart=null;toast('บันทึกออเดอร์ '+no+' แล้ว');return pull()})
+  .then(function(){openX('odet',no)})
+  .catch(function(e){toast('บันทึกไม่สำเร็จ: '+e.message+' (ตรวจในแท็บออเดอร์ก่อนส่งซ้ำ)')});
+}
+function mapHtml(){
+  var L=DB.cust.filter(function(c){return c.gpsLat&&c.gpsLng&&isActive(c)}).sort(function(a,b){return a.name<b.name?-1:1});
+  var none=DB.cust.filter(function(c){return !(c.gpsLat&&c.gpsLng)}).length;
+  var sel=DB.xsel||[],byId={};DB.cust.forEach(function(c){byId[c.id]=c});
+  var url='';
+  if(sel.length){var d=byId[sel[sel.length-1]],w=sel.slice(0,-1).map(function(id){var c=byId[id];return c.gpsLat+','+c.gpsLng});
+    url='https://www.google.com/maps/dir/?api=1&travelmode=driving&destination='+d.gpsLat+','+d.gpsLng+(w.length?'&waypoints='+encodeURIComponent(w.join('|')):'');}
+  return '<div class="count">ร้านที่มีพิกัด '+L.length+' ร้าน · ยังไม่มีพิกัด '+none+' ร้าน · เลือกได้ไม่เกิน '+STOP_MAX+' จุด</div>'+
+    (sel.length?'<div class="card"><div class="ctitle">เส้นทางที่เลือก ('+sel.length+')</div>'+sel.map(function(id,i){return '<div class="r"><span class="k">จุดที่ '+(i+1)+'</span><span class="v">'+esc(byId[id]?byId[id].name:id)+'</span></div>'}).join('')+'<div class="btns"><button class="btn" onclick="xClearStops()">ล้าง</button>'+(url?'<a class="btn pri" href="'+url+'" target="_blank" rel="noopener">เปิดใน Google Maps</a>':'')+'</div></div>':'')+
+    L.map(function(c){var on=sel.indexOf(c.id)>-1;return '<button class="crow" onclick="xToggleStop(\''+esc(c.id)+'\')"><div style="min-width:0"><div class="cn">'+(on?'✓ ':'')+esc(c.name)+'</div><div class="cm">'+esc(c.id)+' · '+esc(c.area||c.type||'')+'</div></div></button>'}).join('');
+}
+function xToggleStop(id){var s=DB.xsel||[],i=s.indexOf(id);if(i>-1)s.splice(i,1);else if(s.length<STOP_MAX)s.push(id);else return toast('เลือกได้ไม่เกิน '+STOP_MAX+' จุด');DB.xsel=s;renderX()}
+function xClearStops(){DB.xsel=[];renderX()}
+function visitHtml(cid){
+  var cu=custById(cid)||{name:cid,id:cid},mine=DB.xphotos.filter(function(p){return p.cid===cid});
+  return '<div class="card"><div class="ctitle">'+esc(cu.id)+' · '+esc(cu.name)+'</div>'+
+    '<label class="l">ถ่ายรูปร้าน (ระบบจะบันทึกพิกัดถ้าเปิด GPS ได้)</label>'+
+    '<input type="file" accept="image/*" capture="environment" onchange="xPhoto(this,\''+esc(cid)+'\')" id="x_file"><div class="err" id="x_perr"></div><div class="count" id="x_pstat"></div></div>'+
+    '<div class="card"><div class="ctitle">รูปที่บันทึกในเครื่องนี้ ('+mine.length+')</div>'+(mine.map(function(p){return '<div class="r"><span class="k">'+fd(p.at)+'</span><span class="v">'+(p.lat?p.lat.toFixed(5)+', '+p.lng.toFixed(5):'ไม่มีพิกัด')+'</span></div>'}).join('')||'<div class="empty">ยังไม่มี</div>')+'</div>';
+}
+function shrinkImg(file){return new Promise(function(res,rej){var img=new Image(),u=URL.createObjectURL(file);img.onload=function(){var m=1280,sc=Math.min(1,m/Math.max(img.width,img.height)),cv=document.createElement('canvas');cv.width=Math.round(img.width*sc);cv.height=Math.round(img.height*sc);cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);URL.revokeObjectURL(u);res(cv.toDataURL('image/jpeg',0.8).split(',')[1])};img.onerror=function(){rej(new Error('อ่านรูปไม่ได้'))};img.src=u})}
+function getPos(){return new Promise(function(res){if(!navigator.geolocation)return res(null);navigator.geolocation.getCurrentPosition(function(p){res({lat:p.coords.latitude,lng:p.coords.longitude,acc:Math.round(p.coords.accuracy)})},function(){res(null)},{enableHighAccuracy:true,timeout:8000,maximumAge:60000})})}
+function xPhoto(input,cid){
+  var f=input.files&&input.files[0];if(!f)return;
+  var st=$('#x_pstat'),er=$('#x_perr');er.textContent='';st.textContent='กำลังบันทึกรูป…';
+  var pid='P-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),at=nowIso(),pos=null,b64=null;
+  Promise.all([shrinkImg(f),getPos()]).then(function(r){b64=r[0];pos=r[1];
+    return call({action:'photo',base64:b64,mime:'image/jpeg',name:pid+'.jpg',folder:PHOTO_DIR});
+  }).then(function(j){
+    var lat=pos?pos.lat:'',lng=pos?pos.lng:'',acc=pos?pos.acc:'';
+    return call({action:'append',sheet:'photos',rows:[[pid,cid,'',at,j.id,PHOTO_DIR,'visit','',lat,lng,'web',at,JSON.stringify({accuracy:acc,deviceId:'web'}),'OP-'+pid]]}).then(function(){return{lat:lat,lng:lng}});
+  }).then(function(g){
+    DB.xphotos.push({cid:cid,at:at,lat:g.lat===''?null:g.lat,lng:g.lng===''?null:g.lng});
+    toast('บันทึกรูปแล้ว'+(g.lat===''?' (ไม่มีพิกัด)':''));
+    renderX();
+  }).catch(function(e){st.textContent='';er.textContent='บันทึกรูปไม่สำเร็จ: '+e.message});
 }
 
 /* ---------- เริ่มทำงาน ---------- */
