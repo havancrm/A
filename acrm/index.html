@@ -178,6 +178,7 @@ textarea{min-height:68px;resize:vertical}
     <button class="crow" onclick="openBills()"><div style="min-width:0"><div class="cn">บิลขาย</div><div class="cm">ค้นหาบิลตามเลขบิลหรือชื่อร้าน</div></div></button>
     <button class="crow" onclick="openProducts()"><div style="min-width:0"><div class="cn">สินค้า</div><div class="cm">รายการสินค้าทั้งหมด ค้นหาได้</div></div></button>
     <button class="crow" onclick="openContacts()"><div style="min-width:0"><div class="cn">สมุดโทร</div><div class="cm">รายชื่อร้านเรียงตามตัวอักษร โทรได้ทันที</div></div></button>
+    <button class="crow" onclick="openX('cform')"><div style="min-width:0"><div class="cn">ลูกค้าใหม่</div><div class="cm">เพิ่มร้านใหม่ลงชีต customers</div></div></button>
     <button class="crow" onclick="openX('home')"><div style="min-width:0"><div class="cn">หน้าหลัก</div><div class="cm">ร้านที่ถึงรอบและควรติดตามวันนี้</div></div></button>
     <button class="crow" onclick="openX('tasks')"><div style="min-width:0"><div class="cn">งานติดตาม</div><div class="cm">นัดติดตามวันนี้ เลยกำหนด และที่เสร็จแล้ว</div></div></button>
     <button class="crow" onclick="openX('cycle')"><div style="min-width:0"><div class="cn">รอบซื้อ</div><div class="cm">ร้านที่ถึงรอบ ใกล้ถึงรอบ และเลยรอบ</div></div></button>
@@ -755,10 +756,11 @@ function lastPrice(code){
 }
 function cartTotals(c){var pre=c.items.reduce(function(s,i){return s+i.q*i.p},0);var vat=c.vat==='VAT_OUT'?Math.round(pre*7)/100:0;return{pre:pre,vat:vat,tot:pre+vat,comm:Math.round(pre*loadRules().comm)/100}}
 function xHead(title,back,label){return '<div class="subh"><button class="back" onclick="'+back+'">‹ '+label+'</button></div><div class="bar" style="padding-top:4px"><b>'+esc(title)+'</b></div>'}
-function openX(v,a){if(v==="orders")DB.xf="all";DB.xv=v;DB.xa=a==null?null:a;if(v==='orders'||v==='map'||v==='pick'||v==='tasks'||v==='cycle'||v==='checkin'||v==='home')DB.xq='';show('x');renderX()}
+function openX(v,a){if(v==="orders")DB.xf="all";DB.xv=v;DB.xa=a==null?null:a;if(v==='orders'||v==='map'||v==='pick'||v==='tasks'||v==='cycle'||v==='checkin'||v==='home'||v==='cform')DB.xq='';show('x');renderX()}
 function renderX(){
   var v=DB.xv,b='';
-  if(v==='home')b=homeHtml();
+  if(v==='cform')b=cformHtml();
+  else if(v==='home')b=homeHtml();
   else if(v==='tasks')b=tasksHtml();
   else if(v==='cycle')b=cycleHtml();
   else if(v==='checkin')b=checkinHtml();
@@ -769,7 +771,7 @@ function renderX(){
   else if(v==='cart')b=cartHtml(DB.xa);
   else if(v==='map')b=mapHtml();
   else if(v==='visit')b=visitHtml(DB.xa);
-  var heads={home:['หน้าหลัก','openBack()','หลังบ้าน'],tasks:['งานติดตาม','openBack()','หลังบ้าน'],cycle:['รอบซื้อ','openBack()','หลังบ้าน'],checkin:['เช็กอินใกล้ฉัน','openBack()','หลังบ้าน'],bill:['บิล '+(DB.xa||''),"openBack()",'หลังบ้าน'],orders:['ออเดอร์','openBack()','หลังบ้าน'],odet:['ใบออเดอร์ '+(DB.xa||''),"openX('orders')",'ออเดอร์'],pick:[DB.xnext==='visit'?'เข้าพบ · เลือกร้าน':'รับออเดอร์ · เลือกร้าน','openBack()','หลังบ้าน'],cart:['รับออเดอร์',"openPick('cart')",'เลือกร้าน'],map:['แผนที่ร้าน','openBack()','หลังบ้าน'],visit:['เข้าพบ',"openPick('visit')",'เลือกร้าน']}[v];
+  var heads={cform:['ลูกค้าใหม่','openBack()','หลังบ้าน'],home:['หน้าหลัก','openBack()','หลังบ้าน'],tasks:['งานติดตาม','openBack()','หลังบ้าน'],cycle:['รอบซื้อ','openBack()','หลังบ้าน'],checkin:['เช็กอินใกล้ฉัน','openBack()','หลังบ้าน'],bill:['บิล '+(DB.xa||''),"openBack()",'หลังบ้าน'],orders:['ออเดอร์','openBack()','หลังบ้าน'],odet:['ใบออเดอร์ '+(DB.xa||''),"openX('orders')",'ออเดอร์'],pick:[DB.xnext==='visit'?'เข้าพบ · เลือกร้าน':'รับออเดอร์ · เลือกร้าน','openBack()','หลังบ้าน'],cart:['รับออเดอร์',"openPick('cart')",'เลือกร้าน'],map:['แผนที่ร้าน','openBack()','หลังบ้าน'],visit:['เข้าพบ',"openPick('visit')",'เลือกร้าน']}[v];
   $('#xBody').innerHTML=xHead(heads[0],heads[1],heads[2])+b;
 }
 function xSearch(q){DB.xq=q;renderX();var e=$('#xq');if(e){e.focus();e.setSelectionRange(q.length,q.length)}}
@@ -950,11 +952,41 @@ function tasksHtml(){
   var done=all.filter(function(x){return x.done}).slice(-50).reverse();
   var list={today:todayL,later:later,done:done}[T];
   var tab=function(k,t,n){return '<button class="btn'+(T===k?' pri':'')+'" onclick="xSetTask(\''+k+'\')">'+t+' '+n+'</button>'};
-  var row=function(x){return '<div class="pr"><div style="min-width:0;flex:1"><div class="pn">'+esc(x.title)+'</div><div class="cm">'+esc(x.c?x.c.name:x.cid)+' · กำหนด '+(isNaN(x.due)?'-':fd(new Date(x.due*DAY).toISOString()))+(x.kind==='sheet'?' · จากแท็บ tasks':'')+'</div></div>'+(x.done?'<span class="pill g">เสร็จแล้ว</span>':x.kind==='act'?'<button class="btn" onclick="doneAct(\''+esc(x.id)+'\')">เสร็จแล้ว</button>':'<span class="cm">ปิดในแอปเดิม</span>')+'</div>'};
+  var row=function(x){return '<div class="pr"><div style="min-width:0;flex:1"><div class="pn">'+esc(x.title)+'</div><div class="cm">'+esc(x.c?x.c.name:x.cid)+' · กำหนด '+(isNaN(x.due)?'-':fd(new Date(x.due*DAY).toISOString()))+(x.kind==='sheet'?' · จากแท็บ tasks':'')+'</div></div>'+(x.done?'<span class="pill g">เสร็จแล้ว</span>':x.kind==='act'?'<button class="btn" onclick="doneAct(\''+esc(x.id)+'\')">เสร็จแล้ว</button>':'<button class="btn" onclick="doneSheetTask(\''+esc(x.id)+'\')">เสร็จแล้ว</button>')+'</div>'};
   return '<div class="card" style="display:flex;gap:6px;flex-wrap:wrap">'+tab('today','วันนี้/เลยกำหนด',todayL.length)+tab('later','ถัดไป',later.length)+tab('done','เสร็จแล้ว',done.length)+'</div>'+
     '<div class="card">'+(list.map(row).join('')||'<div class="empty">ไม่มีรายการ</div>')+'</div>';
 }
 function xSetTask(k){DB.xtask=k;renderX()}
+// ปิดงานจากแท็บ tasks: แก้เฉพาะแถวนั้น status=done และ updatedAt
+function doneSheetTask(id){
+  var r=(DB.stasks||[]).filter(function(x){return x._raw[0]===id})[0];if(!r)return toast('ไม่พบงาน');
+  var raw=r._raw.slice();raw[5]='done';raw[9]=nowIso();
+  call({action:'update',range:'tasks!A'+r._row+':L'+r._row,rows:[raw]})
+    .then(function(){toast('ปิดงานแล้ว');return pull()})
+    .then(function(){renderX()})
+    .catch(function(e){toast('ปิดงานไม่สำเร็จ: '+e.message)});
+}
+// ฟอร์มลูกค้าใหม่: เพิ่มแถวเดียวในแท็บ customers ด้วยรหัส N+เวลา (เหมือนแอปเดิม)
+var CF_FIELDS=[['name','ชื่อร้าน *'],['contactName','ชื่อผู้ติดต่อ'],['phone','เบอร์โทร'],['type','ประเภท'],['area','พื้นที่'],['address','ที่อยู่'],['paymentTerm','เงื่อนไขชำระ'],['customerNote','หมายเหตุ']];
+function cformHtml(){
+  return '<div class="card">'+CF_FIELDS.map(function(f){return '<label class="l">'+f[1]+'</label><input id="cf_'+f[0]+'" value="">'}).join('')+
+    '<div class="err" id="cf_err"></div><div class="btns"><button class="btn pri" style="width:100%" onclick="saveNewCust()">บันทึกลูกค้าใหม่</button></div></div>';
+}
+function saveNewCust(){
+  var v=function(k){var el=$('#cf_'+k);return el?el.value.trim():''};
+  var err=$('#cf_err');
+  if(!v('name')){if(err)err.textContent='กรอกชื่อร้าน';return}
+  var id='N'+Date.now().toString(36).toUpperCase().slice(-6);
+  while(custById(id))id+='X';
+  var raw=DB.custH.map(function(){return ''});
+  var set=function(k,val){var i=DB.custH.indexOf(k);if(i>=0)raw[i]=val};
+  set('id',id);set('activeFlag','TRUE');
+  CF_FIELDS.forEach(function(f){set(f[0],v(f[0]))});
+  call({action:'append',sheet:'customers',rows:[raw]})
+    .then(function(){toast('บันทึกลูกค้าใหม่แล้ว');return pull()})
+    .then(function(){openCust(id)})
+    .catch(function(e){if(err)err.textContent='บันทึกไม่สำเร็จ: '+e.message});
+}
 function checkinHtml(){
   var c=DB.checkin;
   if(!c)return '<div class="btns"><button class="btn pri" style="width:100%" onclick="xLocate()">เปิดตำแหน่งปัจจุบัน</button></div><div class="count" id="x_loc"></div>';
