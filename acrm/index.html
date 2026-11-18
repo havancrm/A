@@ -117,6 +117,11 @@ textarea{min-height:68px;resize:vertical}
 .bar6 .track i{display:block;height:100%;background:var(--navy)}
 .bar6 b{text-align:right;white-space:nowrap}
 .menu{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.subh{padding-top:6px}
+.field{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.field label{font-size:12px;color:var(--mute)}
+.field input{margin-top:4px}
+.err{color:#b42318;font-size:13px;margin-top:6px}
 .yrs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}
 .yrs .chipbtn.on{background:var(--navy);color:#fff;border-color:var(--navy)}
 </style>
@@ -173,6 +178,7 @@ textarea{min-height:68px;resize:vertical}
     <button class="crow" onclick="openBills()"><div style="min-width:0"><div class="cn">บิลขาย</div><div class="cm">ค้นหาบิลตามเลขบิลหรือชื่อร้าน</div></div></button>
     <button class="crow" onclick="openProducts()"><div style="min-width:0"><div class="cn">สินค้า</div><div class="cm">รายการสินค้าทั้งหมด ค้นหาได้</div></div></button>
     <button class="crow" onclick="openContacts()"><div style="min-width:0"><div class="cn">สมุดโทร</div><div class="cm">รายชื่อร้านเรียงตามตัวอักษร โทรได้ทันที</div></div></button>
+    <button class="crow" onclick="openSub('hub')"><div style="min-width:0"><div class="cn">ระบบและกติกา</div><div class="cm">กติกาตัวเลข ตัวเลือก ซิงก์ สำรอง ประวัติ ตรวจข้อมูล</div></div></button>
     <button class="crow" onclick="openSettings()"><div style="min-width:0"><div class="cn">ตั้งค่า</div><div class="cm">เชื่อมชีต A</div></div></button>
   </div>
 </section>
@@ -197,6 +203,9 @@ textarea{min-height:68px;resize:vertical}
   <input class="search" id="pq" placeholder="ค้นหารหัสหรือชื่อสินค้า" autocomplete="off">
   <div class="count" id="pcount"></div>
   <div id="plist"></div>
+</section>
+<section id="v-sub" hidden>
+  <div id="subBody"></div>
 </section>
 <section id="v-contacts" hidden>
   <div style="padding-top:6px"><button class="back" onclick="openBack()">‹ หลังบ้าน</button></div>
@@ -233,7 +242,7 @@ function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('on');clearT
 function setSync(m){$('#sync').textContent=m}
 
 /* ---------- สถานะ + เรียก Apps Script ---------- */
-var DB={prod:[],api:localStorage.getItem('acrm.api')||'',token:localStorage.getItem('acrm.token')||'',cust:[],custH:[],acts:[],bills:[],items:[],cur:null,tab:'info',type:'โทร',pin:false,draft:''};
+var DB={sets:[],loadedAt:null,sub:'hub',prod:[],api:localStorage.getItem('acrm.api')||'',token:localStorage.getItem('acrm.token')||'',cust:[],custH:[],acts:[],bills:[],items:[],cur:null,tab:'info',type:'โทร',pin:false,draft:''};
 var TYPES=['โทร','เยี่ยม','ส่งของ','โน้ต','นัดติดตาม'];
 
 function call(body){
@@ -261,9 +270,12 @@ function pull(){
     call({action:'get',range:'activities!A1:K'}),
     call({action:'get',range:'bills!A1:M'}),
     call({action:'get',range:'bill_items!A1:G'}),
-    call({action:'get',range:'products!A1:B'})
+    call({action:'get',range:'products!A1:B'}),
+    call({action:'get',range:'systemSettings!A1:C'})
   ]).then(function(a){
     DB.prod=toObjs(a[4].values).rows;
+    DB.sets=toObjs(a[5].values).rows;
+    DB.loadedAt=new Date();
     var c=toObjs(a[0].values);DB.custH=c.H;DB.cust=c.rows.filter(function(x){return x.id});
     DB.acts=toObjs(a[1].values).rows;
     DB.bills=toObjs(a[2].values).rows;
@@ -307,8 +319,8 @@ function renderList(){
 
 /* ---------- รายละเอียดลูกค้า ---------- */
 function show(v){
-  ['list','detail','settings','back','month','contacts','sales','bills','products'].forEach(function(x){$('#v-'+x).hidden=(x!==v)});
-  var tab={detail:'list',settings:'back',month:'back',contacts:'back',sales:'back',bills:'back',products:'back'}[v]||v;
+  ['list','detail','settings','back','month','contacts','sales','bills','products','sub'].forEach(function(x){$('#v-'+x).hidden=(x!==v)});
+  var tab={detail:'list',settings:'back',month:'back',contacts:'back',sales:'back',bills:'back',products:'back',sub:'back'}[v]||v;
   document.querySelectorAll('.nav button').forEach(function(b){b.classList.toggle('on',b.dataset.v===tab)});
   window.scrollTo(0,0);
 }
@@ -605,6 +617,102 @@ function renderProducts(){
   $('#plist').innerHTML=L.slice(0,300).map(function(p){return '<div class="crow"><div style="min-width:0"><div class="cn">'+esc(p.name||'-')+'</div><div class="cm">รหัส '+esc(p.code)+'</div></div></div>'}).join('')||'<div class="empty">ไม่พบสินค้า</div>';
 }
 $('#pq').addEventListener('input',renderProducts);
+
+/* ---------- หลังบ้าน: ระบบและกติกา ---------- */
+var SUB_TITLES={hub:'ระบบและกติกา',rules:'กติกาตัวเลข',opts:'ตัวเลือกในฟอร์ม',sync:'ซิงก์',backup:'สำรองข้อมูล',audit:'ประวัติการแก้ไข',check:'ตรวจข้อมูล'};
+function openSub(k){DB.sub=k;show('sub');renderSub()}
+function subHead(k){
+  var back=k==='hub'?'openBack()':"openSub('hub')",label=k==='hub'?'หลังบ้าน':'ระบบและกติกา';
+  return '<div class="subh"><button class="back" onclick="'+back+'">‹ '+label+'</button></div><div class="bar" style="padding-top:4px"><b>'+SUB_TITLES[k]+'</b></div>';
+}
+function renderSub(){
+  var k=DB.sub,b='';
+  if(k==='hub')b='<div class="menu">'+[['rules','กติกาตัวเลข'],['opts','ตัวเลือกในฟอร์ม'],['sync','ซิงก์'],['backup','สำรองข้อมูล'],['audit','ประวัติการแก้ไข'],['check','ตรวจข้อมูล']].map(function(x){return '<button class="crow" onclick="openSub(\''+x[0]+'\')"><div class="cn">'+x[1]+'</div></button>'}).join('')+'</div>';
+  else if(k==='rules')b=rulesHtml();
+  else if(k==='opts')b=optsHtml();
+  else if(k==='sync')b=syncHtml();
+  else if(k==='backup')b=backupHtml();
+  else if(k==='audit')b='<div id="auditList"><div class="empty">กำลังโหลด…</div></div>';
+  else if(k==='check')b=checkHtml();
+  $('#subBody').innerHTML=subHead(k)+b;
+  if(k==='audit')loadAudit();
+}
+// ค่าล่าสุดของชุดที่ขึ้นต้นด้วย prefix ในแท็บ systemSettings
+// กติกาตัวเลขเก็บในเครื่อง (localStorage) ตามแอปเดิม; การเปลี่ยนแปลงลงประวัติในแท็บ changes
+var RULES_DEF={near:90,due:100,over:150,comm:8};
+function loadRules(){try{return Object.assign({},RULES_DEF,JSON.parse(localStorage.getItem('acrm.rules')||'{}'))}catch(e){return Object.assign({},RULES_DEF)}}
+var RULE_FIELDS=[['near','ใกล้ถึงรอบ (%)'],['due','ถึงรอบ (%)'],['over','เลยรอบ (%)'],['comm','คอมมิชชั่น (%)']];
+function rulesHtml(){
+  var r=loadRules();
+  return '<div class="card"><div class="ctitle">ค่าที่ใช้อยู่</div><div class="field">'+RULE_FIELDS.map(function(f){return '<div><label>'+f[1]+'</label><input id="r_'+f[0]+'" type="number" inputmode="decimal" value="'+esc(r[f[0]]==null?'':r[f[0]])+'"></div>'}).join('')+'</div>'+
+    '<div class="err" id="r_err"></div>'+
+    '<div class="btns"><button class="btn" onclick="openSub(\'hub\')">ยกเลิก</button><button class="btn pri" onclick="saveRules()">บันทึก</button></div></div>'+
+    '<div class="count">รอบซื้อ = มัธยฐานช่วงห่างของวันที่ซื้อ (ต้องมีอย่างน้อย 3 วัน) · ต้องเรียง ใกล้ถึง &lt; ถึง &lt; เลยรอบ · คอมมิชชั่นอยู่ระหว่าง 0–100</div>';
+}
+function saveRules(){
+  var n={};RULE_FIELDS.forEach(function(f){n[f[0]]=Number($('#r_'+f[0]).value)});
+  var msg='';
+  if(RULE_FIELDS.some(function(f){return $('#r_'+f[0]).value===''||isNaN(n[f[0]])}))msg='กรอกค่าให้ครบทุกช่อง';
+  else if(!(n.near<n.due&&n.due<n.over))msg='ต้องเรียง ใกล้ถึง < ถึง < เลยรอบ';
+  else if(!(n.comm>=0&&n.comm<=100))msg='คอมมิชชั่นต้องอยู่ระหว่าง 0–100';
+  $('#r_err').textContent=msg;
+  if(msg)return;
+  var ts=new Date().toISOString(),opId='op-'+Date.now(),data=JSON.stringify(n);
+  localStorage.setItem('acrm.rules',data);
+  // บันทึกประวัติเหมือนแอปเดิม: entity=ตั้งค่า, action=ชื่อการตั้งค่า, after=ค่าใหม่
+  call({action:'append',sheet:'changes',rows:[[ts,'ตั้งค่า','','กติกาตัวเลข','',data,opId,'web','']]})
+    .then(function(){toast('บันทึกกติกาแล้ว');renderSub()})
+    .catch(function(e){toast('บันทึกประวัติไม่สำเร็จ: '+e.message+' (ค่าถูกบันทึกในเครื่องแล้ว)');renderSub()});
+}
+function optsHtml(){
+  function cnt(f){
+    var m={};DB.cust.forEach(function(c){var v=String(c[f]||'').trim();if(v)m[v]=(m[v]||0)+1});
+    return Object.keys(m).sort(function(a,b){return m[b]-m[a]}).map(function(v){return '<div class="pr"><span class="pn">'+esc(v)+'</span><span class="pc">'+m[v]+' ร้าน</span></div>'}).join('')||'<div class="empty">ไม่มี</div>';
+  }
+  return '<div class="card"><div class="ctitle">ประเภทธุรกิจ</div>'+cnt('type')+'</div>'+
+    '<div class="card"><div class="ctitle">พื้นที่</div>'+cnt('area')+'</div>'+
+    '<div class="card"><div class="ctitle">เงื่อนไขชำระ</div>'+cnt('paymentTerm')+'</div>'+
+    '<div class="count">หน้านี้แสดงอย่างเดียว การเพิ่มหรือลบตัวเลือกยังไม่เปิดให้แก้ในแอปนี้</div>';
+}
+function syncHtml(){
+  var last=DB.loadedAt?DB.loadedAt.toLocaleString('th-TH'):'-';
+  return '<div class="card"><div class="ctitle">สถานะการเชื่อมชีต A</div>'+
+    '<div class="r"><span class="k">เชื่อมแล้ว</span><span class="v">'+(DB.api?'ใช่':'ยังไม่ได้ตั้งค่า')+'</span></div>'+
+    '<div class="r"><span class="k">โหลดล่าสุด</span><span class="v">'+esc(last)+'</span></div>'+
+    '<div class="r"><span class="k">ลูกค้า</span><span class="v">'+DB.cust.length+' ราย</span></div>'+
+    '<div class="r"><span class="k">บิล</span><span class="v">'+billRows().length+' บิล</span></div>'+
+    '<div class="r"><span class="k">รายการในบิล</span><span class="v">'+DB.items.length+' แถว</span></div>'+
+    '<div class="r"><span class="k">กิจกรรม</span><span class="v">'+DB.acts.length+' รายการ</span></div>'+
+    '</div><button class="btn pri" style="width:100%;margin-top:10px" onclick="pull().then(function(){renderSub()}).catch(function(e){toast(e.message)})">ซิงก์ใหม่</button>';
+}
+function plain(o){var x={};Object.keys(o).forEach(function(k){if(k[0]!=='_')x[k]=o[k]});return x}
+function backupHtml(){
+  return '<div class="card"><div class="ctitle">ดาวน์โหลดข้อมูลสำรอง</div><div class="count" style="margin-bottom:8px">ไฟล์ JSON มีลูกค้า บิล รายการในบิล และกิจกรรม ณ ตอนนี้ ใช้เก็บไว้เท่านั้น แอปนี้ยังไม่มีการกู้คืนข้อมูล</div><button class="btn pri" style="width:100%" onclick="exportBackup()">ดาวน์โหลด</button></div>';
+}
+function exportBackup(){
+  var data={exportedAt:new Date().toISOString(),customers:DB.cust.map(plain),bills:DB.bills.map(plain),billItems:DB.items.map(plain),activities:DB.acts.map(plain)};
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(data)],{type:'application/json'}));
+  a.download='acrm-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();a.remove();
+  toast('เตรียมไฟล์สำรองแล้ว');
+}
+function loadAudit(){
+  call({action:'get',range:'changes!A1:H'}).then(function(j){
+    var v=j.values||[],rows=v.slice(1).reverse().slice(0,100);
+    $('#auditList').innerHTML=rows.length?'<div class="card">'+rows.map(function(r){
+      return '<div class="pr"><div style="min-width:0;flex:1"><div class="cn">'+esc(r[1])+' · '+esc(r[2])+'</div><div class="cm">'+fd(r[0])+' · '+esc(r[3])+'</div></div></div>';
+    }).join('')+'</div>':'<div class="empty">ยังไม่มีประวัติ</div>';
+  }).catch(function(e){$('#auditList').innerHTML='<div class="empty">โหลดไม่ได้: '+esc(e.message)+'</div>'});
+}
+function checkHtml(){
+  var byPhone={};DB.cust.forEach(function(c){var p=String(c.phone||'').replace(/[^0-9]/g,'');if(p)(byPhone[p]=byPhone[p]||[]).push(c)});
+  var dups=Object.keys(byPhone).filter(function(k){return byPhone[k].length>1});
+  var noPhone=DB.cust.filter(function(c){return !String(c.phone||'').trim()}).length;
+  var noName=DB.cust.filter(function(c){return !String(c.name||'').trim()}).length;
+  return '<div class="stats" style="grid-template-columns:1fr 1fr 1fr"><div class="stat"><span class="k">เบอร์ซ้ำ</span><b>'+dups.length+'</b></div><div class="stat"><span class="k">ไม่มีเบอร์</span><b>'+noPhone+'</b></div><div class="stat"><span class="k">ไม่มีชื่อ</span><b>'+noName+'</b></div></div>'+
+    '<div class="card"><div class="ctitle">เบอร์ที่ใช้ซ้ำกัน</div>'+(dups.length?dups.slice(0,50).map(function(k){return '<div class="pr"><span class="pn">'+esc(k)+'</span><span class="pc">'+byPhone[k].map(function(c){return esc(c.name)}).slice(0,2).join(', ')+(byPhone[k].length>2?' และอีก '+(byPhone[k].length-2):'')+'</span></div>'}).join(''):'<div class="empty">ไม่มี</div>')+'</div>';
+}
 
 /* ---------- เริ่มทำงาน ---------- */
 $('#q').addEventListener('input',renderList);
