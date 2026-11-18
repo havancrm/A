@@ -117,6 +117,8 @@ textarea{min-height:68px;resize:vertical}
 .bar6 .track i{display:block;height:100%;background:var(--navy)}
 .bar6 b{text-align:right;white-space:nowrap}
 .menu{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.yrs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}
+.yrs .chipbtn.on{background:var(--navy);color:#fff;border-color:var(--navy)}
 </style>
 </head>
 <body>
@@ -167,6 +169,9 @@ textarea{min-height:68px;resize:vertical}
   <div class="bar"><b>หลังบ้าน</b></div>
   <div class="menu">
     <button class="crow" onclick="openMonth()"><div style="min-width:0"><div class="cn">รายงานรายเดือน</div><div class="cm">ยอดขาย · ร้านที่ซื้อ · ร้านที่ยอดลดลง</div></div></button>
+    <button class="crow" onclick="openSales()"><div style="min-width:0"><div class="cn">ยอดขาย</div><div class="cm">ยอดรายเดือนของแต่ละปี</div></div></button>
+    <button class="crow" onclick="openBills()"><div style="min-width:0"><div class="cn">บิลขาย</div><div class="cm">ค้นหาบิลตามเลขบิลหรือชื่อร้าน</div></div></button>
+    <button class="crow" onclick="openProducts()"><div style="min-width:0"><div class="cn">สินค้า</div><div class="cm">รายการสินค้าทั้งหมด ค้นหาได้</div></div></button>
     <button class="crow" onclick="openContacts()"><div style="min-width:0"><div class="cn">สมุดโทร</div><div class="cm">รายชื่อร้านเรียงตามตัวอักษร โทรได้ทันที</div></div></button>
     <button class="crow" onclick="openSettings()"><div style="min-width:0"><div class="cn">ตั้งค่า</div><div class="cm">เชื่อมชีต A</div></div></button>
   </div>
@@ -175,6 +180,23 @@ textarea{min-height:68px;resize:vertical}
   <div style="padding-top:6px"><button class="back" onclick="openBack()">‹ หลังบ้าน</button></div>
   <div class="mhead"><button class="chipbtn" id="mPrev" aria-label="เดือนก่อน">‹</button><b id="mTitle"></b><button class="chipbtn" id="mNext" aria-label="เดือนถัดไป">›</button></div>
   <div id="mBody"></div>
+</section>
+<section id="v-sales" hidden>
+  <div style="padding-top:6px"><button class="back" onclick="openBack()">‹ หลังบ้าน</button></div>
+  <div class="yrs" id="yrs"></div>
+  <div id="salesBody"></div>
+</section>
+<section id="v-bills" hidden>
+  <div style="padding-top:6px"><button class="back" onclick="openBack()">‹ หลังบ้าน</button></div>
+  <input class="search" id="bq" placeholder="ค้นหาเลขบิล หรือชื่อร้าน" autocomplete="off">
+  <div class="count" id="bcount"></div>
+  <div id="blist"></div>
+</section>
+<section id="v-products" hidden>
+  <div style="padding-top:6px"><button class="back" onclick="openBack()">‹ หลังบ้าน</button></div>
+  <input class="search" id="pq" placeholder="ค้นหารหัสหรือชื่อสินค้า" autocomplete="off">
+  <div class="count" id="pcount"></div>
+  <div id="plist"></div>
 </section>
 <section id="v-contacts" hidden>
   <div style="padding-top:6px"><button class="back" onclick="openBack()">‹ หลังบ้าน</button></div>
@@ -211,7 +233,7 @@ function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('on');clearT
 function setSync(m){$('#sync').textContent=m}
 
 /* ---------- สถานะ + เรียก Apps Script ---------- */
-var DB={api:localStorage.getItem('acrm.api')||'',token:localStorage.getItem('acrm.token')||'',cust:[],custH:[],acts:[],bills:[],items:[],cur:null,tab:'info',type:'โทร',pin:false,draft:''};
+var DB={prod:[],api:localStorage.getItem('acrm.api')||'',token:localStorage.getItem('acrm.token')||'',cust:[],custH:[],acts:[],bills:[],items:[],cur:null,tab:'info',type:'โทร',pin:false,draft:''};
 var TYPES=['โทร','เยี่ยม','ส่งของ','โน้ต','นัดติดตาม'];
 
 function call(body){
@@ -238,8 +260,10 @@ function pull(){
     call({action:'get',range:'customers!A1:AL'}),
     call({action:'get',range:'activities!A1:K'}),
     call({action:'get',range:'bills!A1:M'}),
-    call({action:'get',range:'bill_items!A1:G'})
+    call({action:'get',range:'bill_items!A1:G'}),
+    call({action:'get',range:'products!A1:B'})
   ]).then(function(a){
+    DB.prod=toObjs(a[4].values).rows;
     var c=toObjs(a[0].values);DB.custH=c.H;DB.cust=c.rows.filter(function(x){return x.id});
     DB.acts=toObjs(a[1].values).rows;
     DB.bills=toObjs(a[2].values).rows;
@@ -283,8 +307,8 @@ function renderList(){
 
 /* ---------- รายละเอียดลูกค้า ---------- */
 function show(v){
-  ['list','detail','settings','back','month','contacts'].forEach(function(x){$('#v-'+x).hidden=(x!==v)});
-  var tab={detail:'list',settings:'back',month:'back',contacts:'back'}[v]||v;
+  ['list','detail','settings','back','month','contacts','sales','bills','products'].forEach(function(x){$('#v-'+x).hidden=(x!==v)});
+  var tab={detail:'list',settings:'back',month:'back',contacts:'back',sales:'back',bills:'back',products:'back'}[v]||v;
   document.querySelectorAll('.nav button').forEach(function(b){b.classList.toggle('on',b.dataset.v===tab)});
   window.scrollTo(0,0);
 }
@@ -541,6 +565,46 @@ function renderContacts(){
   }).join('')||'<div class="empty">ไม่พบรายชื่อ</div>';
 }
 $('#cq').addEventListener('input',renderContacts);
+
+/* ---------- หลังบ้าน: ยอดขาย ---------- */
+function openSales(y){
+  var ys=billRows().map(function(b){return ymOf(b.d).slice(0,4)}).filter(Boolean);
+  var cur=(new Date().getFullYear()).toString();
+  DB.year=y||DB.year||(ys.length?ys.sort().pop():cur);
+  show('sales');renderSales();
+}
+function renderSales(){
+  var ys=[],seen={};billRows().forEach(function(b){var y=ymOf(b.d).slice(0,4);if(y&&!seen[y]){seen[y]=1;ys.push(y)}});ys.sort();
+  $('#yrs').innerHTML=ys.map(function(y){return '<button class="chipbtn'+(y===DB.year?' on':'')+'" onclick="openSales(\''+y+'\')">'+y+'</button>'}).join('');
+  var rows=[];for(var m=1;m<=12;m++){var k=DB.year+'-'+String(m).padStart(2,'0');rows.push({k:k,v:salesOf(k),n:billRows().filter(function(b){return ymOf(b.d)===k}).length})}
+  var tot=rows.reduce(function(s,x){return s+x.v},0),bills=rows.reduce(function(s,x){return s+x.n},0);
+  var mx=Math.max.apply(null,rows.map(function(x){return x.v}))||1;
+  $('#salesBody').innerHTML=
+    '<div class="stats" style="grid-template-columns:1fr 1fr"><div class="stat"><span class="k">ยอดขายทั้งปี '+DB.year+'</span><b style="font-size:17px">'+fm(tot)+'</b></div><div class="stat"><span class="k">จำนวนบิล</span><b style="font-size:17px">'+bills+'</b></div></div>'+
+    '<div class="card"><div class="ctitle">รายเดือน</div>'+rows.map(function(x){return '<div class="bar6"><span class="mo">'+(x.k.slice(5))+'</span><span class="track"><i style="width:'+Math.round(x.v/mx*100)+'%"></i></span><b>'+fm(x.v)+'</b></div>'}).join('')+'</div>';
+}
+
+/* ---------- หลังบ้าน: บิลขาย ---------- */
+function openBills(){show('bills');renderBills()}
+function renderBills(){
+  var q=$('#bq').value.trim().toLowerCase();
+  var L=billRows().filter(function(b){if(!q)return true;var c=cust(b.cid);return (String(b.no)+' '+(c?c.name:'')).toLowerCase().indexOf(q)>=0})
+    .sort(function(a,b){return ts(b.d)-ts(a.d)||String(b.no).localeCompare(String(a.no))});
+  $('#bcount').textContent=L.length+' บิล'+(L.length>200?' · แสดง 200 บิลล่าสุด':'');
+  $('#blist').innerHTML=L.slice(0,200).map(function(b){var c=cust(b.cid);
+    return '<div class="crow" style="cursor:pointer" onclick="openCust(\''+esc(b.cid)+'\')"><div style="min-width:0"><div class="cn">'+esc(b.no)+' · '+esc(c?c.name:b.cid)+'</div><div class="cm">'+fd(b.d)+'</div></div><b style="white-space:nowrap">'+fm(b.total)+'</b></div>'}).join('')||'<div class="empty">ไม่พบบิล</div>';
+}
+$('#bq').addEventListener('input',renderBills);
+
+/* ---------- หลังบ้าน: สินค้า ---------- */
+function openProducts(){show('products');renderProducts()}
+function renderProducts(){
+  var q=$('#pq').value.trim().toLowerCase();
+  var L=DB.prod.filter(function(p){if(!p.code&&!p.name)return false;return !q||(p.code+' '+p.name).toLowerCase().indexOf(q)>=0});
+  $('#pcount').textContent=L.length+' รายการ'+(L.length>300?' · แสดง 300 รายการแรก':'');
+  $('#plist').innerHTML=L.slice(0,300).map(function(p){return '<div class="crow"><div style="min-width:0"><div class="cn">'+esc(p.name||'-')+'</div><div class="cm">รหัส '+esc(p.code)+'</div></div></div>'}).join('')||'<div class="empty">ไม่พบสินค้า</div>';
+}
+$('#pq').addEventListener('input',renderProducts);
 
 /* ---------- เริ่มทำงาน ---------- */
 $('#q').addEventListener('input',renderList);
