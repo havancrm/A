@@ -108,6 +108,15 @@ textarea{min-height:68px;resize:vertical}
 .fg{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:10;max-width:90%;text-align:center}
 .toast.on{opacity:1}
+.mhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 0 10px}
+.mhead b{font-size:16px}
+.chipbtn{border:1px solid var(--line);background:var(--card);color:var(--navy);border-radius:10px;padding:6px 12px;font-size:16px;font-weight:700;cursor:pointer}
+.bar6{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;padding:6px 0;font-size:13px}
+.bar6 .mo{color:var(--mute)}
+.bar6 .track{height:10px;background:var(--line);border-radius:6px;overflow:hidden}
+.bar6 .track i{display:block;height:100%;background:var(--navy)}
+.bar6 b{text-align:right;white-space:nowrap}
+.menu{display:flex;flex-direction:column;gap:8px;margin-top:6px}
 </style>
 </head>
 <body>
@@ -151,9 +160,28 @@ textarea{min-height:68px;resize:vertical}
 
 <nav class="nav">
   <button data-v="list" onclick="goList()"><span id="ic-users"></span>ลูกค้า</button>
-  <button data-v="settings" onclick="openSettings()"><span id="ic-gear"></span>ตั้งค่า</button>
+  <button data-v="back" onclick="openBack()"><span id="ic-gear"></span>หลังบ้าน</button>
 </nav>
 
+<section id="v-back" hidden>
+  <div class="bar"><b>หลังบ้าน</b></div>
+  <div class="menu">
+    <button class="crow" onclick="openMonth()"><div style="min-width:0"><div class="cn">รายงานรายเดือน</div><div class="cm">ยอดขาย · ร้านที่ซื้อ · ร้านที่ยอดลดลง</div></div></button>
+    <button class="crow" onclick="openContacts()"><div style="min-width:0"><div class="cn">สมุดโทร</div><div class="cm">รายชื่อร้านเรียงตามตัวอักษร โทรได้ทันที</div></div></button>
+    <button class="crow" onclick="openSettings()"><div style="min-width:0"><div class="cn">ตั้งค่า</div><div class="cm">เชื่อมชีต A</div></div></button>
+  </div>
+</section>
+<section id="v-month" hidden>
+  <div style="padding-top:6px"><button class="back" onclick="openBack()">‹ หลังบ้าน</button></div>
+  <div class="mhead"><button class="chipbtn" id="mPrev" aria-label="เดือนก่อน">‹</button><b id="mTitle"></b><button class="chipbtn" id="mNext" aria-label="เดือนถัดไป">›</button></div>
+  <div id="mBody"></div>
+</section>
+<section id="v-contacts" hidden>
+  <div style="padding-top:6px"><button class="back" onclick="openBack()">‹ หลังบ้าน</button></div>
+  <input class="search" id="cq" placeholder="ค้นหาชื่อร้าน · เบอร์ · ผู้ติดต่อ" autocomplete="off">
+  <div class="count" id="ccount"></div>
+  <div id="clist"></div>
+</section>
 <div class="sheet" id="sheet" onclick="if(event.target===this)closeSheet()">
   <div class="sbox"><div class="grab"></div><div id="sheetBody"></div></div>
 </div>
@@ -216,6 +244,7 @@ function pull(){
     DB.acts=toObjs(a[1].values).rows;
     DB.bills=toObjs(a[2].values).rows;
     DB.items=toObjs(a[3].values).rows;
+    DB._br=null;
     setSync('ซิงก์แล้ว '+new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}));
   }).catch(function(e){setSync('เชื่อมชีตไม่ได้');throw e});
 }
@@ -254,8 +283,9 @@ function renderList(){
 
 /* ---------- รายละเอียดลูกค้า ---------- */
 function show(v){
-  ['list','detail','settings'].forEach(function(x){$('#v-'+x).hidden=(x!==v)});
-  document.querySelectorAll('.nav button').forEach(function(b){b.classList.toggle('on',b.dataset.v===(v==='detail'?'list':v))});
+  ['list','detail','settings','back','month','contacts'].forEach(function(x){$('#v-'+x).hidden=(x!==v)});
+  var tab={detail:'list',settings:'back',month:'back',contacts:'back'}[v]||v;
+  document.querySelectorAll('.nav button').forEach(function(b){b.classList.toggle('on',b.dataset.v===tab)});
   window.scrollTo(0,0);
 }
 function goList(){show('list');renderList()}
@@ -447,6 +477,70 @@ function testApi(){
   $('#s_msg').textContent='กำลังทดสอบ…';
   call({action:'ping'}).then(function(){$('#s_msg').textContent='เชื่อมได้แล้ว'}).catch(function(e){$('#s_msg').textContent='เชื่อมไม่ได้: '+e.message});
 }
+
+/* ---------- หลังบ้าน: รายงานรายเดือน ---------- */
+// รวมบิลให้เป็นหนึ่งแถวต่อบิล (แคชไว้ จนกว่าจะโหลดข้อมูลใหม่)
+function billRows(){
+  if(DB._br)return DB._br;
+  var tot={};DB.items.forEach(function(it){tot[it.billNo]=(tot[it.billNo]||0)+(Number(it.amount)||0)});
+  var seen={},out=[];
+  DB.bills.forEach(function(b){if(seen[b.no])return;seen[b.no]=1;out.push({no:b.no,cid:b.customerId,d:String(b.date||'').slice(0,10),total:tot[b.no]||0})});
+  return DB._br=out;
+}
+function ymOf(d){return String(d||'').slice(0,7)}
+function addMonth(ym,k){var t=new Date(+ym.slice(0,4),+ym.slice(5,7)-1+k,1);return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')}
+function ymLabel(ym){var t=new Date(+ym.slice(0,4),+ym.slice(5,7)-1,1);return t.toLocaleDateString('th-TH',{month:'long',year:'numeric'})}
+function monShops(ym,maxDay){
+  var sh={};
+  billRows().forEach(function(b){if(ymOf(b.d)!==ym||(maxDay&&+b.d.slice(8,10)>maxDay))return;var o=sh[b.cid]=sh[b.cid]||{id:b.cid,v:0,n:0,last:''};o.v+=b.total;o.n++;if(b.d>o.last)o.last=b.d});
+  return sh;
+}
+function salesOf(ym){return billRows().filter(function(b){return ymOf(b.d)===ym}).reduce(function(s,b){return s+b.total},0)}
+function openBack(){show('back')}
+function openMonth(ym){
+  if(!DB.month){var last=billRows().map(function(b){return b.d}).sort().pop()||'';DB.month=ymOf(last)||new Date().toISOString().slice(0,7)}
+  if(ym)DB.month=ym;
+  show('month');renderMonth();
+}
+function renderMonth(){
+  var ym=DB.month,pm=addMonth(ym,-1);
+  $('#mTitle').textContent=ymLabel(ym);
+  $('#mPrev').onclick=function(){DB.month=pm;renderMonth()};
+  $('#mNext').onclick=function(){DB.month=addMonth(ym,1);renderMonth()};
+  // เดือนที่ยังไม่จบ: เทียบเดือนก่อนเฉพาะถึงวันที่ล่าสุดของข้อมูล
+  var lastD=billRows().map(function(b){return b.d}).sort().pop()||'';
+  var partial=ym===ymOf(lastD)&&+lastD.slice(8,10)<new Date(+ym.slice(0,4),+ym.slice(5,7),0).getDate();
+  var dn=partial?+lastD.slice(8,10):0;
+  var cur=monShops(ym),prv=monShops(pm,dn);
+  var SL=Object.keys(cur).map(function(k){return cur[k]}).sort(function(a,b){return b.v-a.v});
+  var tot=SL.reduce(function(s,x){return s+x.v},0);
+  var nBills=billRows().filter(function(b){return ymOf(b.d)===ym}).length;
+  var reg=SL.filter(function(x){return prv[x.id]}).length;
+  var drop=Object.keys(prv).map(function(k){return prv[k]}).filter(function(x){var c=cur[x.id];return (c?c.v:0)<x.v*0.5}).sort(function(a,b){return b.v-a.v});
+  var six=[];for(var i=5;i>=0;i--){var k=addMonth(ym,-i);six.push({k:k,v:salesOf(k)})}
+  var mx=Math.max.apply(null,six.map(function(x){return x.v}))||1;
+  function shopRow(x,extra){var c=cust(x.id);return '<div class="crow" style="cursor:pointer" onclick="openCust(\''+esc(x.id)+'\')"><div style="min-width:0"><div class="cn">'+esc(c?c.name:x.id)+'</div><div class="cm">'+esc(extra)+'</div></div><b style="white-space:nowrap">'+fm(x.v)+'</b></div>'}
+  $('#mBody').innerHTML=
+    '<div class="stats"><div class="stat"><span class="k">ยอดขายเดือนนี้</span><b style="font-size:17px">'+fm(tot)+'</b><div class="meta">'+nBills+' บิล</div></div><div class="stat"><span class="k">ร้านที่ซื้อ</span><b style="font-size:17px">'+SL.length+'</b><div class="meta">ซื้อซ้ำจากเดือนก่อน '+reg+' ร้าน</div></div></div>'+
+    '<div class="card"><div class="ctitle">ยอดขาย 6 เดือน</div>'+six.map(function(x){return '<div class="bar6"><span class="mo">'+esc(x.k.slice(5))+'</span><span class="track"><i style="width:'+Math.round(x.v/mx*100)+'%"></i></span><b>'+fm(x.v)+'</b></div>'}).join('')+'</div>'+
+    '<div class="card"><div class="ctitle">ยอดลดลงเกิน 50% เทียบเดือนก่อน · '+drop.length+' ร้าน</div><div class="count">'+(partial?'เทียบช่วงวันที่ 1–'+dn+' ของเดือนก่อน':'เทียบกับเดือนก่อนทั้งเดือน')+'</div>'+(drop.length?drop.slice(0,50).map(function(x){return shopRow(x,'เดือนก่อน '+fm(x.v)+' · เดือนนี้ '+fm(cur[x.id]?cur[x.id].v:0))}).join(''):'<div class="empty">ไม่มี</div>')+'</div>'+
+    '<div class="card"><div class="ctitle">ร้านที่ซื้อในเดือนนี้ · '+SL.length+' ร้าน</div>'+(SL.length?SL.slice(0,80).map(function(x){return shopRow(x,x.n+' บิล · ล่าสุด '+fd(x.last))}).join(''):'<div class="empty">ไม่มีบิลในเดือนนี้</div>')+'</div>';
+}
+
+/* ---------- หลังบ้าน: สมุดโทร ---------- */
+function openContacts(){show('contacts');renderContacts()}
+function renderContacts(){
+  var q=$('#cq').value.trim().toLowerCase();
+  var L=DB.cust.filter(function(c){if(!q)return true;return (c.id+' '+c.name+' '+c.phone+' '+c.contactName+' '+c.aliases+' '+c.area).toLowerCase().indexOf(q)>=0})
+    .sort(function(a,b){return String(a.name).localeCompare(String(b.name),'th')});
+  $('#ccount').textContent=L.length+' ราย'+(L.length>300?' · แสดง 300 รายการแรก':'');
+  $('#clist').innerHTML=L.slice(0,300).map(function(c){
+    var p=(c.phone||'').replace(/[^0-9+]/g,'');
+    return '<div class="crow"><div style="min-width:0;flex:1" onclick="openCust(\''+esc(c.id)+'\')"><div class="cn">'+esc(c.name||'-')+'</div><div class="cm">'+esc(c.contactName||c.id)+'</div></div>'+
+      (p?'<a class="pill" href="tel:'+esc(p)+'" style="text-decoration:none">โทร '+esc(c.phone)+'</a>':'<span class="pill a">ไม่มีเบอร์</span>')+'</div>';
+  }).join('')||'<div class="empty">ไม่พบรายชื่อ</div>';
+}
+$('#cq').addEventListener('input',renderContacts);
 
 /* ---------- เริ่มทำงาน ---------- */
 $('#q').addEventListener('input',renderList);
