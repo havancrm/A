@@ -327,7 +327,7 @@ var ITEM_HEAD=[['สินค้า'],['จำนวน','r'],['ราคา','r
 function docCard(o){return '<div class="dc"><a class="dh" href="'+o.href+'"><span>'+o.head+'</span><b>'+o.amt+' ›</b></a>'+(o.sub?'<div class="ds">'+o.sub+'</div>':'')+tbl(ITEM_HEAD,itemRows(o.items))
  +(o.foot||'')+'<div class="ba">'+(o.pill||'<span></span>')+'<span>'+(o.acts||[]).map(function(x){return '<a'+attrs(x[1],x[2])+'>'+ic(x[3])+x[0]+'</a>'}).join('')+'</span></div></div>'}
 function billCard(b,shop){var c=cust(b.cid),pre=bt(b),vat=vatIdx(b.vat)===2?Math.round(pre*7)/100:0,foot=vat?'<div class="kv"><span>VAT 7%</span><b>'+money(vat)+'</b></div><div class="kv"><span>ยอดรวมสุทธิ</span><b>'+money(pre+vat)+'</b></div>':'';return docCard({href:'#bill/'+b.no,head:dt(b.d)+' • '+bn(b.no),amt:money(pre),sub:shop?b.cid+' · '+E(c?c.name:''):'',items:b.items,foot:foot,
- acts:[['ส่งรูป','billImg',b.no,'share'],['สั่งซ้ำ','billAgain',b.no,'repeat'],['แจ้งยอด','go','stmt/'+b.cid,'doc']]})}
+ acts:[['แจ้งยอด','go','stmt/'+b.cid,'doc'],['สั่งซ้ำ','billAgain',b.no,'repeat']]})}
 function orderCard(o){var c=cust(o.cid);return docCard({href:'#odet/'+o.no,head:dt(o.at)+' • '+o.no,amt:money(ototal(o).tot),sub:o.cid+' · '+E(c?c.name:''),items:o.items,pill:pill(o.st,ostCls(o.st)),acts:[['ส่งรูป','orderImg',o.no,'share']]})}
 // แถวร้าน: ใช้ทั้งหน้าหลัก รายการลูกค้า รอบลูกค้า เช็คอิน
 function custCard(c,y,extra){y=y||cyc(c.id);return '<div class="cr" style="border-left-color:'+y.col+'"'+attrs('go','cust/'+c.id)+'><div class="row" style="align-items:flex-start"><div class="grow"><b>'+c.id+' · '+E(c.name)+'</b>'
@@ -478,7 +478,7 @@ function build(T,first){applySets(T.sets);var keepLocal=function(list,key,fresh)
  var open=DB.visits.filter(function(v){return !v.done});
  DB.visits=keepLocal(DB.visits.filter(function(v){return v.done}),'id',T.visits.filter(function(r){return r[0]&&r[1]&&String(r[8]).toUpperCase()==='COMPLETED'}).map(function(r){return{id:String(r[0]),cid:String(r[1]),start:loc(r[2]),end:loc(r[10]||r[2]),note:[r[6],r[11]].filter(Boolean).join(' · '),photos:[],done:true,lat:r[3]||'',lng:r[4]||''}})).concat(open);
  DB.tasks=keepLocal(DB.tasks,'id',T.tasks.filter(function(r){return r[0]&&r[1]}).map(function(r){return{id:String(r[0]),cid:String(r[1]),title:r[3]||r[2]||'งาน',due:String(r[4]||'').slice(0,10)||TD,done:/^(done|เสร็จ)/i.test(r[5]||''),type:r[2]||''}}));
- DB.acts=keepLocal(DB.acts,'id',T.acts.filter(function(r){return r[0]&&r[1]}).map(function(r){return{id:String(r[0]),cid:String(r[1]),at:loc(r[3]),type:r[2]||'บันทึก',note:r[6]||''}}));
+ DB.acts=keepLocal(DB.acts,'id',T.acts.filter(function(r){return r[0]&&r[1]}).map(function(r){return{id:String(r[0]),cid:String(r[1]),at:loc(r[3]),type:r[2]||'บันทึก',note:r[6]||'',pin:/^(true|ใช่|y|1)$/i.test(String(r[4]||''))}}));
  // ตัวเลือกในฟอร์มจากข้อมูลจริง
  var add=function(k,vals){vals.forEach(function(v){if(v&&DB.opts[k].indexOf(v)<0)DB.opts[k].push(v)})};add('ประเภทธุรกิจ',DB.customers.map(function(c){return c.type}));add('พื้นที่',DB.customers.map(function(c){return c.area}));add('ป้ายกำกับ',[].concat.apply([],DB.customers.map(function(c){return c.tags})));
  if(first){DB.queue=DB.queue.filter(function(o){return o.w&&o.w.length&&o.st!=='done'});DB.audit.unshift({at:now(),kind:'ระบบ',label:'โหลดข้อมูลจากชีต A · ลูกค้า '+DB.customers.length+' · บิล '+DB.bills.length,ref:''})}}
@@ -516,7 +516,7 @@ function saveCust(c,label,extra,isNew){var w=[];if(isNew){w.push(W_append('custo
  else{w.push(W_cust(c,custFields(c)));var old=c._ph0||[];var add=c.ph.filter(function(p){return old.indexOf(p)<0});if(add.length)w.push(W_append('customer_phones',add.map(function(p,i){return[c.id,old.length+i+1,fmtTel(p)]})))}
  return track(c,commit('ลูกค้า',label,c.id,w.concat(extra||[])))}
 function gpsRow(cid,p,visitId,note){var id='GPS-'+uid().toUpperCase();return W_append('gps',[[id,cid,isoOf(p.at),p.lat,p.lng,p.acc||'','ART CRM a',visitId||'',note,iso(),'{}','@op']],['gps!A:A',id])}
-function actRow(id,cid,type,at,note){return W_append('activities',[[id,cid,type,isoOf(at),'','',note,'','',iso(),'{}','@op']],['activities!A:A',id])}
+function actRow(id,cid,type,at,note,pin){return W_append('activities',[[id,cid,type,isoOf(at),pin?'TRUE':'','',note,'','',iso(),'{}','@op']],['activities!A:A',id])}
 function taskRow(t,note){return W_append('tasks',[[t.id,t.cid,'ติดตาม',t.title,t.due,'open','',note||'',DB.cfg.seller,iso(),'{}','@op',iso(),'']],['tasks!A:A',t.id])}
 // =====================================================================
 // 13) ตัวเลือกแบบปุ่ม (ใช้ร่วมทุกฟอร์ม)
@@ -654,7 +654,7 @@ R.cust=function(a){var c=cust(a[0]);if(!c)return go('customers',true);var T=R.cu
    +kv('พิกัดร้าน',c.lat?'<a class="lk" href="'+mapUrl(c)+'" target="_blank" rel="noopener">'+ic('pin')+'ดูแผนที่</a>':tlink('ถ่ายรูป + พิกัด','cam','shopCap')));
   var sTop=(top.length?sec('ซื้อประจำ',tlink('ทั้งหมด '+top.length,null,'tab','prod'),tbl([['สินค้า'],['ครั้ง','r'],['ล่าสุด','r'],['','r']],top.slice(0,3).map(function(i){return '<tr><td>'+E(i.n)+'</td><td class="r">'+i.t+'</td><td class="r">'+dt(i.d)+'</td><td class="r">'+plus(i)+'</td></tr>'}))):'');
   var sNote=sec('หมายเหตุ / โน้ตก่อนเข้าพบ',tlink('แก้','edit','note'),'<div style="padding:8px 0;white-space:pre-wrap" class="'+(c.note?'':'t')+'">'+(c.note?E(c.note):'ยังไม่มีโน้ต')+'</div>');
-  var sNb=sec('สมุดโน้ต',tlink('เขียนโน้ต','plus','nb'),nbs.length?nbs.map(function(x){return '<div class="nb">'+E(x.note)+'<span class="t">'+dt(x.at.slice(0,10))+' '+x.at.slice(11,16)+'</span></div>'}).join(''):'<div class="t" style="padding:8px 0">เขียนอะไรก็ได้ ไม่ต้องจดลงสมุด</div>');
+  var sNb=sec('สมุดโน้ต',tlink('เขียนโน้ต','plus','nb'),nbs.length?nbs.slice().sort(function(a,b){return (b.pin?1:0)-(a.pin?1:0)}).map(function(x){return '<div class="nb">'+(x.pin?pill('ปักไว้','p-gry')+' ':'')+E(x.note)+'<span class="t">'+dt(x.at.slice(0,10))+' '+x.at.slice(11,16)+' · </span>'+tlink(x.pin?'เลิกปัก':'ปัก',null,'pinNote',x.id)+'</div>'}).join(''):'<div class="t" style="padding:8px 0">เขียนอะไรก็ได้ ไม่ต้องจดลงสมุด</div>');
   var sPh=sec('รูป + พิกัด','',(c.photo?'<img src="'+E(c.photo)+'" alt="" style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin-top:8px">':'')+kv('พิกัด',c.lat?'<a class="lk" href="'+mapUrl(c)+'" target="_blank" rel="noopener">'+ic('pin')+c.lat+', '+c.lng+'</a>':'<span class="t">ยังไม่มี</span>')+kv('ถ่ายใหม่',tlink('ถ่ายรูป + พิกัด','cam','shopCap')));
   b=smartCard(c,y,bs,tk,open)+sCt+sDoc+sSum+sTop+sNote+sNb+sPh}
  if(T==='bill')b='<div class="row t"><span>'+bs.length+' บิล · ล่าสุดก่อน</span><span>ข้อมูลถึง '+dt(DB.bills.map(function(x){return x.d}).sort().pop())+'</span></div>'+(bs.map(function(x){return billCard(x,false)}).join('')||'<div class="c">'+empty('ยังไม่มีบิลของร้านนี้')+'</div>');
@@ -669,7 +669,8 @@ R.cust=function(a){var c=cust(a[0]);if(!c)return go('customers',true);var T=R.cu
   +seg([['ov','ภาพรวม'],['bill','บิล'],['prod','สินค้า'],['act','กิจกรรม']],T,'tab')+b,
  on:{tab:function(v){R.cust.t=v;route()},add:function(code){var i=one(top,'c',code);cartAdd(c.id,{c:i.c,n:i.n,q:i.q||1,p:i.p});rerender()},
   note:function(){editText('โน้ตก่อนเข้าพบ',c.note,'placeholder="เช่น เจ้าของอยู่ช่วงบ่าย ชอบโปรแถม"',function(t){c.note=t;saveCust(c,'แก้โน้ต · '+c.name);rerender()})},
-  nb:function(){editText('โน้ตใหม่','','rows="6" placeholder="เขียนอะไรก็ได้ เช่น ของที่ลูกค้าบอก เรื่องที่ต้องจำ"',function(t){if(!t)return;var ac={id:'A-'+uid().toUpperCase(),cid:c.id,at:now(),type:'โน้ต',note:t};DB.acts.push(ac);track(ac,commit('กิจกรรม','โน้ต · '+c.name,c.id,[actRow(ac.id,c.id,'โน้ต',ac.at,t)]));toast('บันทึกโน้ตแล้ว');rerender()})},
+  nb:function(){editText('โน้ตใหม่','','rows="6" placeholder="เขียนอะไรก็ได้ เช่น ของที่ลูกค้าบอก เรื่องที่ต้องจำ"',function(t){if(!t)return;var ac={id:'A-'+uid().toUpperCase(),cid:c.id,at:now(),type:'โน้ต',note:t,pin:false};DB.acts.push(ac);track(ac,commit('กิจกรรม','โน้ต · '+c.name,c.id,[actRow(ac.id,c.id,'โน้ต',ac.at,t,false)]));toast('บันทึกโน้ตแล้ว');rerender()})},
+  pinNote:function(id){var ac=one(DB.acts,'id',id);if(!ac)return;ac.pin=!ac.pin;var op=commit('กิจกรรม',(ac.pin?'ปักโน้ต':'เลิกปักโน้ต')+' · '+c.name,c.id,[W_row('activities',ac.id,'L',{4:ac.pin?'TRUE':''})]);track(ac,op);toast(ac.pin?'ปักโน้ตไว้บนสุดแล้ว':'เลิกปักโน้ตแล้ว');rerender()},
   alias:function(){editText('คำเรียกพิเศษ',c.alias,'rows="1"',function(t){c.alias=t;saveCust(c,'คำเรียก · '+c.name);rerender()})},
   vcyc:function(){ask('รอบเข้าพบของร้านนี้',pick('vc',['ไม่ตั้ง','7 วัน','14 วัน','30 วัน','60 วัน','90 วัน'],c.visitCycle?c.visitCycle+' วัน':'ไม่ตั้ง'),'บันทึก',function(){c.visitCycle=parseInt(pickVal('vc'),10)||0;saveCust(c,'รอบเข้าพบ '+(c.visitCycle||'ไม่ตั้ง')+' · '+c.name);rerender()})},
   status:function(){ask('สถานะร้าน',pick('st',['ปกติ','เลิกกิจการ'],c.status==='closed'?'เลิกกิจการ':'ปกติ')+'<div class="t" style="margin-top:6px">ร้านเลิกกิจการจะไม่ขึ้นในรายการต้องตาม</div>','บันทึก',function(){c.status=pickVal('st')==='เลิกกิจการ'?'closed':'active';delete CC[c.id];saveCust(c,'สถานะ '+pickVal('st')+' · '+c.name);rerender()})},
