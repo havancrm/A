@@ -184,6 +184,7 @@ textarea{min-height:68px;resize:vertical}
     <button class="crow" onclick="openProducts()"><div style="min-width:0"><div class="cn">สินค้า</div><div class="cm">รายการสินค้าทั้งหมด ค้นหาได้</div></div></button>
     <button class="crow" onclick="openContacts()"><div style="min-width:0"><div class="cn">สมุดโทร</div><div class="cm">รายชื่อร้านเรียงตามตัวอักษร โทรได้ทันที</div></div></button>
     <div class="btns" style="margin:0 0 8px"><button class="btn" onclick="openX('msgtpl')">ข้อความแจ้งยอด</button><button class="btn pri" onclick="openPick('stmt')">แจ้งยอดทาง LINE</button></div>
+    <button class="crow" onclick="openX('ttx')"><div style="min-width:0"><div class="cn">นำเข้า TTX บิล</div><div class="cm">อ่านไฟล์ .ttx จากโปรแกรมบัญชี ตรวจ แล้วนำเข้า</div></div></button>
     <button class="crow" onclick="openX('cform')"><div style="min-width:0"><div class="cn">ลูกค้าใหม่</div><div class="cm">เพิ่มร้านใหม่ลงชีต customers</div></div></button>
     <button class="crow" onclick="openX('home')"><div style="min-width:0"><div class="cn">หน้าหลัก</div><div class="cm">ร้านที่ถึงรอบและควรติดตามวันนี้</div></div></button>
     <button class="crow" onclick="openX('tasks')"><div style="min-width:0"><div class="cn">งานติดตาม</div><div class="cm">นัดติดตามวันนี้ เลยกำหนด และที่เสร็จแล้ว</div></div></button>
@@ -765,7 +766,8 @@ function xHead(title,back,label){return '<div class="subh"><button class="back" 
 function openX(v,a){if(v==="orders")DB.xf="all";DB.xv=v;DB.xa=a==null?null:a;if(v==='stmt')DB.xm=null;if(v==='orders'||v==='map'||v==='pick'||v==='tasks'||v==='cycle'||v==='checkin'||v==='home'||v==='cform')DB.xq='';show('x');renderX()}
 function renderX(){
   var v=DB.xv,b='';
-  if(v==='print')b=printHtml(DB.xa);
+  if(v==='ttx')b=ttHtml();
+  else if(v==='print')b=printHtml(DB.xa);
   else if(v==='stmt')b=stmtHtml(DB.xa);
   else if(v==='msgtpl')b=msgtplHtml();
   else if(v==='cform')b=cformHtml();
@@ -780,7 +782,7 @@ function renderX(){
   else if(v==='cart')b=cartHtml(DB.xa);
   else if(v==='map')b=mapHtml();
   else if(v==='visit')b=visitHtml(DB.xa);
-  var heads={print:['พิมพ์บิล '+(DB.xa||''),"openX('bill',DB.xa)",'บิล'],stmt:['แจ้งยอดทาง LINE',"openPick('stmt')",'เลือกร้าน'],msgtpl:['ข้อความแจ้งยอด','openBack()','หลังบ้าน'],cform:['ลูกค้าใหม่','openBack()','หลังบ้าน'],home:['หน้าหลัก','openBack()','หลังบ้าน'],tasks:['งานติดตาม','openBack()','หลังบ้าน'],cycle:['รอบซื้อ','openBack()','หลังบ้าน'],checkin:['เช็กอินใกล้ฉัน','openBack()','หลังบ้าน'],bill:['บิล '+(DB.xa||''),"openBack()",'หลังบ้าน'],orders:['ออเดอร์','openBack()','หลังบ้าน'],odet:['ใบออเดอร์ '+(DB.xa||''),"openX('orders')",'ออเดอร์'],pick:[DB.xnext==='visit'?'เข้าพบ · เลือกร้าน':DB.xnext==='stmt'?'แจ้งยอด · เลือกร้าน':'รับออเดอร์ · เลือกร้าน','openBack()','หลังบ้าน'],cart:['รับออเดอร์',"openPick('cart')",'เลือกร้าน'],map:['แผนที่ร้าน','openBack()','หลังบ้าน'],visit:['เข้าพบ',"openPick('visit')",'เลือกร้าน']}[v];
+  var heads={ttx:['นำเข้า TTX','openBack()','หลังบ้าน'],print:['พิมพ์บิล '+(DB.xa||''),"openX('bill',DB.xa)",'บิล'],stmt:['แจ้งยอดทาง LINE',"openPick('stmt')",'เลือกร้าน'],msgtpl:['ข้อความแจ้งยอด','openBack()','หลังบ้าน'],cform:['ลูกค้าใหม่','openBack()','หลังบ้าน'],home:['หน้าหลัก','openBack()','หลังบ้าน'],tasks:['งานติดตาม','openBack()','หลังบ้าน'],cycle:['รอบซื้อ','openBack()','หลังบ้าน'],checkin:['เช็กอินใกล้ฉัน','openBack()','หลังบ้าน'],bill:['บิล '+(DB.xa||''),"openBack()",'หลังบ้าน'],orders:['ออเดอร์','openBack()','หลังบ้าน'],odet:['ใบออเดอร์ '+(DB.xa||''),"openX('orders')",'ออเดอร์'],pick:[DB.xnext==='visit'?'เข้าพบ · เลือกร้าน':DB.xnext==='stmt'?'แจ้งยอด · เลือกร้าน':'รับออเดอร์ · เลือกร้าน','openBack()','หลังบ้าน'],cart:['รับออเดอร์',"openPick('cart')",'เลือกร้าน'],map:['แผนที่ร้าน','openBack()','หลังบ้าน'],visit:['เข้าพบ',"openPick('visit')",'เลือกร้าน']}[v];
   $('#xBody').innerHTML=xHead(heads[0],heads[1],heads[2])+b;
 }
 function xSearch(q){DB.xq=q;renderX();var e=$('#xq');if(e){e.focus();e.setSelectionRange(q.length,q.length)}}
@@ -1097,6 +1099,90 @@ function printHtml(no){
   var warn=its.length>PRINT_MAX?'<div class="err">บิลนี้มี '+its.length+' รายการ แบบฟอร์มพิมพ์ได้ '+PRINT_MAX+' รายการแรก</div>':'';
   return warn+'<div class="btns"><button class="btn pri" onclick="window.print()">สั่งพิมพ์</button></div>'+
     '<div class="bsheet"><img src="print-form.png" alt="แบบฟอร์มใบส่งสินค้าชั่วคราว">'+h+'</div>';
+}
+
+/* ---------- นำเข้าไฟล์ TTX บิล (อ่าน → ตรวจ → เลือก → นำเข้า) ---------- */
+var TTX_CANCEL=['369594','371233','371897','372332','385818'];
+var TTX={bills:[],fn:'',msg:''};
+function ttParse(text){var rows=[],r=[],f='',q=false,st=true,i=0,n=text.length,c;
+  for(;i<n;i++){c=text[i];
+    if(q){if(c==='"'){if(text[i+1]==='"'){f+='"';i++}else q=false}else f+=c;continue}
+    if(c==='"'&&st){q=true;st=false;continue}
+    if(c==='\t'){r.push(f);f='';st=true;continue}
+    if(c==='\r')continue;
+    if(c==='\n'){r.push(f);rows.push(r);r=[];f='';st=true;continue}
+    f+=c;st=false}
+  if(f!==''||r.length){r.push(f);rows.push(r)}
+  return rows.map(function(x){return x.map(function(s){return s.trim()})})}
+function ttNum(s){s=String(s==null?'':s).replace(/,/g,'').trim();if(s==='')return 0;var v=+s;return isNaN(v)?NaN:v}
+function ttP4(n){var s=String(n);while(s.length<4)s='0'+s;return s}
+function ttPay(p){p=p||'';if(!p)return 'เงินสด';if(/โอน/.test(p))return 'โอน';return p}
+function ttBills(rows){var out=[],cur=null,foot=null,hd=/^\d{6}$/,dr=/^(\d{2})\/(\d{2})\/(\d{4})$/;
+  rows.forEach(function(r,ix){if(!r.some(function(x){return x}))return;var j=r.join(' ');
+    if(j.indexOf('รวมทั้งสิ้น')>-1){foot={q:ttNum(r[1]),a:ttNum(r[2])};cur=null;return}
+    if(r.length>=3&&hd.test(r[0])&&dr.test(r[1])){var m=dr.exec(r[1]);cur={no:r[0],d:ttP4(+m[3]-543)+'-'+m[2]+'-'+m[1],cid:r[2],name:r[3]||'',hdr:r.length>5?ttNum(r[r.length-1]):NaN,ph:'',pay:'',by:'',vat:'NONE',items:[],inc:true,st:'new',flags:[],ln:ix+1};out.push(cur);return}
+    if(!cur)return;
+    if(!cur.ph&&!cur.pay&&r.length===2&&!cur.items.length){cur.ph=r[0];var p=r[1].split('/');cur.pay=(p[0]||'').trim();cur.by=(p.slice(1).join('/')||'').trim();return}
+    if(r.length>=5){var c=r[0];if(c==='0015'){cur.vat='VAT_OUT';cur.va=(cur.va||0)+ttNum(r[4]);return}if(c==='0014'){if(cur.vat==='NONE')cur.vat='VAT_IN';return}
+      cur.items.push({c:c,n:r[1],q:ttNum(r[2]),p:ttNum(r[3]),a:ttNum(r[4])})}});
+  return{bills:out,foot:foot}}
+function ttCheck(b){var f=[],sum=0;
+  b.items.forEach(function(i){if(isNaN(i.q)||isNaN(i.p)||isNaN(i.a))f.push('ตัวเลขในรายการ '+i.c+' อ่านไม่ได้');else{if(Math.abs(i.q*i.p-i.a)>0.005)f.push('รหัส '+i.c+': '+fm(i.q)+' × '+fm(i.p)+' ≠ '+fm(i.a));sum+=i.q*i.p}});
+  b.sum=sum;
+  if(!b.items.length)f.push('ไม่มีรายการสินค้า');
+  if(!b.cid)f.push('ไม่มีรหัสลูกค้า');else if(!custById(b.cid))f.push('ไม่พบรหัสลูกค้า '+b.cid+' ในระบบ');
+  if(!b.d||!/^\d{4}-\d{2}-\d{2}$/.test(b.d))f.push('วันที่ไม่ถูกต้อง');
+  if(!isNaN(b.hdr)&&b.hdr!==0&&Math.abs(b.hdr-sum)>0.5&&Math.abs(b.hdr-sum*(b.vat==='VAT_OUT'?1.07:1))>0.5)f.push('ยอดหัวบิล '+fm(b.hdr)+' ≠ ยอดรายการ '+fm(sum));
+  b.flags=f;return f}
+function ttStatus(){var have={};DB.bills.forEach(function(b){have[b.no]=1});var seen={};
+  TTX.bills.forEach(function(b){b.st=TTX_CANCEL.indexOf(b.no)>-1?'cancel':have[b.no]?'dup':seen[b.no]?'dupf':'new';seen[b.no]=1;if(b.st!=='new')b.inc=false;ttCheck(b)})}
+function ttLoad(name,text){text=text.replace(/\r\n?/g,'\n');var P=ttBills(ttParse(text));
+  if(!P.bills.length)throw new Error('ไฟล์ '+name+' ไม่ใช่ไฟล์บิล TTX');
+  TTX.bills=P.bills;TTX.fn=name;ttStatus();return P.bills.length}
+function ttRead(input){var f=input.files&&input.files[0];if(!f)return;
+  if(/\.zip$/i.test(f.name)){TTX.msg='เป็นไฟล์ zip ให้แตกไฟล์ก่อน แล้วเลือกไฟล์ .ttx';return renderX()}
+  f.arrayBuffer().then(function(buf){var text=new TextDecoder('windows-874').decode(buf);var n=ttLoad(f.name,text);TTX.msg='อ่านแล้ว '+n+' บิล';renderX()})
+    .catch(function(e){TTX.msg='อ่านไฟล์ไม่ได้: '+e.message;renderX()})}
+function ttToggle(i){var b=TTX.bills[i];if(!b||b.st!=='new')return;b.inc=!b.inc;renderX()}
+function ttHtml(){
+  if(!TTX.bills.length)return '<div class="card"><div class="ctitle">นำเข้า TTX บิล</div><div class="cm">เลือกไฟล์ .ttx ที่ส่งออกจากโปรแกรมบัญชี (ถ้าเป็น zip ให้แตกไฟล์ก่อน)</div><input type="file" accept=".ttx,.txt" onchange="ttRead(this)"></div>'+(TTX.msg?'<div class="err">'+esc(TTX.msg)+'</div>':'');
+  var cnt={new:0,dup:0,dupf:0,cancel:0};TTX.bills.forEach(function(b){cnt[b.st]=(cnt[b.st]||0)+1});
+  var inc=TTX.bills.filter(function(b){return b.inc&&b.st==='new'});
+  var lbl={cancel:'ยกเลิก (ข้าม)',dup:'มีแล้ว (ข้าม)',dupf:'ซ้ำในไฟล์ (ข้าม)'};
+  return '<div class="card"><div class="ctitle">'+esc(TTX.fn)+'</div>'+
+    '<div class="r"><span class="k">บิลในไฟล์</span><span class="v">'+TTX.bills.length+'</span></div>'+
+    '<div class="r"><span class="k">ใหม่</span><span class="v">'+cnt.new+'</span></div>'+
+    '<div class="r"><span class="k">มีแล้ว / ซ้ำ / ยกเลิก</span><span class="v">'+(cnt.dup+cnt.dupf)+' / '+cnt.dupf+' / '+cnt.cancel+'</span></div>'+
+    '<div class="btns"><button class="btn" onclick="TTX={bills:[],fn:\'\',msg:\'\'};renderX()">เลือกไฟล์ใหม่</button><button class="btn pri"'+(inc.length?'':' disabled')+' onclick="ttImport()">นำเข้า '+inc.length+' บิล</button></div></div>'+
+    (TTX.msg?'<div class="err">'+esc(TTX.msg)+'</div>':'')+
+    TTX.bills.map(function(b,i){
+      var status=b.st==='new'?(b.flags.length?b.flags.join(' · '):'พร้อมนำเข้า'):lbl[b.st];
+      return '<div class="card"><div class="pr"><div style="min-width:0;flex:1"><div class="pn">'+esc(b.no)+' · '+esc(b.cid)+' · '+esc(b.d)+'</div><div class="cm">'+esc(status)+'</div></div>'+
+        (b.st==='new'?'<button class="btn'+(b.inc?' pri':'')+'" onclick="ttToggle('+i+')">'+(b.inc?'นำเข้า':'ข้าม')+'</button>':'')+'</div></div>';
+    }).join('');
+}
+function ttImport(){
+  var L=TTX.bills.filter(function(b){return b.inc&&b.st==='new'});
+  if(!L.length){toast('ยังไม่ได้เลือกบิล');return}
+  var warn=L.filter(function(b){return b.flags.length}).length;
+  if(!confirm('นำเข้า '+L.length+' บิล'+(warn?' (มี '+warn+' บิลที่ยังมีจุดต้องตรวจ)':'')+' ?'))return;
+  var stamp=nowIso(),bid='TTX-BILL-'+stamp.replace(/\D/g,'').slice(0,14),billRows=[],itemRows=[],sum=0;
+  var seller=(DB.cfg&&DB.cfg.seller)||'';
+  L.forEach(function(b){var cn=(custById(b.cid)||{}).name||b.name;
+    billRows.push([b.no,b.d,b.cid,cn,'','','',ttPay(b.pay),b.by||'',seller,b.vat,TTX.fn,stamp,'']);
+    b.items.forEach(function(x,n){itemRows.push([b.no,n+1,x.c,x.n,x.q.toFixed(2),x.p.toFixed(2),(x.q*x.p).toFixed(2)])});
+    sum+=b.sum||0});
+  var fl=warn,summary='ไฟล์ '+TTX.bills.length+' บิล; นำเข้า '+L.length+' บิล, '+itemRows.length+' รายการ, ยอด '+sum.toFixed(2)+'; ข้ามมีแล้ว '+(TTX.bills.filter(function(b){return b.st==='dup'||b.st==='dupf'}).length)+', ยกเลิก '+(TTX.bills.filter(function(b){return b.st==='cancel'}).length)+(fl?'; flag '+fl+' บิล: '+L.filter(function(b){return b.flags.length}).slice(0,8).map(function(b){return b.no}).join(','):'');
+  var batch=[bid,stamp,'bills',TTX.fn,'','TTX ในแอป','TTX cp874',fl?'ok_with_flags':'ok',summary,'web'];
+  var log=[stamp,'bills',bid,'นำเข้า TTX','',summary,bid,'web',''];
+  toast('กำลังนำเข้า…');
+  call({action:'append',sheet:'bills',rows:billRows})
+    .then(function(){return call({action:'append',sheet:'bill_items',rows:itemRows})})
+    .then(function(){return call({action:'append',sheet:'IMPORT_BATCHES',rows:[batch]})})
+    .then(function(){return call({action:'append',sheet:'changes',rows:[log]})})
+    .then(function(){TTX={bills:[],fn:'',msg:'นำเข้าแล้ว '+L.length+' บิล'};return pull()})
+    .then(function(){renderX();toast('นำเข้า '+L.length+' บิลแล้ว')})
+    .catch(function(e){TTX.msg='นำเข้าไม่สำเร็จ: '+e.message+' (ตรวจในชีทก่อนนำเข้าซ้ำ)';renderX()});
 }
 
 /* ---------- แจ้งยอดทาง LINE · ข้อความแจ้งยอด ---------- */
