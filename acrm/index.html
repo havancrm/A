@@ -124,7 +124,12 @@ textarea{min-height:68px;resize:vertical}
 .err{color:#b42318;font-size:13px;margin-top:6px}
 .yrs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}
 .yrs .chipbtn.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.bsheet{container-type:inline-size;position:relative;width:100%;max-width:1088px;margin:0 auto;background:#fff}
+.bsheet img{display:block;width:100%;height:auto}
+.pf{position:absolute;color:#111;line-height:1;transform:translateY(-50%);white-space:nowrap;font-family:"Sarabun",sans-serif}
+@media print{@page{size:A4;margin:8mm}body *{visibility:hidden}.bsheet,.bsheet *{visibility:visible}.bsheet{position:absolute;left:0;top:0;width:100%;max-width:none}}
 </style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400&display=swap">
 </head>
 <body>
 <div class="wrap">
@@ -760,7 +765,8 @@ function xHead(title,back,label){return '<div class="subh"><button class="back" 
 function openX(v,a){if(v==="orders")DB.xf="all";DB.xv=v;DB.xa=a==null?null:a;if(v==='stmt')DB.xm=null;if(v==='orders'||v==='map'||v==='pick'||v==='tasks'||v==='cycle'||v==='checkin'||v==='home'||v==='cform')DB.xq='';show('x');renderX()}
 function renderX(){
   var v=DB.xv,b='';
-  if(v==='stmt')b=stmtHtml(DB.xa);
+  if(v==='print')b=printHtml(DB.xa);
+  else if(v==='stmt')b=stmtHtml(DB.xa);
   else if(v==='msgtpl')b=msgtplHtml();
   else if(v==='cform')b=cformHtml();
   else if(v==='home')b=homeHtml();
@@ -774,7 +780,7 @@ function renderX(){
   else if(v==='cart')b=cartHtml(DB.xa);
   else if(v==='map')b=mapHtml();
   else if(v==='visit')b=visitHtml(DB.xa);
-  var heads={stmt:['แจ้งยอดทาง LINE',"openPick('stmt')",'เลือกร้าน'],msgtpl:['ข้อความแจ้งยอด','openBack()','หลังบ้าน'],cform:['ลูกค้าใหม่','openBack()','หลังบ้าน'],home:['หน้าหลัก','openBack()','หลังบ้าน'],tasks:['งานติดตาม','openBack()','หลังบ้าน'],cycle:['รอบซื้อ','openBack()','หลังบ้าน'],checkin:['เช็กอินใกล้ฉัน','openBack()','หลังบ้าน'],bill:['บิล '+(DB.xa||''),"openBack()",'หลังบ้าน'],orders:['ออเดอร์','openBack()','หลังบ้าน'],odet:['ใบออเดอร์ '+(DB.xa||''),"openX('orders')",'ออเดอร์'],pick:[DB.xnext==='visit'?'เข้าพบ · เลือกร้าน':DB.xnext==='stmt'?'แจ้งยอด · เลือกร้าน':'รับออเดอร์ · เลือกร้าน','openBack()','หลังบ้าน'],cart:['รับออเดอร์',"openPick('cart')",'เลือกร้าน'],map:['แผนที่ร้าน','openBack()','หลังบ้าน'],visit:['เข้าพบ',"openPick('visit')",'เลือกร้าน']}[v];
+  var heads={print:['พิมพ์บิล '+(DB.xa||''),"openX('bill',DB.xa)",'บิล'],stmt:['แจ้งยอดทาง LINE',"openPick('stmt')",'เลือกร้าน'],msgtpl:['ข้อความแจ้งยอด','openBack()','หลังบ้าน'],cform:['ลูกค้าใหม่','openBack()','หลังบ้าน'],home:['หน้าหลัก','openBack()','หลังบ้าน'],tasks:['งานติดตาม','openBack()','หลังบ้าน'],cycle:['รอบซื้อ','openBack()','หลังบ้าน'],checkin:['เช็กอินใกล้ฉัน','openBack()','หลังบ้าน'],bill:['บิล '+(DB.xa||''),"openBack()",'หลังบ้าน'],orders:['ออเดอร์','openBack()','หลังบ้าน'],odet:['ใบออเดอร์ '+(DB.xa||''),"openX('orders')",'ออเดอร์'],pick:[DB.xnext==='visit'?'เข้าพบ · เลือกร้าน':DB.xnext==='stmt'?'แจ้งยอด · เลือกร้าน':'รับออเดอร์ · เลือกร้าน','openBack()','หลังบ้าน'],cart:['รับออเดอร์',"openPick('cart')",'เลือกร้าน'],map:['แผนที่ร้าน','openBack()','หลังบ้าน'],visit:['เข้าพบ',"openPick('visit')",'เลือกร้าน']}[v];
   $('#xBody').innerHTML=xHead(heads[0],heads[1],heads[2])+b;
 }
 function xSearch(q){DB.xq=q;renderX();var e=$('#xq');if(e){e.focus();e.setSelectionRange(q.length,q.length)}}
@@ -1009,11 +1015,88 @@ function billHtml(no){
   var b=DB.bills.filter(function(x){return x.no===no})[0];if(!b)return '<div class="empty">ไม่พบบิล</div>';
   var its=DB.items.filter(function(i){return i.billNo===no}),tot=its.reduce(function(s,i){return s+(Number(i.amount)||0)},0);
   var c=custById(b.customerId);
-  return '<div class="card"><div class="ctitle">'+esc(b.no)+' · '+esc(c?c.name:b.customerName||b.customerId)+'</div>'+
+  return '<div class="btns"><button class="btn pri" onclick="openX(\'print\',\''+esc(b.no)+'\')">พิมพ์บิล</button></div><div class="card"><div class="ctitle">'+esc(b.no)+' · '+esc(c?c.name:b.customerName||b.customerId)+'</div>'+
     '<div class="r"><span class="k">วันที่</span><span class="v">'+fd(b.date)+'</span></div>'+
     '<div class="r"><span class="k">ผู้เปิดบิล</span><span class="v">'+esc(b.openedBy||'-')+'</span></div></div>'+
     '<div class="card"><div class="ctitle">รายการ</div>'+its.map(function(i){return '<div class="pr"><div style="min-width:0;flex:1"><div class="pn">'+esc(i.name)+'</div><div class="cm">'+esc(i.code)+' · '+fm(i.price)+' × '+esc(i.qty)+'</div></div><b>'+fm(i.amount)+'</b></div>'}).join('')+
     '<div class="r" style="margin-top:8px"><span class="k">รวม</span><span class="v"><b>'+fm(tot)+'</b></span></div></div>';
+}
+
+/* ---------- พิมพ์บิล: ใบส่งสินค้าชั่วคราว (แบบฟอร์มจริง + ตำแหน่งข้อความ) ---------- */
+var PRINT_MAX=16;
+function thaiNum(n){
+  var D=['','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'],P=['','สิบ','ร้อย','พัน','หมื่น','แสน'];
+  var s=String(n),len=s.length,out='';
+  for(var i=0;i<len;i++){
+    var d=+s.charAt(i),p=len-i-1;
+    if(!d)continue;
+    if(p===1&&d===2)out+='ยี่';
+    else if(p===1&&d===1)out+='';
+    else if(p===0&&d===1&&len>1)out+='เอ็ด';
+    else out+=D[d];
+    out+=P[p];
+  }
+  return out;
+}
+function bahtText(v){
+  var n=Math.round((Number(v)||0)*100)/100,int=Math.floor(n),sat=Math.round((n-int)*100);
+  var mil=Math.floor(int/1000000),rest=int%1000000,s='';
+  if(mil)s+=thaiNum(mil)+'ล้าน';
+  if(rest)s+=thaiNum(rest);
+  if(!s)s='ศูนย์';
+  s+='บาท';
+  return s+(sat?thaiNum(sat)+'สตางค์':'ถ้วน');
+}
+function thDateBE(x){
+  var s=String(x||'').slice(0,10),p=s.split('-');
+  return p.length===3?p[2]+'/'+p[1]+'/'+(Number(p[0])+543):'';
+}
+function splitAddr(a){
+  a=String(a||'');
+  if(a.length<=58)return [a,''];
+  var cut=a.lastIndexOf(' ',58);if(cut<20)cut=58;
+  return [a.slice(0,cut),a.slice(cut).trim()];
+}
+function printHtml(no){
+  var b=DB.bills.filter(function(x){return x.no===no})[0];
+  if(!b)return '<div class="empty">ไม่พบบิล</div>';
+  var its=DB.items.filter(function(i){return i.billNo===no});
+  var tot=its.reduce(function(s,i){return s+(Number(i.amount)||0)},0);
+  var c=custById(b.customerId)||{};
+  var addr=splitAddr(c.address);
+  var cashLike=/เงินสด|โอน/.test(String(b.paymentTerm||''));
+  var F=function(top,left,txt,right,extra){
+    var pos=right!=null?'right:'+right+'%':'left:'+left+'%';
+    return '<span class="pf" style="top:'+top+'%;'+pos+';'+(extra||'')+'font-size:1.838cqw">'+esc(txt)+'</span>';
+  };
+  var h='';
+  h+=F(12.225,81.985,b.no);
+  h+=F(16.209,13.787,c.name||b.customerName||'');
+  h+=F(16.209,50.735,c.id||b.customerId||'');
+  h+=F(19.093,13.787,addr[0]);
+  if(addr[1])h+=F(21.497,13.787,addr[1]);
+  h+=F(23.901,13.787,('โทร.'+(c.phone||'')+' '+(c.contactName||'')).trim());
+  h+=F(16.484,82.077,thDateBE(b.date));
+  h+=F(19.368,82.077,cashLike?thDateBE(b.date):'');
+  h+=F(22.115,82.077,b.paymentTerm||'');
+  h+=F(24.863,82.077,b.salesperson||'');
+  var shown=its.slice(0,PRINT_MAX);
+  shown.forEach(function(it,k){
+    var top=34.341+k*2.61;
+    h+=F(top,3.493,String(it.line||k+1),null,'width:4.596%;text-align:center;');
+    h+=F(top,10.294,it.code||'');
+    h+=F(top,21.691,it.name||'');
+    h+=F(top,null,String(it.qty==null?'':it.qty),25.368);
+    h+=F(top,null,fm(it.price),15.625);
+    h+=F(top,null,fm(it.amount),3.033);
+  });
+  h+=F(78.984,4.779,'('+bahtText(tot)+')');
+  h+=F(76.717,null,fm(tot),3.309);
+  h+=F(79.327,null,'-',3.309);
+  h+=F(81.868,null,fm(tot),3.309);
+  var warn=its.length>PRINT_MAX?'<div class="err">บิลนี้มี '+its.length+' รายการ แบบฟอร์มพิมพ์ได้ '+PRINT_MAX+' รายการแรก</div>':'';
+  return warn+'<div class="btns"><button class="btn pri" onclick="window.print()">สั่งพิมพ์</button></div>'+
+    '<div class="bsheet"><img src="print-form.png" alt="แบบฟอร์มใบส่งสินค้าชั่วคราว">'+h+'</div>';
 }
 
 /* ---------- แจ้งยอดทาง LINE · ข้อความแจ้งยอด ---------- */
