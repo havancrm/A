@@ -178,6 +178,10 @@ textarea{min-height:68px;resize:vertical}
     <button class="crow" onclick="openBills()"><div style="min-width:0"><div class="cn">บิลขาย</div><div class="cm">ค้นหาบิลตามเลขบิลหรือชื่อร้าน</div></div></button>
     <button class="crow" onclick="openProducts()"><div style="min-width:0"><div class="cn">สินค้า</div><div class="cm">รายการสินค้าทั้งหมด ค้นหาได้</div></div></button>
     <button class="crow" onclick="openContacts()"><div style="min-width:0"><div class="cn">สมุดโทร</div><div class="cm">รายชื่อร้านเรียงตามตัวอักษร โทรได้ทันที</div></div></button>
+    <button class="crow" onclick="openX('home')"><div style="min-width:0"><div class="cn">หน้าหลัก</div><div class="cm">ร้านที่ถึงรอบและควรติดตามวันนี้</div></div></button>
+    <button class="crow" onclick="openX('tasks')"><div style="min-width:0"><div class="cn">งานติดตาม</div><div class="cm">นัดติดตามวันนี้ เลยกำหนด และที่เสร็จแล้ว</div></div></button>
+    <button class="crow" onclick="openX('cycle')"><div style="min-width:0"><div class="cn">รอบซื้อ</div><div class="cm">ร้านที่ถึงรอบ ใกล้ถึงรอบ และเลยรอบ</div></div></button>
+    <button class="crow" onclick="openX('checkin')"><div style="min-width:0"><div class="cn">เช็กอินใกล้ฉัน</div><div class="cm">ร้านที่อยู่ใกล้ตำแหน่งปัจจุบัน</div></div></button>
     <button class="crow" onclick="openX('orders')"><div style="min-width:0"><div class="cn">ออเดอร์</div><div class="cm">รายการออเดอร์ รอส่ง ส่งแล้ว ยกเลิก</div></div></button>
     <button class="crow" onclick="openPick('cart')"><div style="min-width:0"><div class="cn">รับออเดอร์</div><div class="cm">เลือกร้าน เลือกสินค้าจากราคาล่าสุด</div></div></button>
     <button class="crow" onclick="openX('map')"><div style="min-width:0"><div class="cn">แผนที่ร้าน</div><div class="cm">ร้านที่มีพิกัด เลือกเส้นทางเปิดใน Google Maps</div></div></button>
@@ -280,8 +284,10 @@ function pull(){
     call({action:'get',range:'products!A1:B'}),
     call({action:'get',range:'systemSettings!A1:C'}),
     call({action:'get',range:'orders!A1:P'}),
-    call({action:'get',range:'order_items!A1:H'})
+    call({action:'get',range:'order_items!A1:H'}),
+    call({action:'get',range:'tasks!A1:L'})
   ]).then(function(a){
+    DB.stasks=toObjs(a[8].values).rows;
     DB.orders=toObjs(a[6].values).rows;
     DB.oitems=toObjs(a[7].values).rows;
     DB.prod=toObjs(a[4].values).rows;
@@ -615,7 +621,7 @@ function renderBills(){
     .sort(function(a,b){return ts(b.d)-ts(a.d)||String(b.no).localeCompare(String(a.no))});
   $('#bcount').textContent=L.length+' บิล'+(L.length>200?' · แสดง 200 บิลล่าสุด':'');
   $('#blist').innerHTML=L.slice(0,200).map(function(b){var c=cust(b.cid);
-    return '<div class="crow" style="cursor:pointer" onclick="openCust(\''+esc(b.cid)+'\')"><div style="min-width:0"><div class="cn">'+esc(b.no)+' · '+esc(c?c.name:b.cid)+'</div><div class="cm">'+fd(b.d)+'</div></div><b style="white-space:nowrap">'+fm(b.total)+'</b></div>'}).join('')||'<div class="empty">ไม่พบบิล</div>';
+    return '<div class="crow" style="cursor:pointer" onclick="openX(\'bill\',\''+esc(b.no)+'\')"><div style="min-width:0"><div class="cn">'+esc(b.no)+' · '+esc(c?c.name:b.cid)+'</div><div class="cm">'+fd(b.d)+'</div></div><b style="white-space:nowrap">'+fm(b.total)+'</b></div>'}).join('')||'<div class="empty">ไม่พบบิล</div>';
 }
 $('#bq').addEventListener('input',renderBills);
 
@@ -749,16 +755,21 @@ function lastPrice(code){
 }
 function cartTotals(c){var pre=c.items.reduce(function(s,i){return s+i.q*i.p},0);var vat=c.vat==='VAT_OUT'?Math.round(pre*7)/100:0;return{pre:pre,vat:vat,tot:pre+vat,comm:Math.round(pre*loadRules().comm)/100}}
 function xHead(title,back,label){return '<div class="subh"><button class="back" onclick="'+back+'">‹ '+label+'</button></div><div class="bar" style="padding-top:4px"><b>'+esc(title)+'</b></div>'}
-function openX(v,a){if(v==="orders")DB.xf="all";DB.xv=v;DB.xa=a==null?null:a;if(v==='orders'||v==='map'||v==='pick')DB.xq='';show('x');renderX()}
+function openX(v,a){if(v==="orders")DB.xf="all";DB.xv=v;DB.xa=a==null?null:a;if(v==='orders'||v==='map'||v==='pick'||v==='tasks'||v==='cycle'||v==='checkin'||v==='home')DB.xq='';show('x');renderX()}
 function renderX(){
   var v=DB.xv,b='';
-  if(v==='orders')b=ordersHtml();
+  if(v==='home')b=homeHtml();
+  else if(v==='tasks')b=tasksHtml();
+  else if(v==='cycle')b=cycleHtml();
+  else if(v==='checkin')b=checkinHtml();
+  else if(v==='bill')b=billHtml(DB.xa);
+  else if(v==='orders')b=ordersHtml();
   else if(v==='odet')b=orderDetHtml(DB.xa);
   else if(v==='pick')b=pickHtml();
   else if(v==='cart')b=cartHtml(DB.xa);
   else if(v==='map')b=mapHtml();
   else if(v==='visit')b=visitHtml(DB.xa);
-  var heads={orders:['ออเดอร์','openBack()','หลังบ้าน'],odet:['ใบออเดอร์ '+(DB.xa||''),"openX('orders')",'ออเดอร์'],pick:[DB.xnext==='visit'?'เข้าพบ · เลือกร้าน':'รับออเดอร์ · เลือกร้าน','openBack()','หลังบ้าน'],cart:['รับออเดอร์',"openPick('cart')",'เลือกร้าน'],map:['แผนที่ร้าน','openBack()','หลังบ้าน'],visit:['เข้าพบ',"openPick('visit')",'เลือกร้าน']}[v];
+  var heads={home:['หน้าหลัก','openBack()','หลังบ้าน'],tasks:['งานติดตาม','openBack()','หลังบ้าน'],cycle:['รอบซื้อ','openBack()','หลังบ้าน'],checkin:['เช็กอินใกล้ฉัน','openBack()','หลังบ้าน'],bill:['บิล '+(DB.xa||''),"openBack()",'หลังบ้าน'],orders:['ออเดอร์','openBack()','หลังบ้าน'],odet:['ใบออเดอร์ '+(DB.xa||''),"openX('orders')",'ออเดอร์'],pick:[DB.xnext==='visit'?'เข้าพบ · เลือกร้าน':'รับออเดอร์ · เลือกร้าน','openBack()','หลังบ้าน'],cart:['รับออเดอร์',"openPick('cart')",'เลือกร้าน'],map:['แผนที่ร้าน','openBack()','หลังบ้าน'],visit:['เข้าพบ',"openPick('visit')",'เลือกร้าน']}[v];
   $('#xBody').innerHTML=xHead(heads[0],heads[1],heads[2])+b;
 }
 function xSearch(q){DB.xq=q;renderX();var e=$('#xq');if(e){e.focus();e.setSelectionRange(q.length,q.length)}}
@@ -892,6 +903,82 @@ function xPhoto(input,cid){
     toast('บันทึกรูปแล้ว'+(g.lat===''?' (ไม่มีพิกัด)':''));
     renderX();
   }).catch(function(e){if(st)st.textContent='';if(er)er.textContent='บันทึกรูปไม่สำเร็จ: '+e.message});
+}
+
+/* ---------- รอบซื้อ · หน้าหลัก · งานติดตาม · เช็กอิน · บิลรายใบ ---------- */
+var DAY=86400000;
+function dayNum(d){var t=Date.parse(String(d).slice(0,10)+'T00:00:00Z');return isNaN(t)?NaN:Math.floor(t/DAY)}
+function todayNum(){return Math.floor(Date.now()/DAY)}
+// รอบซื้อ = มัธยฐานช่วงห่างของวันที่ซื้อ (ต้องมีอย่างน้อย 3 วัน) ตามที่กำหนดในแอปเดิม
+function cycleOf(cid){
+  var days={};DB.bills.forEach(function(b){if(b.customerId===cid){var n=dayNum(b.date);if(!isNaN(n))days[n]=1}});
+  var ds=Object.keys(days).map(Number).sort(function(a,b){return a-b});
+  if(ds.length<3)return{st:'ยังไม่มีรอบ',last:ds.length?ds[ds.length-1]:null,cycle:0,ratio:0};
+  var gaps=[];for(var i=1;i<ds.length;i++)gaps.push(ds[i]-ds[i-1]);
+  gaps.sort(function(a,b){return a-b});var m=gaps.length,med=m%2?gaps[(m-1)/2]:(gaps[m/2-1]+gaps[m/2])/2;
+  var last=ds[ds.length-1],since=todayNum()-last,r=med?since/med*100:0,R=loadRules();
+  var st=r>=R.over?'เลยรอบ':r>=R.due?'ถึงรอบ':r>=R.near?'ใกล้ถึงรอบ':'ปกติ';
+  return{st:st,last:last,cycle:med,ratio:r};
+}
+var STATE_RANK={'เลยรอบ':0,'ถึงรอบ':1,'ใกล้ถึงรอบ':2,'ปกติ':3,'ยังไม่มีรอบ':4};
+function custRows(){return DB.cust.filter(isActive).map(function(c){return{c:c,y:cycleOf(c.id)}})}
+function rowHtml(x){
+  var y=x.y,lastTxt=y.last!=null?fd(new Date(y.last*DAY).toISOString()):'-';
+  return '<button class="crow" onclick="openCust(\''+esc(x.c.id)+'\')"><div style="min-width:0"><div class="cn">'+esc(x.c.id)+' · '+esc(x.c.name)+'</div><div class="cm">'+esc(y.st)+' · ซื้อล่าสุด '+lastTxt+(y.cycle?' · รอบ '+Math.round(y.cycle)+' วัน':'')+'</div></div></button>';
+}
+function homeHtml(){
+  var L=custRows().sort(function(a,b){return STATE_RANK[a.y.st]-STATE_RANK[b.y.st]||b.y.ratio-a.y.ratio});
+  var need=L.filter(function(x){return x.y.st==='เลยรอบ'||x.y.st==='ถึงรอบ'});
+  var cnt=function(k){return L.filter(function(x){return x.y.st===k}).length};
+  return '<div class="stats" style="grid-template-columns:1fr 1fr 1fr"><div class="stat"><span class="k">เลยรอบ</span><b>'+cnt('เลยรอบ')+'</b></div><div class="stat"><span class="k">ถึงรอบ</span><b>'+cnt('ถึงรอบ')+'</b></div><div class="stat"><span class="k">ใกล้ถึงรอบ</span><b>'+cnt('ใกล้ถึงรอบ')+'</b></div></div>'+
+    '<div class="count">ควรติดตาม '+need.length+' ร้าน (แสดง 60 ร้านแรก)</div>'+need.slice(0,60).map(rowHtml).join('')+'<div class="empty" style="display:'+(need.length?'none':'block')+'">ยังไม่มีร้านที่ถึงรอบ</div>';
+}
+function cycleHtml(){
+  var F=DB.xf&&DB.xf!=='all'?DB.xf:'all',L=custRows().filter(function(x){return F==='all'||x.y.st===F}).sort(function(a,b){return STATE_RANK[a.y.st]-STATE_RANK[b.y.st]||b.y.ratio-a.y.ratio});
+  var chips=['all','เลยรอบ','ถึงรอบ','ใกล้ถึงรอบ','ปกติ','ยังไม่มีรอบ'];
+  return '<div class="card" style="display:flex;gap:6px;flex-wrap:wrap">'+chips.map(function(k){return '<button class="btn'+(F===k?' pri':'')+'" onclick="xSetF(\''+k+'\')">'+(k==='all'?'ทั้งหมด':k)+'</button>'}).join('')+'</div>'+
+    '<div class="count">'+L.length+' ร้าน</div>'+L.slice(0,200).map(rowHtml).join('');
+}
+// งานติดตาม = นัดติดตามที่แอปใหม่สร้าง (กดเสร็จได้) + งานจากแท็บ tasks ของชีต (อ่านอย่างเดียว)
+function tasksHtml(){
+  var today=todayNum(),T=DB.xtask||'today';
+  var acts=DB.acts.filter(function(a){return a.type==='นัดติดตาม'}).map(function(a){var d=pd(a);return{kind:'act',id:a.activityId||a._raw[0],title:a.note||'นัดติดตาม',cid:a.customerId,due:dayNum(d.due),done:!!d.done}});
+  var sheet=(DB.stasks||[]).filter(function(r){return r._raw[0]&&r._raw[1]}).map(function(r){var st=String(r._raw[5]||'');return{kind:'sheet',id:r._raw[0],title:r._raw[3]||r._raw[2]||'งาน',cid:r._raw[1],due:dayNum(r._raw[4]),done:/^(done|เสร็จ)/i.test(st)}});
+  var all=acts.concat(sheet).map(function(x){x.c=custById(x.cid);return x});
+  var todayL=all.filter(function(x){return !x.done&&!isNaN(x.due)&&x.due<=today}).sort(function(a,b){return a.due-b.due});
+  var later=all.filter(function(x){return !x.done&&(isNaN(x.due)||x.due>today)}).sort(function(a,b){return a.due-b.due});
+  var done=all.filter(function(x){return x.done}).slice(-50).reverse();
+  var list={today:todayL,later:later,done:done}[T];
+  var tab=function(k,t,n){return '<button class="btn'+(T===k?' pri':'')+'" onclick="xSetTask(\''+k+'\')">'+t+' '+n+'</button>'};
+  var row=function(x){return '<div class="pr"><div style="min-width:0;flex:1"><div class="pn">'+esc(x.title)+'</div><div class="cm">'+esc(x.c?x.c.name:x.cid)+' · กำหนด '+(isNaN(x.due)?'-':fd(new Date(x.due*DAY).toISOString()))+(x.kind==='sheet'?' · จากแท็บ tasks':'')+'</div></div>'+(x.done?'<span class="pill g">เสร็จแล้ว</span>':x.kind==='act'?'<button class="btn" onclick="doneAct(\''+esc(x.id)+'\')">เสร็จแล้ว</button>':'<span class="cm">ปิดในแอปเดิม</span>')+'</div>'};
+  return '<div class="card" style="display:flex;gap:6px;flex-wrap:wrap">'+tab('today','วันนี้/เลยกำหนด',todayL.length)+tab('later','ถัดไป',later.length)+tab('done','เสร็จแล้ว',done.length)+'</div>'+
+    '<div class="card">'+(list.map(row).join('')||'<div class="empty">ไม่มีรายการ</div>')+'</div>';
+}
+function xSetTask(k){DB.xtask=k;renderX()}
+function checkinHtml(){
+  var c=DB.checkin;
+  if(!c)return '<div class="btns"><button class="btn pri" style="width:100%" onclick="xLocate()">เปิดตำแหน่งปัจจุบัน</button></div><div class="count" id="x_loc"></div>';
+  var L=DB.cust.filter(function(x){return x.gpsLat&&x.gpsLng&&isActive(x)}).map(function(x){return{c:x,d:dist(c.lat,c.lng,+x.gpsLat,+x.gpsLng)}}).sort(function(a,b){return a.d-b.d}).slice(0,30);
+  return '<div class="count">ตำแหน่งปัจจุบัน ±'+c.acc+' ม. · แสดง 30 ร้านที่ใกล้ที่สุดซึ่งมีพิกัด</div><div class="btns"><button class="btn" onclick="xLocate()">อัปเดตตำแหน่ง</button></div>'+
+    (L.length?L.map(function(x){return '<button class="crow" onclick="openCust(\''+esc(x.c.id)+'\')"><div style="min-width:0"><div class="cn">'+esc(x.c.name)+'</div><div class="cm">'+(x.d<1?Math.round(x.d*1000)+' ม.':x.d.toFixed(1)+' กม.')+' · '+esc(x.c.area||'')+'</div></div></button>'}).join(''):'<div class="empty">ไม่มีร้านที่มีพิกัด</div>');
+}
+function dist(a,b,c,d){var R=6371,t=Math.PI/180,x=(c-a)*t,y=(d-b)*t,q=Math.sin(x/2)*Math.sin(x/2)+Math.cos(a*t)*Math.cos(c*t)*Math.sin(y/2)*Math.sin(y/2);return 2*R*Math.asin(Math.sqrt(q))}
+function xLocate(){
+  var el=$('#x_loc');if(el)el.textContent='กำลังหาตำแหน่ง…';
+  getPos().then(function(p){
+    if(!p){DB.checkin=null;if(el)el.textContent='เปิดตำแหน่งไม่ได้ ตรวจว่าอนุญาตตำแหน่งให้เบราว์เซอร์แล้ว';return}
+    DB.checkin=p;renderX();
+  });
+}
+function billHtml(no){
+  var b=DB.bills.filter(function(x){return x.no===no})[0];if(!b)return '<div class="empty">ไม่พบบิล</div>';
+  var its=DB.items.filter(function(i){return i.billNo===no}),tot=its.reduce(function(s,i){return s+(Number(i.amount)||0)},0);
+  var c=custById(b.customerId);
+  return '<div class="card"><div class="ctitle">'+esc(b.no)+' · '+esc(c?c.name:b.customerName||b.customerId)+'</div>'+
+    '<div class="r"><span class="k">วันที่</span><span class="v">'+fd(b.date)+'</span></div>'+
+    '<div class="r"><span class="k">ผู้เปิดบิล</span><span class="v">'+esc(b.openedBy||'-')+'</span></div></div>'+
+    '<div class="card"><div class="ctitle">รายการ</div>'+its.map(function(i){return '<div class="pr"><div style="min-width:0;flex:1"><div class="pn">'+esc(i.name)+'</div><div class="cm">'+esc(i.code)+' · '+fm(i.price)+' × '+esc(i.qty)+'</div></div><b>'+fm(i.amount)+'</b></div>'}).join('')+
+    '<div class="r" style="margin-top:8px"><span class="k">รวม</span><span class="v"><b>'+fm(tot)+'</b></span></div></div>';
 }
 
 /* ---------- เริ่มทำงาน ---------- */
