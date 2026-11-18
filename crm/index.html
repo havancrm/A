@@ -109,8 +109,8 @@
     try { localStorage.setItem(KEY, JSON.stringify(state)); }
     catch (e) { toast("บันทึกในเครื่องไม่ได้ ข้อมูลอาจหายเมื่อปิดหน้า"); }
   }
-  // Every user change saves locally first, then goes to the cloud when signed in.
-  function saveState() { saveLocal(); cloudSync(); }
+  // Every user change is saved on this device only.
+  function saveState() { saveLocal(); }
 
   // ---------- data (built from the Sheet by tools/build_data.py) ----------
   var DATA = window.CRM_DATA || { customers: [], bills: [], products: [] };
@@ -646,9 +646,7 @@
         '<label class="f">นำเข้าไฟล์ JSON ที่เคยส่งออก (เพิ่มเฉพาะรายการที่ยังไม่มี)</label>' +
         '<input id="imp" type="file" accept="application/json,.json">' +
       "</div>" +
-      '<div class="card"><h2 style="margin-top:0">คลาวด์</h2><div id="cloudstat" class="muted"></div>' +
-        '<div class="row" id="cloudbtns" style="margin-top:10px"></div></div>' +
-      '<div class="card muted">ข้อมูลลูกค้าและบิลมาจากไฟล์ data/data.js ที่สร้างจากชีต A ด้วย tools/build_data.py ข้อมูลที่แก้ไขจะซิงก์กับ Firestore เมื่อล็อกอินและมีอินเทอร์เน็ต</div>'
+      '<div class="card muted">ข้อมูลลูกค้าและบิลมาจากไฟล์ data/data.js ที่สร้างจากชีต A ด้วย tools/build_data.py ข้อมูลที่แก้ไขเก็บอยู่ในเครื่องนี้เท่านั้น</div>'
     );
     $("#saveSet").addEventListener("click", function () {
       state.settings.user = $("#user").value.trim();
@@ -663,7 +661,6 @@
     $("#imp").addEventListener("change", function (e) {
       if (e.target.files && e.target.files[0]) importRecords(e.target.files[0]);
     });
-    renderCloudCard();
     $("#reset").addEventListener("click", function () {
       if (!confirm("ล้างการเยี่ยม งาน ร่างบิล และการแก้ไขลูกค้าทั้งหมดในเครื่องนี้ ?")) return;
       state = emptyState(); saveState(); whoami(); toast("ล้างแล้ว"); viewSettings();
@@ -671,113 +668,8 @@
   }
 
   function whoami() {
-    var name = state.settings.user || (cloud && cloud.user ? cloud.user.email : "");
+    var name = state.settings.user;
     $("#whoami").textContent = name ? "ผู้ใช้: " + name : "";
-  }
-
-  // ---------- cloud sync (Firebase Auth + Firestore, project acrm-havan) ----------
-  // The SDK loads from Google's CDN. If it cannot load, cloud stays null and the app works on this device only.
-  var FB_CONFIG = {
-    apiKey: "AIzaSyAz6BBfSrXfNeaDuooo7Ln1dkMlUDDmSfU",
-    authDomain: "acrm-havan.firebaseapp.com",
-    projectId: "acrm-havan",
-    storageBucket: "acrm-havan.firebasestorage.app",
-    messagingSenderId: "166924797657",
-    appId: "1:166924797657:web:d3f414846ce104532860c8"
-  };
-  var FB_BASE = "https://www.gstatic.com/firebasejs/10.12.2/";
-  var SYNC_COLS = { visits: "array", tasks: "array", orders: "array", customers: "map", newCustomers: "map" };
-  var cloud = null; // { fs, am, auth, db, user, last, unsubs, denied }
-
-  function entriesOf(coll) {
-    var s = state[coll], out = {};
-    if (SYNC_COLS[coll] === "array") s.forEach(function (x) { out[x.id] = x; });
-    else Object.keys(s).forEach(function (k) { out[k] = s[k]; });
-    return out;
-  }
-  function logErr(e) { console.warn("cloud:", e && e.message ? e.message : e); }
-
-  // Push only what changed since the last known remote state. Firestore queues writes while offline.
-  function cloudSync() {
-    if (!cloud || !cloud.user) return;
-    Object.keys(SYNC_COLS).forEach(function (coll) {
-      var cur = entriesOf(coll), prev = cloud.last[coll] || {}, next = {};
-      Object.keys(cur).forEach(function (id) {
-        var js = JSON.stringify(cur[id]);
-        next[id] = js;
-        if (prev[id] !== js) cloud.fs.setDoc(cloud.fs.doc(cloud.db, coll, id), JSON.parse(js)).catch(logErr);
-      });
-      Object.keys(prev).forEach(function (id) {
-        if (!(id in cur)) cloud.fs.deleteDoc(cloud.fs.doc(cloud.db, coll, id)).catch(logErr);
-      });
-      cloud.last[coll] = next;
-    });
-  }
-
-  // Remote is the source of truth once listening. Firestore's local cache already includes this device's pending writes.
-  function startListeners() {
-    cloud.unsubs.forEach(function (u) { u(); });
-    cloud.unsubs = [];
-    Object.keys(SYNC_COLS).forEach(function (coll) {
-      var unsub = cloud.fs.onSnapshot(cloud.fs.collection(cloud.db, coll), function (snap) {
-        var remote = {};
-        snap.forEach(function (d) { remote[d.id] = d.data(); });
-        state[coll] = SYNC_COLS[coll] === "array" ? Object.keys(remote).map(function (k) { return remote[k]; }) : remote;
-        var last = {};
-        Object.keys(remote).forEach(function (k) { last[k] = JSON.stringify(remote[k]); });
-        cloud.last[coll] = last;
-        cloud.denied = false;
-        saveLocal();
-      }, function (err) {
-        logErr(err);
-        if (err && err.code === "permission-denied") cloud.denied = true;
-        renderCloudCard();
-      });
-      cloud.unsubs.push(unsub);
-    });
-  }
-
-  function initCloud() {
-    return Promise.all([
-      import(FB_BASE + "firebase-app.js"),
-      import(FB_BASE + "firebase-auth.js"),
-      import(FB_BASE + "firebase-firestore.js")
-    ]).then(function (m) {
-      var app = m[0].initializeApp(FB_CONFIG);
-      var auth = m[1].getAuth(app);
-      var db = m[2].initializeFirestore(app, { localCache: m[2].persistentLocalCache() });
-      cloud = { fs: m[2], am: m[1], auth: auth, db: db, user: null, last: {}, unsubs: [], denied: false };
-      m[1].onAuthStateChanged(auth, function (user) {
-        cloud.user = user || null;
-        cloud.unsubs.forEach(function (u) { u(); });
-        cloud.unsubs = [];
-        if (user) { cloud.last = {}; cloudSync(); startListeners(); }
-        whoami(); renderCloudCard();
-      });
-    }).catch(function (e) { cloud = null; logErr(e); renderCloudCard(); });
-  }
-
-  function cloudSignIn() {
-    if (!cloud) return toast("ยังเชื่อมคลาวด์ไม่ได้ ตรวจการเชื่อมต่ออินเทอร์เน็ต");
-    cloud.am.signInWithRedirect(cloud.auth, new cloud.am.GoogleAuthProvider());
-  }
-  function cloudSignOut() { if (cloud) cloud.am.signOut(cloud.auth); }
-
-  function renderCloudCard() {
-    var el = document.getElementById("cloudstat"); if (!el) return;
-    var msg, btn = "";
-    if (!cloud) msg = "ยังไม่ได้เชื่อมคลาวด์ ข้อมูลเก็บในเครื่องนี้เท่านั้น";
-    else if (!cloud.user) { msg = "ยังไม่ได้ล็อกอิน ข้อมูลเก็บในเครื่องนี้เท่านั้น"; btn = '<button id="cin">เข้าสู่ระบบด้วย Google</button>'; }
-    else {
-      msg = "ล็อกอินเป็น " + (cloud.user.email || "-") + (cloud.denied
-        ? " · บัญชีนี้ยังไม่ได้รับสิทธิ์ ให้ผู้ดูแลเพิ่มอีเมลใน config/access"
-        : " · ซิงก์กับคลาวด์แล้ว");
-      btn = '<button class="ghost" id="cout">ออกจากระบบ</button>';
-    }
-    el.textContent = msg;
-    document.getElementById("cloudbtns").innerHTML = btn;
-    var a = document.getElementById("cin"); if (a) a.addEventListener("click", cloudSignIn);
-    var b = document.getElementById("cout"); if (b) b.addEventListener("click", cloudSignOut);
   }
 
   // ---------- boot ----------
@@ -785,7 +677,6 @@
   whoami();
   window.addEventListener("hashchange", route);
   route();
-  initCloud();
 })();
 </script>
 </body>
