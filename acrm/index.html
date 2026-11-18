@@ -503,7 +503,7 @@ function shareCust(){
   var c=cust(DB.cur);if(!c)return;
   var t=c.id+' · '+c.name+'\nเบอร์: '+(c.phone||'-')+'\nที่อยู่: '+(c.address||'-');
   if(navigator.share)navigator.share({title:'ข้อมูลลูกค้า',text:t}).catch(function(){});
-  else if(navigator.clipboard)navigator.clipboard.writeText(t).then(function(){toast('คัดลอกข้อมูลลูกค้าแล้ว')});
+  else if(navigator.clipboard)navigator.clipboard.writeText(t).then(function(){toast('คัดลอกข้อมูลลูกค้าแล้ว')},function(){toast('คัดลอกไม่ได้')});
 }
 
 /* ---------- ตั้งค่า ---------- */
@@ -708,13 +708,15 @@ function exportBackup(){
   document.body.appendChild(a);a.click();a.remove();
   toast('เตรียมไฟล์สำรองแล้ว');
 }
+// ผลโหลดที่มาช้าอาจมาถึงหลังผู้ใช้ออกจากหน้าแล้ว จึงเขียนเฉพาะเมื่อรายการยังอยู่บนจอ
+function setIf(id,html){var el=$(id);if(el)el.innerHTML=html}
 function loadAudit(){
   call({action:'get',range:'changes!A1:H'}).then(function(j){
     var v=j.values||[],rows=v.slice(1).reverse().slice(0,100);
-    $('#auditList').innerHTML=rows.length?'<div class="card">'+rows.map(function(r){
+    setIf('#auditList',rows.length?'<div class="card">'+rows.map(function(r){
       return '<div class="pr"><div style="min-width:0;flex:1"><div class="cn">'+esc(r[1])+' · '+esc(r[2])+'</div><div class="cm">'+fd(r[0])+' · '+esc(r[3])+'</div></div></div>';
-    }).join('')+'</div>':'<div class="empty">ยังไม่มีประวัติ</div>';
-  }).catch(function(e){$('#auditList').innerHTML='<div class="empty">โหลดไม่ได้: '+esc(e.message)+'</div>'});
+    }).join('')+'</div>':'<div class="empty">ยังไม่มีประวัติ</div>');
+  }).catch(function(e){setIf('#auditList','<div class="empty">โหลดไม่ได้: '+esc(e.message)+'</div>')});
 }
 function checkHtml(){
   var byPhone={};DB.cust.forEach(function(c){var p=String(c.phone||'').replace(/[^0-9]/g,'');if(p)(byPhone[p]=byPhone[p]||[]).push(c)});
@@ -747,7 +749,7 @@ function lastPrice(code){
 }
 function cartTotals(c){var pre=c.items.reduce(function(s,i){return s+i.q*i.p},0);var vat=c.vat==='VAT_OUT'?Math.round(pre*7)/100:0;return{pre:pre,vat:vat,tot:pre+vat,comm:Math.round(pre*loadRules().comm)/100}}
 function xHead(title,back,label){return '<div class="subh"><button class="back" onclick="'+back+'">‹ '+label+'</button></div><div class="bar" style="padding-top:4px"><b>'+esc(title)+'</b></div>'}
-function openX(v,a){DB.xv=v;DB.xa=a==null?null:a;if(v==='orders'||v==='map'||v==='pick')DB.xq='';show('x');renderX()}
+function openX(v,a){if(v==="orders")DB.xf="all";DB.xv=v;DB.xa=a==null?null:a;if(v==='orders'||v==='map'||v==='pick')DB.xq='';show('x');renderX()}
 function renderX(){
   var v=DB.xv,b='';
   if(v==='orders')b=ordersHtml();
@@ -878,7 +880,7 @@ function shrinkImg(file){return new Promise(function(res,rej){var img=new Image(
 function getPos(){return new Promise(function(res){if(!navigator.geolocation)return res(null);navigator.geolocation.getCurrentPosition(function(p){res({lat:p.coords.latitude,lng:p.coords.longitude,acc:Math.round(p.coords.accuracy)})},function(){res(null)},{enableHighAccuracy:true,timeout:8000,maximumAge:60000})})}
 function xPhoto(input,cid){
   var f=input.files&&input.files[0];if(!f)return;
-  var st=$('#x_pstat'),er=$('#x_perr');er.textContent='';st.textContent='กำลังบันทึกรูป…';
+  var st=$('#x_pstat'),er=$('#x_perr');if(er)er.textContent='';if(st)st.textContent='กำลังบันทึกรูป…';
   var pid='P-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),at=nowIso(),pos=null,b64=null;
   Promise.all([shrinkImg(f),getPos()]).then(function(r){b64=r[0];pos=r[1];
     return call({action:'photo',base64:b64,mime:'image/jpeg',name:pid+'.jpg',folder:PHOTO_DIR});
@@ -889,7 +891,7 @@ function xPhoto(input,cid){
     DB.xphotos.push({cid:cid,at:at,lat:g.lat===''?null:g.lat,lng:g.lng===''?null:g.lng});
     toast('บันทึกรูปแล้ว'+(g.lat===''?' (ไม่มีพิกัด)':''));
     renderX();
-  }).catch(function(e){st.textContent='';er.textContent='บันทึกรูปไม่สำเร็จ: '+e.message});
+  }).catch(function(e){if(st)st.textContent='';if(er)er.textContent='บันทึกรูปไม่สำเร็จ: '+e.message});
 }
 
 /* ---------- เริ่มทำงาน ---------- */
