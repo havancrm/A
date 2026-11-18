@@ -101,7 +101,7 @@ label.l{display:block;font-size:var(--fs2);color:var(--mu);margin:8px 0 3px}.er{
 .ch .ha a svg{display:none}
 .ch .ha a span{font-size:13px;line-height:1.1;font-weight:500}
 .ch .ha a.off{opacity:.45}
-.ch .pill{background:transparent!important;border:1px solid rgba(255,255,255,.4);color:#fff!important;border-radius:999px}
+.ch .pill{flex:none;background:transparent!important;border:1px solid currentColor;border-radius:999px}
 .seg{background:transparent;padding:0;border-radius:0;border-bottom:1px solid var(--ln);gap:0}
 .seg a{border-radius:0;background:none;color:var(--mu);padding:10px 2px;box-shadow:none}
 .seg a.on{background:none;color:var(--n);box-shadow:inset 0 -2px 0 var(--n)}
@@ -125,6 +125,20 @@ input,select,textarea{border-color:#cbd7e0;border-radius:10px}
 .nv{border-top-color:var(--ln)}.nv .fab i{box-shadow:0 0 0 4px #fff}
 a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid #9cc1e4;outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* ===== overflow fixes (audit 360/390px) ===== */
+.ch .nm{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.3}
+.ch .row{align-items:flex-start}
+.ha a span{white-space:nowrap}
+.kv{height:auto;min-height:40px;padding:6px 0}.kv>span{white-space:normal;max-width:58%;line-height:1.35}
+.kv .lk.ico,.sh .lk.ico{margin-right:-2px}
+.bk{min-height:40px}
+.pl{width:40px;height:40px}
+a.st{position:relative}a.st::after{content:'';position:absolute;left:0;right:0;top:-12px;bottom:-12px}
+.xc{width:36px;height:36px;margin-top:-18px}
+@media (max-width:375px){.c .g2:has(input){grid-template-columns:1fr}}
+@media (max-width:340px){.cr .acts .b.sm{padding:7px 4px;gap:3px}.cr .acts .b.sm .ic{width:16px;height:16px}}
+.b.sm{white-space:nowrap}
 </style></head><body><div id="app"></div>
 <script>
 'use strict';
@@ -535,7 +549,7 @@ function taskRow(t,note){return W_append('tasks',[[t.id,t.cid,'ติดตา�
 // =====================================================================
 // 13) ตัวเลือกแบบปุ่ม (ใช้ร่วมทุกฟอร์ม)
 // =====================================================================
-function pick(id,list,cur,multi,opt){var on=multi?(cur||[]):cur;return '<div class="chips" id="pk_'+id+'" data-m="'+(multi?1:0)+'" data-o="'+(opt?1:0)+'">'+list.map(function(x){var o=multi?on.indexOf(x)>-1:on===x;return '<button type="button" class="chip'+(o?' on':'')+'" data-a="pick" data-v="'+E(x)+'">'+E(x)+'</button>'}).join('')+'</div>'}
+function pick(id,list,cur,multi,opt){list=list||[];var on=multi?(cur||[]):cur;return '<div class="chips" id="pk_'+id+'" data-m="'+(multi?1:0)+'" data-o="'+(opt?1:0)+'">'+list.map(function(x){var o=multi?on.indexOf(x)>-1:on===x;return '<button type="button" class="chip'+(o?' on':'')+'" data-a="pick" data-v="'+E(x)+'">'+E(x)+'</button>'}).join('')+'</div>'}
 function pickVal(id){var w=document.getElementById('pk_'+id);if(!w)return '';var L=[].map.call(w.querySelectorAll('.chip.on'),function(b){return b.dataset.v});return w.dataset.m==='1'?L:(L[0]||'')}
 A.pick=function(v,el){var w=el.parentNode;if(w.dataset.m==='1'){el.classList.toggle('on');return}var was=el.classList.contains('on');[].forEach.call(w.children,function(b){b.classList.remove('on')});if(!(was&&w.dataset.o==='1'))el.classList.add('on');if(w.onpick)w.onpick(pickVal(w.id.slice(3)))};
 function photos(list,rm){return list.length?'<div class="ph">'+list.map(function(p,i){return '<div><img src="'+(p.img||'')+'" alt="รูป '+(i+1)+'" data-a="photo" data-v="'+i+'">'+(rm?'<button type="button" data-a="rmPhoto" data-v="'+i+'" aria-label="ลบรูป">×</button>':'')+'</div>'}).join('')+'</div>':''}
@@ -614,7 +628,7 @@ R.home=function(){var L=ranked(),need=L.filter(function(x){return x.y.rank<=2}),
  n=function(st){return need.filter(function(x){return x.y.st===st}).length};
  var row=function(n,cls,t,s,h){return '<a class="li" href="#'+h+'"><span class="pill '+cls+'" style="min-width:40px;text-align:center;font-size:var(--fs4)">'+n+'</span><span class="grow"><b>'+t+'</b><span class="t">'+s+'</span></span>'+ic('chev')+'</a>'};
  var todo=(due||wait)?(due?row(due,'p-amb','งานถึงกำหนด','โทรกลับ · นัดหมาย · ติดตาม','tasks'):'')+(wait?row(wait,'p-blu','ออเดอร์รอส่ง','แตะเพื่อดูรายการ','orders'):''):'<div class="t" style="padding:8px 0">ไม่มีงานค้างวันนี้</div>';
- page({body:srch('ค้นหาอัจฉริยะ  ชื่อ รหัส เบอร์ ป้าย เลขบิล เดือน')+'<div id="hs"></div>'
+ page({body:srch('ชื่อ รหัส เบอร์ ป้าย เลขบิล')+'<div id="hs"></div>'
   +sec('ต้องทำวันนี้','',todo)
   +'<div class="g4"><a class="ab p" href="#order">'+ic('cart')+'รับออเดอร์</a><a class="ab" href="#cycle">'+ic('clock')+'รอบลูกค้า</a><a class="ab" href="#map">'+ic('map')+'แผนที่</a><a class="ab" href="#cform/new">'+ic('plus')+'ร้านใหม่</a></div>'
   +'<a class="c row" href="#sales" style="background:var(--n);color:#fff"><span><span class="t" style="color:#c9d4ea">ยอดขาย '+ymLabel(cm)+' · ถึงวันที่ '+dn+'</span><br><b style="font-size:var(--fs6)">'+money(cur)+'</b></span><span class="t" style="color:#c9d4ea;text-align:right">เทียบ 1–'+dn+' '+MTH[+pm.slice(5,7)-1]+'<br>'+money(prev)+' ('+(pc>0?'+':'')+pc+'%)</span></a>'
@@ -629,7 +643,7 @@ R.home=function(){var L=ranked(),need=L.filter(function(x){return x.y.rank<=2}),
 R.customers=function(){var F=R.customers.f||'all',all=DB.customers.map(function(c){return{c:c,y:cyc(c.id)}}),
  grp={all:all,cur:all.filter(function(x){return x.c.status!=='closed'&&isActive(x.y)}),away:all.filter(function(x){return x.c.status!=='closed'&&!isActive(x.y)}),closed:all.filter(function(x){return x.c.status==='closed'})},q=R.customers.q||'';R.customers.q='';
  page({body:kpis([['all','ทั้งหมด',grp.all.length],['cur','ปัจจุบัน',grp.cur.length],['away','ห่างหาย',grp.away.length],['closed','เลิกกิจการ',grp.closed.length]],F,'flt')
-  +'<div class="t">ปัจจุบัน = ซื้อภายใน 1 ปี · ห่างหาย = เกิน 1 ปีหรือยังไม่เคยซื้อ</div>'+'<div class="row"><div class="grow">'+srch('ค้นหา ชื่อ / รหัส / เบอร์ / พื้นที่',q)+'</div><a class="b sm" href="#cform/new" style="min-height:46px">'+ic('plus')+'ร้านใหม่</a></div><div class="t" id="cn"></div><div id="ls" style="display:flex;flex-direction:column;gap:8px"></div>',
+  +'<div class="t">ปัจจุบัน = ซื้อภายใน 1 ปี · ห่างหาย = เกิน 1 ปีหรือยังไม่เคยซื้อ</div>'+'<div class="row"><div class="grow">'+srch('ชื่อ รหัส เบอร์ พื้นที่',q)+'</div><a class="b sm" href="#cform/new" style="min-height:46px">'+ic('plus')+'ร้านใหม่</a></div><div class="t" id="cn"></div><div id="ls" style="display:flex;flex-direction:column;gap:8px"></div>',
  on:{flt:function(v){R.customers.f=v;R.customers.n=60;route()},more:function(){R.customers.n=(R.customers.n||60)+60;R.customers.q=document.getElementById('q').value;rerender()}},
  after:function(){function list(){var q=document.getElementById('q').value.trim(),r=grp[F].filter(function(x){return !q||custMatch(x.c,q)}).sort(function(a,b){return (a.y.rank-b.y.rank)||((b.y.r||0)-(a.y.r||0))});
   var n=R.customers.n||60;document.getElementById('cn').textContent='พบ '+r.length+' จาก '+grp[F].length+' ร้าน · เรียงตามความเร่งด่วน';document.getElementById('ls').innerHTML=(r.slice(0,n).map(function(x){return custCard(x.c,x.y)}).join('')||'<div class="c">'+empty('ไม่พบร้าน')+'</div>')+(r.length>n?btn('แสดงเพิ่ม ('+(r.length-n)+' ร้าน)',null,'more',null,'o'):'')}
@@ -641,7 +655,7 @@ R.customers=function(){var F=R.customers.f||'all',all=DB.customers.map(function(
 // หัวหน้าลูกค้า 3 แบบ (ตามดีไซน์ A/B/C): ชื่อบรรทัดเดียว · ปุ่มติดต่อเป็นไอคอน ไม่มีกรอบหนัก
 function custHead(c,y,open,nC){var nm=E(c.id)+' '+E(c.name)+(c.alias?' <span class="t">('+E(c.alias)+')</span>':''),
  ed=tlink('แก้','edit','go','cform/'+c.id),
- A=[['โทร','phone',c.ph[0]?'tel:'+digits(c.ph[0]):'',0],[open?'กลับไปเข้าพบ':'บันทึกเข้าพบ','pin','#visit/'+c.id,0],['สร้างออเดอร์'+(nC?' ('+nC+')':''),'cart','#order/'+c.id,0],['แชร์','chat','#stmt/'+c.id,0],['นำทาง','nav',c.lat||c.addr?mapUrl(c):'',1]],
+ A=[['โทร','phone',c.ph[0]?'tel:'+digits(c.ph[0]):'',0],[open?'เข้าพบต่อ':'เข้าพบ','pin','#visit/'+c.id,0],['ออเดอร์'+(nC?' ('+nC+')':''),'cart','#order/'+c.id,0],['แชร์','chat','#stmt/'+c.id,0],['นำทาง','nav',c.lat||c.addr?mapUrl(c):'',1]],
  acts=function(cls){return '<div class="ha '+cls+'">'+A.map(function(a){return '<a'+(a[2]?' href="'+a[2]+'"'+(a[3]?' target="_blank" rel="noopener"':''):' class="off"')+'>'+ic(a[1])+'<span>'+a[0]+'</span></a>'}).join('')+'</div>'};
  var pe='<span style="display:flex;align-items:center;gap:2px;flex:none">'+pill(y.lbl,y.cls)+ed+'</span>';
  return '<div class="c ch"><div class="row"><span class="nm">'+nm+'</span>'+pe+'</div>'+(c.type?'<div class="t" style="margin-top:2px">'+E(c.type)+'</div>':'')+acts('')+'</div>'}
@@ -699,19 +713,19 @@ R.cform=function(a){var isNew=a[0]==='new',c=isNew?{id:'',name:'',alias:'',type:
  var O=DB.opts,shot=null;
  c._ph0=c.ph.slice();page({back:isNew?'customers':'cust/'+c.id,bl:'ยกเลิก',title:isNew?'ลูกค้าใหม่':'แก้ไขข้อมูลร้าน',right:isNew?'กรอกชื่อกับเบอร์ก็บันทึกได้':'',body:'<div class="c">'
   +field('name','ชื่อร้าน *',{v:c.name,at:'autocomplete="off" placeholder="เช่น ร้านนวดสุขใจ"'})
-  +'<div class="g2">'+field('ph1','เบอร์โทร *',{v:c.ph[0],at:'type="tel" inputmode="tel" placeholder="08x-xxx-xxxx"'})+field('area','พื้นที่',{v:c.area,at:'list="dl_area" placeholder="เช่น นนทบุรี"'})+'</div><div id="dup"></div>'
+  +'<div class="g2">'+field('ph1','เบอร์โทร *',{v:c.ph[0],at:'type="tel" inputmode="tel" placeholder="08xxxxxxxx"'})+field('area','พื้นที่',{v:c.area,at:'list="dl_area" placeholder="เช่น นนทบุรี"'})+'</div><div id="dup"></div>'
   +'<datalist id="dl_area">'+O['พื้นที่'].map(function(x){return '<option value="'+E(x)+'">'}).join('')+'</datalist>'
   +'<label class="l">ประเภทร้าน</label>'+pick('type',O['ประเภทธุรกิจ'],c.type,false,true)
   +'<label class="l">วิธีชำระ</label>'+pick('pay',O['วิธีชำระ'],c.pay)
   +'<label class="l">เงื่อนไข VAT</label>'+pick('vat',O['เงื่อนไข VAT'],c.vat)
-  +'<div class="g2">'+field('owner','ผู้ติดต่อ',{v:c.owner})+field('closed','วันหยุดร้าน',{v:c.closed,at:'placeholder="เช่น หยุดวันจันทร์"'})+'</div>'
+  +'<div class="g2">'+field('owner','ผู้ติดต่อ',{v:c.owner})+field('closed','วันหยุดร้าน',{v:c.closed,at:'placeholder="เช่น ปิดจันทร์"'})+'</div>'
   +field('addr','ที่อยู่ / เส้นทาง',{v:c.addr,area:1,at:'rows="2"'})
   +'<label class="l">ตำแหน่งร้าน (ใส่ทีหลังได้)</label><button type="button" class="cap" data-a="cap">'+ic('cam')+'<span id="capt">'+(c.lat?'มีพิกัดแล้ว · ถ่ายใหม่':'ถ่ายรูปหน้าร้าน + พิกัด')+'<small>กดครั้งเดียว ได้ทั้งรูปและพิกัด</small></span></button>'
   +field('ll','หรือวางพิกัด / ลิงก์ Google Maps',{v:c.lat?c.lat+', '+c.lng:'',at:'inputmode="decimal" placeholder="13.7563, 100.5018"'})
   +field('note','หมายเหตุ',{v:c.note,area:1,at:'rows="2"'})
   +'<div class="g2">'+field('lineId','ID LINE',{v:c.lineId,at:'autocomplete="off"'})+field('birthday','วันเกิด',{v:c.birthday,at:'type="date"'})+'</div>'
   +'<label class="l">ใบเสร็จรับเงิน</label>'+pick('rcpt',['ไม่ต้องการ','ต้องการ'],c.rcpt?'ต้องการ':'ไม่ต้องการ')
-  +field('taxName','ชื่อออกใบกำกับภาษี',{v:c.taxName})+field('taxAddr','ที่อยู่ออกใบกำกับภาษี',{v:c.taxAddr,area:1,at:'rows="2"'})+'<div class="g2">'+field('taxBranch','สาขา',{v:c.taxBranch,at:'placeholder="สำนักงานใหญ่ / 00001"'})+field('taxId','เลขผู้เสียภาษี',{v:c.taxId,at:'inputmode="numeric"'})+'</div>'
+  +field('taxName','ชื่อออกใบกำกับภาษี',{v:c.taxName})+field('taxAddr','ที่อยู่ออกใบกำกับภาษี',{v:c.taxAddr,area:1,at:'rows="2"'})+'<div class="g2">'+field('taxBranch','สาขา',{v:c.taxBranch,at:'placeholder="เช่น 00000"'})+field('taxId','เลขผู้เสียภาษี',{v:c.taxId,at:'inputmode="numeric"'})+'</div>'
   +field('docNote','หมายเหตุเอกสาร',{v:c.docNote,area:1,at:'rows="2"'})
   +'<details style="margin-top:8px"><summary class="lk" style="padding:10px 0;margin:0">ข้อมูลเพิ่มเติม</summary>'+'<div class="g2">'+field('ph2','เบอร์ 2',{v:c.ph[1],at:'type="tel" inputmode="tel"'})+field('alias','คำเรียกพิเศษ',{v:c.alias})+'</div>'
   +'<label class="l">ที่มาของร้าน</label>'+pick('src',O['ที่มาของร้าน'],c.src,false,true)+'</details></div>',
@@ -792,7 +806,7 @@ function nearby(){return DB.customers.filter(function(c){return c.lat&&c.status!
 function locate(){toast('กำลังหาตำแหน่ง…');getGps(function(g){if(g){HERE=g;rerender()}})}
 R.map=function(){var F=R.map.f||'all',N0=nearby(),N=N0.filter(function(x){return F==='due'?cyc(x.c.id).rank<=2:F==='near'?(x.d!=null&&x.d<=5):true}),RT=DB.cfg.route=(DB.cfg.route||[]).filter(cust),LG=legKm(RT,HERE),noLL=DB.customers.filter(function(c){return !c.lat}).length,u=routeUrl(RT);
  page({title:'แผนที่ / เส้นทาง',back:'home',bl:'หน้าหลัก',body:'<div class="c row"><span class="grow"><b>'+(HERE?'ตำแหน่งปัจจุบัน ±'+HERE.acc+' ม.':'ยังไม่ได้เปิดตำแหน่ง')+'</b><span class="t">มีพิกัด '+N0.length+' ร้าน · ยังไม่มี '+noLL+' ร้าน (เก็บได้ตอนเข้าพบ)</span></span>'+btn(HERE?'อัปเดต':'เปิด GPS','pin','loc',null,'sm')+'</div>'
-  +'<div class="g2">'+btn('จัดเส้นทางอัตโนมัติ','pin','auto',null,'')+btn('เรียงตามระยะ','up','sortRt',null,'o')+'</div>'+sec('เส้นทางวันนี้ ('+RT.length+')'+(LG.tot?' · ~'+LG.tot.toFixed(1)+' กม.':''),RT.length?tlink('ล้าง','trash','clr'):'',RT.length?RT.map(function(id,i){var c=cust(id),y=cyc(id);return '<div class="li"><span class="pill p-blu">'+(i+1)+'</span><span class="grow"><b>'+E(c.name)+'</b><span class="t">'+(LG.legs[i]!=null?'+'+LG.legs[i].toFixed(1)+' กม. · ':'')+E(y.lbl)+'</span></span>'+(i?'<button class="pl" data-a="up" data-v="'+i+'" aria-label="เลื่อนขึ้น">'+ic('up')+'</button>':'')+'<button class="pl" data-a="rm" data-v="'+i+'" aria-label="เอาออก">'+ic('x')+'</button></div>'}).join(''):empty('แตะ + ที่ร้านด้านล่างเพื่อใส่เส้นทาง'))
+  +'<div class="g2">'+btn('จัดเส้นทาง','pin','auto',null,'')+btn('เรียงตามระยะ','up','sortRt',null,'o')+'</div>'+sec('เส้นทางวันนี้ ('+RT.length+')'+(LG.tot?' · ~'+LG.tot.toFixed(1)+' กม.':''),RT.length?tlink('ล้าง','trash','clr'):'',RT.length?RT.map(function(id,i){var c=cust(id),y=cyc(id);return '<div class="li"><span class="pill p-blu">'+(i+1)+'</span><span class="grow"><b>'+E(c.name)+'</b><span class="t">'+(LG.legs[i]!=null?'+'+LG.legs[i].toFixed(1)+' กม. · ':'')+E(y.lbl)+'</span></span>'+(i?'<button class="pl" data-a="up" data-v="'+i+'" aria-label="เลื่อนขึ้น">'+ic('up')+'</button>':'')+'<button class="pl" data-a="rm" data-v="'+i+'" aria-label="เอาออก">'+ic('x')+'</button></div>'}).join(''):empty('แตะ + ที่ร้านด้านล่างเพื่อใส่เส้นทาง'))
   +(u?lnk('เปิดเส้นทางใน Google Maps','nav',u,'',true):'')+(RT.length>9?'<div class="note w">Google Maps รับจุดแวะได้ไม่เกิน 9 จุด · จุดที่เกินอาจไม่แสดง</div>':'')
   +chips([['all','ทั้งหมด'],['due','ถึงรอบ'],['near','ใน 5 กม.']],F,'mf')+sec(HERE?'ร้านใกล้ฉัน':'ร้านที่มีพิกัด',' ('+N.length+')',N.slice(0,60).map(function(x){var inR=RT.indexOf(x.c.id)>-1;return '<div class="li"><span class="grow" data-a="go" data-v="cust/'+x.c.id+'"><b>'+E(x.c.name)+'</b><span class="t">'+(x.d!=null?x.d.toFixed(1)+' กม. · ':'')+E(x.c.area||'')+' · '+E(cyc(x.c.id).lbl)+'</span></span><a class="pl" href="'+mapUrl(x.c)+'" target="_blank" rel="noopener" aria-label="นำทาง">'+ic('nav')+'</a>'+(inR?'':'<button class="pl" data-a="add" data-v="'+x.c.id+'" aria-label="ใส่เส้นทาง">'+ic('plus')+'</button>')+'</div>'}).join('')||empty('ยังไม่มีร้านที่มีพิกัด')),
  on:{loc:locate,mf:function(v){R.map.f=v;route()},auto:function(){var run=function(){var L=nnOrder(autoPick(),HERE);if(!L.length)return toast('ไม่มีร้านที่ถึงรอบและมีพิกัด');RT.length=0;Array.prototype.push.apply(RT,L);save();rerender()};if(HERE)run();else getGps(function(g){if(g)HERE=g;run()},true)},sortRt:function(){var L=nnOrder(RT.slice(),HERE);RT.length=0;Array.prototype.push.apply(RT,L);save();rerender()},add:function(id){RT.push(id);save();rerender()},rm:function(i){RT.splice(+i,1);save();rerender()},up:function(i){i=+i;var t=RT[i];RT[i]=RT[i-1];RT[i-1]=t;save();rerender()},clr:function(){RT.length=0;save();rerender()}}})};
@@ -839,7 +853,7 @@ R.order=function(a){if(!a[0]){return page({title:'รับออเดอร์
 // =====================================================================
 R.orders=function(){var F=R.orders.f||'all',A_=DB.orders,cnt=function(s){return A_.filter(function(o){return o.st===s}).length},S=A_.filter(function(o){return F==='all'||o.st===F});
  page({body:'<div class="g2">'+lnk('รับออเดอร์','plus','#order')+lnk('บิลขาย','doc','#bills','o')+'</div>'+kpis([['all','ทั้งหมด',A_.length],['รอส่ง','รอส่ง',cnt('รอส่ง')],['ส่งแล้ว','ส่งแล้ว',cnt('ส่งแล้ว')],['ยกเลิก','ยกเลิก',cnt('ยกเลิก')]],F,'flt')
-  +srch('ค้นหา เลขออเดอร์ / รหัส / ชื่อร้าน')+'<div class="t" id="cn"></div><div id="ls" style="display:flex;flex-direction:column;gap:8px"></div>',
+  +srch('เลขออเดอร์ รหัส ชื่อร้าน')+'<div class="t" id="cn"></div><div id="ls" style="display:flex;flex-direction:column;gap:8px"></div>',
  on:{flt:function(v){R.orders.f=v;route()}},
  after:function(){function l(){var q=document.getElementById('q').value.trim().toLowerCase(),r=S.filter(function(o){var c=cust(o.cid);return !q||(o.no+' '+o.cid+' '+(c?c.name:'')).toLowerCase().indexOf(q)>-1});
   document.getElementById('cn').textContent='แสดง '+r.length+' จาก '+A_.length+' ออเดอร์';document.getElementById('ls').innerHTML=r.map(orderCard).join('')||'<div class="c">'+empty('ไม่พบออเดอร์')+'</div>'}onInput('#q',l);l()}})};
@@ -853,7 +867,7 @@ R.odet=function(a){var o=one(DB.orders,'no',a[0]);if(!o)return go('orders',true)
   sent:function(){o.st='ส่งแล้ว';o.log.push({at:now(),t:'ส่งของแล้ว'});commit('ออเดอร์','ส่งแล้ว '+o.no,o.no,[W_row('orders',o.no,'P',{9:'ส่งแล้ว',15:iso()})]);rerender()},
   cancel:function(){ask('ยกเลิกออเดอร์ '+o.no,field('rs','เหตุผล *',{}),'ยืนยันยกเลิก',function(){var r=val('rs');if(!r){document.getElementById('e_rs').textContent='ต้องระบุเหตุผล';return false}o.st='ยกเลิก';o.log.push({at:now(),t:'ยกเลิก · '+r});commit('ออเดอร์','ยกเลิก '+o.no+' · '+r,o.no,[W_row('orders',o.no,'P',{9:'ยกเลิก',11:(o.note?o.note+' · ':'')+'ยกเลิก: '+r,15:iso()})]);rerender()},true)}}})};
 R.bills=function(){var ms=[];DB.bills.forEach(function(b){var m=b.d.slice(0,7);if(ms.indexOf(m)<0)ms.push(m)});ms.sort().reverse();var m=ms.indexOf(R.bills.m)>-1?R.bills.m:ms[0],L=DB.bills.filter(function(b){return b.d.slice(0,7)===m}).sort(by('d',true));
- page({title:'บิลขาย',back:'orders',bl:'ออเดอร์',body:srch('ค้นหา เลขบิล / รหัส / ชื่อร้าน / เบอร์ (ทุกเดือน)')+'<div id="bm">'+chips(ms.map(function(x){return[x,ymLabel(x)]}),m,'mon',true)+'<div class="t">'+L.length+' บิล · '+money(L.reduce(function(s,b){return s+bt(b)},0))+' บาท</div>'+L.slice(0,R.bills.n||40).map(function(b){return billCard(b,true)}).join('')+(L.length>(R.bills.n||40)?btn('แสดงเพิ่ม ('+(L.length-(R.bills.n||40))+' บิล)',null,'more',null,'o'):'')+'</div><div id="bs" style="display:none"></div>',
+ page({title:'บิลขาย',back:'orders',bl:'ออเดอร์',body:srch('เลขบิล รหัส ชื่อร้าน เบอร์')+'<div id="bm">'+chips(ms.map(function(x){return[x,ymLabel(x)]}),m,'mon',true)+'<div class="t">'+L.length+' บิล · '+money(L.reduce(function(s,b){return s+bt(b)},0))+' บาท</div>'+L.slice(0,R.bills.n||40).map(function(b){return billCard(b,true)}).join('')+(L.length>(R.bills.n||40)?btn('แสดงเพิ่ม ('+(L.length-(R.bills.n||40))+' บิล)',null,'more',null,'o'):'')+'</div><div id="bs" style="display:none"></div>',
  on:{mon:function(v){R.bills.m=v;R.bills.n=40;route()},more:function(){R.bills.n=(R.bills.n||40)+40;rerender()}},
  after:function(){onInput('#q',function(){var q=this.value.trim().toLowerCase(),bm=document.getElementById('bm'),bs=document.getElementById('bs');if(!q){bm.style.display='';bs.style.display='none';return}
   var r=DB.bills.filter(function(b){var c=cust(b.cid);return String(b.no).toLowerCase().indexOf(q)>-1||String(b.cid).toLowerCase().indexOf(q)>-1||(c&&custMatch(c,q))}).sort(by('d',true));
