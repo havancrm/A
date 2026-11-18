@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#1B2F57"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="ART CRM">
+<meta name="theme-color" content="#19334e"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="ART CRM">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap">
 <title>ART CRM — โปรเจกต์ a</title>
 <style>
 /* ===== โทเคน ===== */
-:root{--n:#1B2F57;--n2:#0A2A66;--bg:#EDF1F8;--card:#fff;--ink:#1B1F2A;--mu:#5B6474;--ln:#D8E0EC;--ln2:#EEF1F6;--soft:#E3E9F5;--red:#A11D1D;--grn:#17603A;--amb:#8A5A00;--r:12px;--fs1:11px;--fs2:12px;--fs3:14px;--fs4:16px;--fs5:18px;--fs6:22px}
+:root{--n:#19334e;--n2:#294965;--bg:#f6f8fa;--card:#fff;--ink:#24374a;--mu:#66798b;--ln:#dce4eb;--ln2:#edf2f6;--soft:#edf2f6;--acc:#365b7d;--red:#A11D1D;--grn:#17603A;--amb:#8A5A00;--r:13px;--fs1:11px;--fs2:12px;--fs3:14px;--fs4:16px;--fs5:18px;--fs6:22px}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;height:100dvh;background:#cfd6e4;font-family:"Sarabun","Noto Sans Thai",system-ui,sans-serif;color:var(--ink);font-size:var(--fs3);-webkit-text-size-adjust:100%;touch-action:manipulation}
+html,body{margin:0;height:100%;height:100dvh;background:#e4e9ee;font-family:"Sarabun","Noto Sans Thai",system-ui,sans-serif;color:var(--ink);font-size:var(--fs3);-webkit-text-size-adjust:100%;touch-action:manipulation}
 a{color:inherit;text-decoration:none}button,input,select,textarea{font:inherit;color:inherit}
 #app{max-width:480px;height:100%;margin:0 auto;background:var(--bg);display:flex;flex-direction:column;position:relative;overflow:hidden}
 .ic{width:20px;height:20px;flex:none}
@@ -22,7 +22,7 @@ a{color:inherit;text-decoration:none}button,input,select,textarea{font:inherit;c
 .bd{flex:1;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:10px 12px 12px;display:flex;flex-direction:column;gap:8px;scrollbar-width:none}.bd::-webkit-scrollbar{display:none}
 .top{display:flex;align-items:center;gap:8px;min-height:36px}.top h1{font-size:var(--fs4);margin:0;flex:1;min-width:0}.top .t{flex:none}
 .bk{display:inline-flex;align-items:center;gap:2px;background:#fff;border:1px solid var(--ln);border-radius:12px;padding:6px 10px 6px 6px;font-weight:700;color:var(--n);flex:none;max-width:55%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.bk .ic{width:18px;height:18px}
-.act{position:sticky;bottom:-12px;margin:4px -12px -12px;padding:10px 12px 12px;background:linear-gradient(rgba(237,241,248,0),var(--bg) 22%);display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px;z-index:3}
+.act{position:sticky;bottom:-12px;margin:4px -12px -12px;padding:10px 12px 12px;background:var(--bg);border-top:1px solid var(--ln);display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px;z-index:3}
 .nv{flex:none;position:relative;z-index:5;background:#fff;border-top:1px solid var(--ln);display:flex;align-items:flex-end;padding-bottom:max(4px,env(safe-area-inset-bottom))}
 .nv a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:var(--fs1);color:var(--mu);padding:8px 0 4px;min-height:54px;position:relative;cursor:pointer}.nv a .ic{width:22px;height:22px}
 .nv a.on{color:var(--n);font-weight:700}.nv a.on::before{content:'';position:absolute;top:-1px;left:16%;right:16%;height:3px;background:var(--n);border-radius:0 0 3px 3px}
@@ -94,23 +94,37 @@ label.l{display:block;font-size:var(--fs2);color:var(--mu);margin:8px 0 3px}.er{
 .mod{position:absolute;inset:0;z-index:20;background:rgba(15,22,38,.5);display:flex;align-items:flex-end}.mod>div{background:#fff;width:100%;max-height:88%;overflow:auto;border-radius:18px 18px 0 0;padding:16px 14px max(14px,env(safe-area-inset-bottom))}
 .mod.full{align-items:flex-start;background:#fff;overflow:auto}.mod.full>div{border-radius:0;padding:0;width:900px;max-width:none;max-height:none}
 #toast{position:absolute;left:12px;right:12px;bottom:86px;z-index:30;background:#1f2533;color:#fff;border-radius:12px;padding:12px 14px;font-size:var(--fs3);display:none}
-.ctw{padding:0}.ctl{font-size:var(--fs2);font-weight:600;color:var(--navy,#1f2e5a);background:#eaeef7;padding:5px 14px}.ctr{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line,#e3e8f3)}.ctr>a.row{flex:1;min-width:0;align-items:center;gap:10px}.ctr .grow{min-width:0}.ctr .nm,.ctr .t{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.nb{background:#f3f5fa;border-radius:8px;padding:8px 10px;margin:6px 0;white-space:pre-wrap}.nb .t{display:block}.cav{width:40px;height:40px;border-radius:50%;background:#dbe4f7;color:#1f2e5a;display:flex;align-items:center;justify-content:center;font-size:var(--fs3);font-weight:600;flex:none}.cl{width:44px;height:44px;border-radius:50%;background:#1f2e5a;color:#fff;display:flex;align-items:center;justify-content:center;flex:none}.cl.off{background:#d5dbe8}.cl .ic{width:20px;height:20px}
+.ctw{padding:0}.ctl{font-size:var(--fs2);font-weight:600;color:var(--n);background:var(--soft);padding:5px 14px}.ctr{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--ln)}.ctr>a.row{flex:1;min-width:0;align-items:center;gap:10px}.ctr .grow{min-width:0}.ctr .nm,.ctr .t{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.nb{background:#f3f5fa;border-radius:8px;padding:8px 10px;margin:6px 0;white-space:pre-wrap}.nb .t{display:block}.cav{width:40px;height:40px;border-radius:50%;background:var(--soft);color:var(--n);display:flex;align-items:center;justify-content:center;font-size:var(--fs3);font-weight:600;flex:none}.cl{width:44px;height:44px;border-radius:50%;background:var(--n);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}.cl.off{background:#d5dbe8}.cl .ic{width:20px;height:20px}
 /* customer page polish: quieter header, text-only quick actions, underline tabs */
 .ch .ha{gap:6px}
-.ch .ha a{min-height:38px;padding:8px 2px;justify-content:center;background:#F4F6FA;border:0;border-radius:10px;box-shadow:none}
+.ch .ha a{min-height:38px;padding:8px 2px;justify-content:center;background:var(--soft);border:0;border-radius:10px;box-shadow:none}
 .ch .ha a svg{display:none}
 .ch .ha a span{font-size:13px;line-height:1.1;font-weight:500}
 .ch .ha a.off{opacity:.45}
 .ch .pill{background:transparent!important;border:1px solid rgba(255,255,255,.4);color:#fff!important;border-radius:999px}
-.seg{background:transparent;padding:0;border-radius:0;border-bottom:1px solid #E1E6EF;gap:0}
-.seg a{border-radius:0;background:none;color:#5B6474;padding:10px 2px;box-shadow:none}
-.seg a.on{background:none;color:#1B2F57;box-shadow:inset 0 -2px 0 #1B2F57}
+.seg{background:transparent;padding:0;border-radius:0;border-bottom:1px solid var(--ln);gap:0}
+.seg a{border-radius:0;background:none;color:var(--mu);padding:10px 2px;box-shadow:none}
+.seg a.on{background:none;color:var(--n);box-shadow:inset 0 -2px 0 var(--n)}
 
 /* edit form polish: calm labels, flat field borders, navy focus */
-label.l{font-weight:600;color:#1B2F57;margin:12px 0 4px;font-size:13px}
-input,select,textarea{border:1px solid #D8E0EC;border-radius:10px;background:#fff;min-height:44px}
-input:focus,select:focus,textarea:focus{outline:none;border-color:#1B2F57;box-shadow:0 0 0 3px rgba(27,47,87,.12)}
-.c{box-shadow:none;border:1px solid #E1E6EF;padding:12px 14px}
+label.l{font-weight:600;color:var(--n);margin:12px 0 4px;font-size:13px}
+input,select,textarea{border:1px solid var(--ln);border-radius:10px;background:#fff;min-height:44px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--n);box-shadow:0 0 0 3px rgba(27,47,87,.12)}
+.c{box-shadow:none;border:1px solid var(--ln);padding:12px 14px}
+
+/* ===== A handoff theme: flat navy/white/paper, thin borders, one focus ring ===== */
+body{line-height:1.5}
+.c,.sec,.fd,.kp{border:1px solid var(--ln)}
+.cr{border:1px solid var(--ln);border-left-width:3px}
+.b{border-radius:10px}.b.o{border-color:var(--ln)}
+.chip{border-radius:10px}.chip.on{background:var(--n);border-color:var(--n)}
+.bk{border-radius:10px}
+.note.i{background:var(--soft);color:var(--n2);border-left:3px solid var(--acc);border-radius:10px}
+input,select,textarea{border-color:#cbd7e0;border-radius:10px}
+.hb{background:var(--n)}
+.nv{border-top-color:var(--ln)}.nv .fab i{box-shadow:0 0 0 4px #fff}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid #9cc1e4;outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 </style></head><body><div id="app"></div>
 <script>
 'use strict';
@@ -1090,7 +1104,7 @@ R.ttx=function(){txRestore();var K=txCounts(),T=TX.tab,L=T==='b'?TX.bills:TX.cus
 function txUndo(){if(!Sheet.api())return toast('ต้องเชื่อมผ่าน Apps Script ก่อน (ตั้งค่า › เชื่อมชีต A)');
  toast('กำลังอ่านชุดนำเข้า…');Sheet.get('IMPORT_BATCHES!A2:J').then(function(v){var L=v.filter(function(r){return r[2]==='bills'&&r[7]!=='undone'}).slice(-8).reverse();
   if(!L.length)return toast('ไม่มีชุดบิลที่ยกเลิกได้');
-  modal('<div class="c"><b>ยกเลิกชุดบิลที่นำเข้า</b><div class="t">ลบเฉพาะบิลและรายการสินค้าที่นำเข้าในชุดนั้น · ใช้ได้เมื่ออัปเดต Apps Script เป็นเวอร์ชันล่าสุดแล้ว</div>'+L.map(function(r,i){return '<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line,#e3e8f3);align-items:center;gap:8px"><span class="grow"><b>'+E(r[0])+'</b><span class="t">'+E(String(r[8]||'').slice(0,90))+'</span></span><button type="button" class="b sm d" data-u="'+i+'">ยกเลิก</button></div>'}).join('')+'<div style="margin-top:10px"><button type="button" class="b o" data-a="close">ปิด</button></div></div>');
+  modal('<div class="c"><b>ยกเลิกชุดบิลที่นำเข้า</b><div class="t">ลบเฉพาะบิลและรายการสินค้าที่นำเข้าในชุดนั้น · ใช้ได้เมื่ออัปเดต Apps Script เป็นเวอร์ชันล่าสุดแล้ว</div>'+L.map(function(r,i){return '<div class="row" style="padding:8px 0;border-bottom:1px solid var(--ln);align-items:center;gap:8px"><span class="grow"><b>'+E(r[0])+'</b><span class="t">'+E(String(r[8]||'').slice(0,90))+'</span></span><button type="button" class="b sm d" data-u="'+i+'">ยกเลิก</button></div>'}).join('')+'<div style="margin-top:10px"><button type="button" class="b o" data-a="close">ปิด</button></div></div>');
   var m=document.querySelector('.mod')||document.body;
   m.addEventListener('click',function(e){var b=e.target.closest('[data-u]');if(!b)return;var r=L[+b.dataset.u];b.disabled=true;b.textContent='กำลังลบ…';
    Sheet.rpc('undobatch',{batchId:r[0],stamp:r[1]}).then(function(j){var nos={};(j.nos||[]).forEach(function(n){nos[String(n)]=1});DB.bills=DB.bills.filter(function(x){return !nos[String(x.no)]});save();reindex();b.textContent='ลบแล้ว '+j.bills+' บิล';toast('ยกเลิกชุด '+r[0]+' · ลบ '+j.bills+' บิล '+j.items+' รายการ')},function(e){b.disabled=false;b.textContent='ยกเลิก';toast(e&&e.message==='unknown action'?'ต้องอัปเดต Code.gs ใน Apps Script แล้ว deploy ใหม่ก่อน':'ลบไม่สำเร็จ: '+(e&&e.message))})})},function(e){toast(Sheet.errText(e))})}
@@ -1141,12 +1155,12 @@ function txGuess(n){n=String(n||'');var T=DB.opts['ประเภทธุร�
 function txTypeReview(L,go){var T=DB.opts['ประเภทธุรกิจ']||[],F='unk',st=0;L.forEach(function(x){if(x.type==null){x.type=txGuess(x.name);x.guess=x.type}});
  var opt=function(v,ph){return '<option value="">'+(ph||'เลือก...')+'</option>'+T.map(function(t){return '<option'+(t===v?' selected':'')+'>'+E(t)+'</option>'}).join('')};
  var unk=function(){return L.filter(function(x){return !x.type}).length},chg=function(){return L.filter(function(x){return x.type!==x.guess}).length};
- modal('<div style="background:#1f2e5a;color:#fff;margin:-16px -16px 10px;padding:12px 14px;font-weight:600;font-size:var(--fs4)">ตรวจประเภทร้านก่อนนำเข้า</div><div class="t" id="tyi"></div><div id="tyc" style="margin:8px 0"></div><div class="row" style="margin:6px 0"><span class="t grow">ตั้งทุกร้านที่ยังไม่เลือกเป็น</span><select id="tyb">'+opt('','เลือก...')+'</select></div><div id="tyl" style="max-height:48vh;overflow:auto"></div><div class="g2" style="margin-top:10px"><button type="button" class="b o" id="tyx">ยกเลิก</button><button type="button" class="b" id="tyg"></button></div>',true);
+ modal('<div style="background:var(--n);color:#fff;margin:-16px -16px 10px;padding:12px 14px;font-weight:600;font-size:var(--fs4)">ตรวจประเภทร้านก่อนนำเข้า</div><div class="t" id="tyi"></div><div id="tyc" style="margin:8px 0"></div><div class="row" style="margin:6px 0"><span class="t grow">ตั้งทุกร้านที่ยังไม่เลือกเป็น</span><select id="tyb">'+opt('','เลือก...')+'</select></div><div id="tyl" style="max-height:48vh;overflow:auto"></div><div class="g2" style="margin-top:10px"><button type="button" class="b o" id="tyx">ยกเลิก</button><button type="button" class="b" id="tyg"></button></div>',true);
  var m=document.querySelector('.mod'),$=function(i){return m.querySelector('#'+i)};
  function draw(){var u=unk(),show=F==='unk'?L.filter(function(x){return !x.type}):F==='chg'?L.filter(function(x){return x.type!==x.guess}):L;
   $('tyi').textContent='ระบบเสนอประเภทให้ '+L.length+' ร้าน · ร้านที่เดาไม่ได้ต้องเลือกเอง · แตะเพื่อแก้';
   $('tyc').innerHTML=chips([['unk','เดาไม่ได้ '+u],['chg','แก้แล้ว '+chg()],['all','ทั้งหมด '+L.length]],F,'tyf');
-  $('tyl').innerHTML=show.slice(0,150).map(function(x){var i=L.indexOf(x);return '<div class="row" style="padding:7px 0;border-bottom:1px solid var(--line,#e3e8f3);'+(x.type?'':'background:#fff7e0;')+'align-items:center;gap:8px"><span class="grow" style="min-width:0"><b class="nm">'+E(x.name)+'</b><span class="t">'+E(x.id)+(x.type!==x.guess?' · แก้แล้ว':'')+'</span></span><select data-i="'+i+'">'+opt(x.type)+'</select></div>'}).join('')+(show.length>150?'<div class="t" style="padding:8px 0">แสดง 150 แรกจาก '+show.length+' · เลือกแล้วรายการจะหายจากตัวกรอง "เดาไม่ได้"</div>':'')||'<div class="t" style="padding:12px 0">ไม่มีรายการในตัวกรองนี้</div>';
+  $('tyl').innerHTML=show.slice(0,150).map(function(x){var i=L.indexOf(x);return '<div class="row" style="padding:7px 0;border-bottom:1px solid var(--ln);'+(x.type?'':'background:#fff7e0;')+'align-items:center;gap:8px"><span class="grow" style="min-width:0"><b class="nm">'+E(x.name)+'</b><span class="t">'+E(x.id)+(x.type!==x.guess?' · แก้แล้ว':'')+'</span></span><select data-i="'+i+'">'+opt(x.type)+'</select></div>'}).join('')+(show.length>150?'<div class="t" style="padding:8px 0">แสดง 150 แรกจาก '+show.length+' · เลือกแล้วรายการจะหายจากตัวกรอง "เดาไม่ได้"</div>':'')||'<div class="t" style="padding:12px 0">ไม่มีรายการในตัวกรองนี้</div>';
   var g=$('tyg');g.textContent=u?'ยังเหลือ '+u+' ร้านที่ต้องเลือก':'นำเข้า '+L.length+' ร้าน';g.className='b'+(u?' o':'')}
  m.addEventListener('click',function(e){var a=e.target.closest('[data-a="tyf"]');if(a){F=a.dataset.v;draw();e.stopPropagation()}},true);
  m.addEventListener('change',function(e){var t=e.target;if(t.dataset&&t.dataset.i!=null){L[+t.dataset.i].type=t.value;draw()}else if(t.id==='tyb'&&t.value){L.forEach(function(x){if(!x.type)x.type=t.value});t.value='';draw()}});
