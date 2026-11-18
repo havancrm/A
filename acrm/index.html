@@ -325,8 +325,8 @@ function itemRows(items){return items.map(function(i){return '<tr><td>'+E(i.n)+'
 var ITEM_HEAD=[['สินค้า'],['จำนวน','r'],['ราคา','r'],['รวม','r']];
 // การ์ดเอกสาร: บิลและออเดอร์ใช้ตัวเดียวกัน
 function docCard(o){return '<div class="dc"><a class="dh" href="'+o.href+'"><span>'+o.head+'</span><b>'+o.amt+' ›</b></a>'+(o.sub?'<div class="ds">'+o.sub+'</div>':'')+tbl(ITEM_HEAD,itemRows(o.items))
- +'<div class="ba">'+(o.pill||'<span></span>')+'<span>'+(o.acts||[]).map(function(x){return '<a'+attrs(x[1],x[2])+'>'+ic(x[3])+x[0]+'</a>'}).join('')+'</span></div></div>'}
-function billCard(b,shop){var c=cust(b.cid);return docCard({href:'#bill/'+b.no,head:dt(b.d)+' • '+bn(b.no),amt:money(bt(b)),sub:shop?b.cid+' · '+E(c?c.name:''):'',items:b.items,
+ +(o.foot||'')+'<div class="ba">'+(o.pill||'<span></span>')+'<span>'+(o.acts||[]).map(function(x){return '<a'+attrs(x[1],x[2])+'>'+ic(x[3])+x[0]+'</a>'}).join('')+'</span></div></div>'}
+function billCard(b,shop){var c=cust(b.cid),pre=bt(b),vat=vatIdx(b.vat)===2?Math.round(pre*7)/100:0,foot=vat?'<div class="kv"><span>VAT 7%</span><b>'+money(vat)+'</b></div><div class="kv"><span>ยอดรวมสุทธิ</span><b>'+money(pre+vat)+'</b></div>':'';return docCard({href:'#bill/'+b.no,head:dt(b.d)+' • '+bn(b.no),amt:money(pre),sub:shop?b.cid+' · '+E(c?c.name:''):'',items:b.items,foot:foot,
  acts:[['ส่งรูป','billImg',b.no,'share'],['สั่งซ้ำ','billAgain',b.no,'repeat'],['แจ้งยอด','go','stmt/'+b.cid,'doc']]})}
 function orderCard(o){var c=cust(o.cid);return docCard({href:'#odet/'+o.no,head:dt(o.at)+' • '+o.no,amt:money(ototal(o).tot),sub:o.cid+' · '+E(c?c.name:''),items:o.items,pill:pill(o.st,ostCls(o.st)),acts:[['ส่งรูป','orderImg',o.no,'share']]})}
 // แถวร้าน: ใช้ทั้งหน้าหลัก รายการลูกค้า รอบลูกค้า เช็คอิน
