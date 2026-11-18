@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CRM ภาคสนาม</title>
+<style>
+  :root { --bg:#f5f7fa; --card:#fff; --text:#1d2330; --muted:#6b7385; --line:#e3e7ee;
+          --brand:#1f4fb4; --ok:#1b8a4b; --warn:#b46a00; --bad:#b42323; --r:12px; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#12151c; --card:#1b2029; --text:#e8ebf1; --muted:#9aa3b5; --line:#2a3140; --brand:#6d94ff; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,"Sarabun","Noto Sans Thai",sans-serif; background:var(--bg); color:var(--text); font-size:16px; }
+  header { position:sticky; top:0; z-index:5; background:var(--brand); color:#fff; padding:12px 16px; display:flex; align-items:center; gap:12px; }
+  header h1 { font-size:18px; margin:0; flex:1; }
+  header .who { font-size:13px; opacity:.9; }
+  nav { display:flex; background:var(--card); border-bottom:1px solid var(--line); position:sticky; top:52px; z-index:4; }
+  nav a { flex:1; text-align:center; padding:10px 4px; color:var(--muted); text-decoration:none; font-size:14px; cursor:pointer; }
+  nav a.on { color:var(--brand); font-weight:600; border-bottom:2px solid var(--brand); }
+  main { padding:12px 16px 80px; max-width:720px; margin:0 auto; }
+  h2 { font-size:18px; margin:12px 0 8px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:var(--r); padding:12px; margin-bottom:10px; }
+  .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .muted { color:var(--muted); font-size:14px; }
+  .tag { display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; background:var(--line); color:var(--text); margin-right:4px; }
+  .tag.warn { background:#fff1d6; color:#7a4a00; } .tag.bad { background:#fde2e2; color:#8c1d1d; } .tag.ok { background:#dff5e7; color:#11633a; }
+  @media (prefers-color-scheme: dark) { .tag.warn{background:#4a3a14;color:#ffd58a} .tag.bad{background:#4a1d1d;color:#ffb3b3} .tag.ok{background:#15382a;color:#9be3b8} }
+  input, select, textarea { width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font-size:16px; background:var(--card); color:var(--text); font-family:inherit; }
+  textarea { min-height:70px; }
+  label.f { display:block; color:var(--muted); font-size:14px; margin:10px 0 4px; }
+  button, .btn { appearance:none; border:0; border-radius:10px; padding:11px 16px; font-size:16px; background:var(--brand); color:#fff; display:inline-block; cursor:pointer; font-family:inherit; }
+  button:disabled { opacity:.45; cursor:default; }
+  button.ghost { background:transparent; color:var(--brand); border:1px solid var(--brand); }
+  button.danger { background:var(--bad); }
+  button.small { padding:6px 10px; font-size:14px; }
+  .item { display:block; width:100%; text-align:left; background:var(--card); color:var(--text); border:1px solid var(--line); border-radius:var(--r); padding:12px; margin-bottom:8px; cursor:pointer; font-size:16px; }
+  .item:disabled { opacity:1; }
+  .chips { display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; margin-bottom:8px; }
+  .chip { white-space:nowrap; padding:6px 12px; border-radius:999px; border:1px solid var(--line); background:var(--card); color:var(--text); font-size:14px; cursor:pointer; }
+  .chip.on { background:var(--brand); color:#fff; border-color:var(--brand); }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  td, th { padding:6px 4px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+  td.num, th.num { text-align:right; white-space:nowrap; }
+  .empty { text-align:center; color:var(--muted); padding:24px 0; }
+  .kv { display:flex; justify-content:space-between; gap:12px; border-bottom:1px solid var(--line); padding:6px 0; }
+  .kv > span:last-child { text-align:right; }
+  .toast { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); background:#222; color:#fff; padding:10px 16px; border-radius:10px; font-size:14px; display:none; z-index:20; max-width:90%; }
+  .login { text-align:center; padding:40px 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>CRM ภาคสนาม</h1>
+  <span class="who" id="who"></span>
+  <button class="ghost small" id="logout" style="display:none;color:#fff;border-color:#fff">ออก</button>
+</header>
+<nav id="nav" style="display:none">
+  <a data-view="customers" class="on">ลูกค้า</a>
+  <a data-view="tasks">งานติดตาม</a>
+  <a data-view="admin" id="navAdmin" style="display:none">ผู้ดูแล</a>
+</nav>
+<main id="app"></main>
+<div class="toast" id="toast"></div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+(function () {
+  "use strict";
+  var TOKEN = null;     // Google ID token, kept in memory only
+  var ME = null;        // { email, role }
+  var CLIENT_ID = "";
+  var CUSTOMERS = null; // cache for the list, refreshed on demand
+  var view = "customers";
+  var $app = document.getElementById("app");
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function toast(msg) {
+    var t = document.getElementById("toast");
+    t.textContent = msg; t.style.display = "block";
+    clearTimeout(toast._t); toast._t = setTimeout(function () { t.style.display = "none"; }, 2600);
+  }
+  function fmtDate(iso) {
+    if (!iso) return "-";
+    var d = new Date(iso);
+    if (isNaN(d)) return esc(iso);
+    return d.toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric", timeZone: "Asia/Bangkok" });
+  }
+  function money(n) {
+    var v = Number(n); return isNaN(v) ? esc(n) : v.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // One place for all API calls. A 401 asks the user to sign in again.
+  function api(path, opts) {
+    opts = opts || {};
+    var headers = { "Authorization": "Bearer " + (TOKEN || "") };
+    if (opts.body !== undefined) headers["Content-Type"] = "application/json";
+    return fetch(path, { method: opts.method || "GET", headers: headers,
+      body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined })
+      .then(function (r) {
+        return r.text().then(function (text) {
+          var data = {}; try { data = text ? JSON.parse(text) : {}; } catch (e) {}
+          if (r.status === 401) { TOKEN = null; showLogin("การเข้าสู่ระบบหมดอายุ ให้ล็อกอินใหม่"); throw new Error("401"); }
+          if (!r.ok) throw new Error(data.error || "เกิดข้อผิดพลาด (" + r.status + ")");
+          return data;
+        });
+      });
+  }
+
+  function showLogin(note) {
+    document.getElementById("nav").style.display = "none";
+    document.getElementById("logout").style.display = "none";
+    document.getElementById("who").textContent = "";
+    $app.innerHTML = '<div class="login"><h2>เข้าสู่ระบบ</h2>' +
+      '<p class="muted">' + esc(note || "ใช้บัญชี Google ที่ผู้ดูแลเพิ่มไว้ในแท็บ ACCESS") + '</p>' +
+      '<div id="gbtn" style="display:inline-block"></div></div>';
+    renderGoogleButton();
+  }
+
+  function renderGoogleButton() {
+    if (!window.google || !google.accounts || !CLIENT_ID) {
+      setTimeout(renderGoogleButton, 300);
+      return;
+    }
+    google.accounts.id.initialize({ client_id: CLIENT_ID, callback: onCredential, auto_select: false });
+    var el = document.getElementById("gbtn");
+    if (el) google.accounts.id.renderButton(el, { theme: "outline", size: "large", text: "signin_with", locale: "th" });
+  }
+
+  function onCredential(resp) {
+    TOKEN = resp.credential;
+    api("/api/me").then(function (me) {
+      ME = me;
+      document.getElementById("who").textContent = me.email;
+      document.getElementById("nav").style.display = "flex";
+      document.getElementById("logout").style.display = "inline-block";
+      document.getElementById("navAdmin").style.display = me.role === "admin" ? "block" : "none";
+      go("customers");
+    }).catch(function (e) { if (e.message !== "401") showLogin(e.message); });
+  }
+
+  document.getElementById("logout").addEventListener("click", function () {
+    if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
+    TOKEN = null; ME = null; CUSTOMERS = null; showLogin("ออกจากระบบแล้ว");
+  });
+
+  document.getElementById("nav").addEventListener("click", function (e) {
+    var v = e.target.getAttribute && e.target.getAttribute("data-view");
+    if (v) go(v);
+  });
+
+  function setNav(v) {
+    document.querySelectorAll("nav a").forEach(function (a) { a.classList.toggle("on", a.getAttribute("data-view") === v); });
+  }
+
+  function go(v, arg) {
+    view = v; setNav(v);
+    if (v === "customers") return viewCustomers();
+    if (v === "customer") return viewCustomer(arg);
+    if (v === "tasks") return viewTasks();
+    if (v === "admin") return viewAdmin();
+  }
+
+  // ---------- customers ----------
+  var FILTERS = [
+    { key: "all", label: "ทั้งหมด", test: function () { return true; } },
+    { key: "active", label: "ใช้งานอยู่", test: function (c) { return String(c.activeFlag).toUpperCase() !== "FALSE"; } },
+    { key: "noOwner", label: "ยังไม่มีเจ้าของ", test: function (c) { return !c.owner; } },
+    { key: "noGps", label: "ไม่มีพิกัด", test: function (c) { return !c.gpsLat || !c.gpsLng; } },
+  ];
+  var filterKey = "all", query = "";
+
+  function loadCustomers(force) {
+    if (CUSTOMERS && !force) return Promise.resolve(CUSTOMERS);
+    return api("/api/customers").then(function (d) { CUSTOMERS = d.customers; return CUSTOMERS; });
+  }
+
+  function viewCustomers() {
+    $app.innerHTML = '<input id="q" placeholder="ค้นหาชื่อ / เบอร์ / ที่อยู่ / รหัส" value="' + esc(query) + '">' +
+      '<div class="chips" id="chips" style="margin-top:8px">' + FILTERS.map(function (f) {
+        return '<span class="chip' + (f.key === filterKey ? " on" : "") + '" data-f="' + f.key + '">' + f.label + '</span>';
+      }).join("") + '</div><div class="muted" id="count"></div><div id="list"><div class="empty">กำลังโหลด...</div></div>';
+    document.getElementById("q").addEventListener("input", function (e) { query = e.target.value; drawList(); });
+    document.getElementById("chips").addEventListener("click", function (e) {
+      var k = e.target.getAttribute("data-f"); if (!k) return;
+      filterKey = k; viewCustomers();
+    });
+    loadCustomers().then(drawList).catch(function (e) { if (e.message !== "401") toast(e.message); });
+  }
+
+  function drawList() {
+    if (!CUSTOMERS) return;
+    var f = FILTERS.filter(function (x) { return x.key === filterKey; })[0];
+    var q = query.trim().toLowerCase();
+    var list = CUSTOMERS.filter(function (c) {
+      if (!f.test(c)) return false;
+      if (!q) return true;
+      return [c.id, c.name, c.phone, c.address].join(" ").toLowerCase().indexOf(q) >= 0;
+    });
+    var shown = list.slice(0, 200);
+    document.getElementById("count").textContent = "พบ " + list.length + " ราย" + (list.length > shown.length ? " (แสดง 200 แรก)" : "");
+    document.getElementById("list").innerHTML = shown.length ? shown.map(function (c) {
+      return '<button class="item" data-id="' + esc(c.id) + '"><b>' + esc(c.name || "(ไม่มีชื่อ)") + '</b>' +
+        '<div class="muted">' + esc(c.id) + ' · ' + esc(c.phone || "ไม่มีเบอร์") + '</div>' +
+        '<div class="muted">' + esc(c.address || "") + '</div></button>';
+    }).join("") : '<div class="empty">ไม่พบลูกค้า</div>';
+    document.getElementById("list").onclick = function (e) {
+      var b = e.target.closest("[data-id]"); if (b) go("customer", b.getAttribute("data-id"));
+    };
+  }
+
+  function viewCustomer(id) {
+    $app.innerHTML = '<div class="empty">กำลังโหลด...</div>';
+    api("/api/customers?id=" + encodeURIComponent(id)).then(function (d) {
+      var c = d.customer;
+      Promise.all([
+        api("/api/visits?customerId=" + encodeURIComponent(id)),
+        api("/api/bills?customerId=" + encodeURIComponent(id)),
+        api("/api/tasks"),
+      ]).then(function (r) {
+        var visits = r[0].visits, bills = r[1].bills;
+        var tasks = r[2].tasks.filter(function (t) { return t.customerId === id && t.status !== "done"; });
+        var total = bills.reduce(function (s, b) { return s + (Number(b.total) || 0); }, 0);
+        $app.innerHTML =
+          '<button class="ghost small" data-back="1">← ลูกค้า</button>' +
+          '<h2>' + esc(c.name || "(ไม่มีชื่อ)") + '</h2>' +
+          '<div class="muted">รหัส ' + esc(c.id) + ' · ' + esc(c.type || "") + '</div>' +
+          '<div class="card" style="margin-top:10px">' +
+          kv("เบอร์", c.phone) + kv("ผู้ติดต่อ", c.contactName) + kv("ที่อยู่", c.address) +
+          kv("การชำระ", c.paymentTerm) + kv("เจ้าของ", c.owner) + kv("รอบเยี่ยม (วัน)", c.visitCycleDays) +
+          kv("พิกัด", c.gpsLat && c.gpsLng ? c.gpsLat + ", " + c.gpsLng : "ยังไม่มี") +
+          '<div class="row" style="margin-top:10px"><button class="ghost small" id="edit">แก้ไขข้อมูล</button></div></div>' +
+          '<div class="card"><h2 style="margin-top:0">บันทึกการเยี่ยม</h2>' +
+          '<textarea id="vnote" placeholder="หมายเหตุ"></textarea>' +
+          '<label class="f">ผลการเยี่ยม</label><select id="voutcome">' +
+          ["", "ยังไม่สั่ง สินค้ายังเหลือ", "สั่งแล้ว", "ไม่อยู่", "ขอให้โทรมาใหม่", "อื่นๆ"].map(function (o) {
+            return '<option value="' + esc(o) + '">' + (o || "-- เลือก --") + '</option>'; }).join("") +
+          '</select><div class="row" style="margin-top:10px"><button id="saveVisit">บันทึกการเยี่ยม</button></div></div>' +
+          '<div class="card"><h2 style="margin-top:0">งานติดตาม (' + tasks.length + ')</h2>' +
+          (tasks.length ? tasks.map(function (t) {
+            return '<div class="kv"><span>' + esc(t.title) + ' · ' + esc(t.dueAt || "") + '</span>' +
+              '<button class="small" data-done="' + esc(t.taskId) + '">เสร็จ</button></div>'; }).join("") : '<div class="muted">ไม่มีงานค้าง</div>') +
+          '<div class="row" style="margin-top:10px"><input id="tdue" type="date" style="width:auto">' +
+          '<input id="ttitle" placeholder="เช่น โทรติดตามสั่งของ" style="flex:1"><button class="small" id="addTask">เพิ่มงาน</button></div></div>' +
+          '<div class="card"><h2 style="margin-top:0">การเยี่ยมล่าสุด</h2>' +
+          (visits.length ? '<table>' + visits.slice(0, 10).map(function (v) {
+            return '<tr><td>' + fmtDate(v.at) + '</td><td>' + esc(v.outcome || "") + '<div class="muted">' + esc(v.note || "") + '</div></td></tr>'; }).join("") + '</table>' : '<div class="muted">ยังไม่มีการเยี่ยม</div>') + '</div>' +
+          '<div class="card"><h2 style="margin-top:0">บิล (' + bills.length + ' ใบ · รวม ' + money(total) + ')</h2>' +
+          (bills.length ? '<table>' + bills.slice(0, 10).map(function (b) {
+            return '<tr><td>' + esc(b.no) + '</td><td>' + esc(b.date || "") + '</td><td class="num">' + money(b.total) + '</td></tr>'; }).join("") + '</table>' : '<div class="muted">ยังไม่มีบิล</div>') + '</div>';
+        $app.querySelector("[data-back]").onclick = function () { go("customers"); };
+        document.getElementById("edit").onclick = function () { editCustomer(c); };
+        document.getElementById("saveVisit").onclick = function () {
+          api("/api/visits", { method: "POST", body: { customerId: id, note: document.getElementById("vnote").value, outcome: document.getElementById("voutcome").value } })
+            .then(function () { toast("บันทึกการเยี่ยมแล้ว"); viewCustomer(id); }).catch(function (e) { if (e.message !== "401") toast(e.message); });
+        };
+        document.getElementById("addTask").onclick = function () {
+          var title = document.getElementById("ttitle").value.trim();
+          if (!title) return toast("ใส่ชื่องานก่อน");
+          api("/api/tasks", { method: "POST", body: { customerId: id, title: title, dueAt: document.getElementById("tdue").value } })
+            .then(function () { toast("เพิ่มงานแล้ว"); viewCustomer(id); }).catch(function (e) { if (e.message !== "401") toast(e.message); });
+        };
+        $app.querySelectorAll("[data-done]").forEach(function (b) {
+          b.onclick = function () {
+            api("/api/tasks?taskId=" + encodeURIComponent(b.getAttribute("data-done")), { method: "PATCH", body: { status: "done" } })
+              .then(function () { viewCustomer(id); }).catch(function (e) { if (e.message !== "401") toast(e.message); });
+          };
+        });
+      });
+    }).catch(function (e) { if (e.message !== "401") { $app.innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; } });
+  }
+
+  function kv(k, v) { return '<div class="kv"><span class="muted">' + esc(k) + '</span><span>' + esc(v || "-") + '</span></div>'; }
+
+  var EDITABLE = [
+    ["name", "ชื่อร้าน"], ["phone", "เบอร์"], ["contactName", "ผู้ติดต่อ"], ["address", "ที่อยู่"],
+    ["paymentTerm", "เงื่อนไขชำระ"], ["owner", "เจ้าของ (ชื่อเซลล์)"], ["visitCycleDays", "รอบเยี่ยม (วัน)"],
+    ["gpsLat", "ละติจูด"], ["gpsLng", "ลองจิจูด"], ["keepNote", "หมายเหตุ"],
+  ];
+
+  function editCustomer(c) {
+    $app.innerHTML = '<button class="ghost small" id="cancel">← ยกเลิก</button><h2>แก้ไข ' + esc(c.name || c.id) + '</h2>' +
+      '<div class="card">' + EDITABLE.map(function (f) {
+        var isNote = f[0] === "address" || f[0] === "keepNote";
+        return '<label class="f">' + esc(f[1]) + '</label>' +
+          (isNote ? '<textarea data-f="' + f[0] + '">' + esc(c[f[0]]) + '</textarea>'
+                  : '<input data-f="' + f[0] + '" value="' + esc(c[f[0]]) + '">');
+      }).join("") + '<div class="row" style="margin-top:14px"><button id="save">บันทึก</button></div></div>';
+    document.getElementById("cancel").onclick = function () { viewCustomer(c.id); };
+    document.getElementById("save").onclick = function () {
+      var changes = {};
+      $app.querySelectorAll("[data-f]").forEach(function (el) {
+        var k = el.getAttribute("data-f");
+        if (String(c[k] == null ? "" : c[k]) !== el.value) changes[k] = el.value;
+      });
+      if (!Object.keys(changes).length) return toast("ไม่มีอะไรเปลี่ยน");
+      api("/api/customers?id=" + encodeURIComponent(c.id), { method: "PATCH", body: { changes: changes } })
+        .then(function () { CUSTOMERS = null; toast("บันทึกแล้ว"); viewCustomer(c.id); })
+        .catch(function (e) { if (e.message !== "401") toast(e.message); });
+    };
+  }
+
+  // ---------- tasks ----------
+  function viewTasks() {
+    $app.innerHTML = '<h2>งานติดตาม</h2><div id="tl"><div class="empty">กำลังโหลด...</div></div>';
+    api("/api/tasks").then(function (d) {
+      var open = d.tasks.filter(function (t) { return t.status !== "done"; });
+      document.getElementById("tl").innerHTML = open.length ? open.map(function (t) {
+        return '<div class="item" style="cursor:default"><b>' + esc(t.title) + '</b>' +
+          '<div class="muted">' + esc(t.customerId) + ' · กำหนด ' + esc(t.dueAt || "-") + '</div>' +
+          '<div class="muted">' + esc(t.note || "") + '</div>' +
+          '<div class="row" style="margin-top:6px"><button class="small" data-done="' + esc(t.taskId) + '">เสร็จแล้ว</button>' +
+          '<button class="ghost small" data-cust="' + esc(t.customerId) + '">เปิดลูกค้า</button></div></div>';
+      }).join("") : '<div class="empty">ไม่มีงานค้าง</div>';
+      document.getElementById("tl").onclick = function (e) {
+        var d1 = e.target.getAttribute("data-done"), d2 = e.target.getAttribute("data-cust");
+        if (d1) api("/api/tasks?taskId=" + encodeURIComponent(d1), { method: "PATCH", body: { status: "done" } })
+          .then(viewTasks).catch(function (e2) { if (e2.message !== "401") toast(e2.message); });
+        if (d2) go("customer", d2);
+      };
+    }).catch(function (e) { if (e.message !== "401") toast(e.message); });
+  }
+
+  // ---------- admin: backup, download, upload ----------
+  function viewAdmin() {
+    if (!ME || ME.role !== "admin") { $app.innerHTML = '<div class="empty">เฉพาะผู้ดูแลระบบ</div>'; return; }
+    $app.innerHTML = '<h2>ผู้ดูแลระบบ</h2>' +
+      '<div class="card"><h2 style="margin-top:0">สำรองข้อมูล</h2><p class="muted">คัดลอกชีต A ทั้งไฟล์ไปยังโฟลเดอร์สำรองใน Drive ทันที ระบบสำรองอัตโนมัติวันละครั้งเมื่อมีการแก้ไข</p>' +
+      '<button id="bk">สำรองตอนนี้</button></div>' +
+      '<div class="card"><h2 style="margin-top:0">ดาวน์โหลดแท็บ</h2>' +
+      '<select id="tab">' + ["customers", "bills", "bill_items", "visits", "tasks", "products", "orders", "changes"].map(function (t) {
+        return '<option>' + t + '</option>'; }).join("") + '</select>' +
+      '<div class="row" style="margin-top:10px"><button id="dl">ดาวน์โหลด CSV</button></div></div>' +
+      '<div class="card"><h2 style="margin-top:0">นำเข้า CSV</h2><p class="muted">เพิ่มเฉพาะแถวที่ยังไม่มี ไม่แก้แถวเดิม ระบบสำรองก่อนนำเข้าทุกครั้ง</p>' +
+      '<label class="f">แท็บปลายทาง</label><select id="itab">' + ["customers", "customer_phones", "customer_labels", "products", "visits", "tasks"].map(function (t) {
+        return '<option>' + t + '</option>'; }).join("") + '</select>' +
+      '<label class="f">ไฟล์ CSV</label><input type="file" id="ifile" accept=".csv,text/csv">' +
+      '<div class="row" style="margin-top:10px"><button id="imp">นำเข้า</button></div></div>';
+
+    document.getElementById("bk").onclick = function () {
+      api("/api/backup", { method: "POST" }).then(function (d) { toast("สำรองแล้ว: " + d.backup.name); })
+        .catch(function (e) { if (e.message !== "401") toast(e.message); });
+    };
+    document.getElementById("dl").onclick = function () {
+      var tab = document.getElementById("tab").value;
+      fetch("/api/export?tab=" + encodeURIComponent(tab), { headers: { "Authorization": "Bearer " + TOKEN } })
+        .then(function (r) { if (!r.ok) throw new Error("ดาวน์โหลดไม่ได้ (" + r.status + ")"); return r.blob(); })
+        .then(function (blob) {
+          var a = document.createElement("a");
+          a.href = URL.createObjectURL(blob); a.download = tab + ".csv"; a.click();
+          setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+        }).catch(function (e) { toast(e.message); });
+    };
+    document.getElementById("imp").onclick = function () {
+      var f = document.getElementById("ifile").files[0];
+      if (!f) return toast("เลือกไฟล์ก่อน");
+      var reader = new FileReader();
+      reader.onload = function () {
+        api("/api/import", { method: "POST", body: { tab: document.getElementById("itab").value, csv: reader.result } })
+          .then(function (d) { CUSTOMERS = null; toast("เพิ่ม " + d.added + " แถว ข้าม " + d.skipped + " (สำรองไว้: " + d.backup + ")"); })
+          .catch(function (e) { if (e.message !== "401") toast(e.message); });
+      };
+      reader.readAsText(f, "utf-8");
+    };
+  }
+
+  // ---------- boot ----------
+  fetch("/api/config").then(function (r) { return r.json(); }).then(function (c) {
+    CLIENT_ID = c.clientId || "";
+    showLogin();
+  }).catch(function () { showLogin("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้"); });
+})();
+</script>
+</body>
+</html>

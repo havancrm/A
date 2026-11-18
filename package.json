@@ -1,0 +1,17 @@
+{
+  "name": "crm-field",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "CRM ภาคสนาม อ่าน/เขียนชีต A ผ่าน Google Sheets API บน Vercel",
+  "scripts": {
+    "test": "node --test test/lib.test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "googleapis": "^144.0.0",
+    "google-auth-library": "^9.15.0"
+  }
+}
