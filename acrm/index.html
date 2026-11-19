@@ -387,6 +387,14 @@ span.grow[data-a]{display:inline-block;padding:9px 0;margin:-9px 0}
 body,button,.b,.btn,.ab,.chip,.seg a,.kp,.ha a,.ba a,.lk,.kv,.li,.dh,.ds,.nb,.tb th,.tb td,.note,.c,.sec,input,textarea,select{font-size:var(--fs3)!important}
 .dc .tb td,.dc .tb th{font-size:var(--fs3)!important}
 *,*::before,*::after{font-size:var(--fs3)!important}
+/* Keep every screen inside the phone width so iOS does not zoom out */
+html,body{max-width:100%;overflow-x:hidden}
+body *{max-width:100%;min-width:0}
+table{max-width:100%;table-layout:auto}
+.tb td,.tb th{overflow-wrap:anywhere;word-break:normal}
+.tb .r{white-space:normal}
+img,video,canvas,svg{max-width:100%;height:auto}
+.dc,.sec,.c,.card,.kv,.seg{box-sizing:border-box;max-width:100%}
 </style></head><body><div id="app"></div>
 <script>
 'use strict';
