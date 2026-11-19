@@ -18,7 +18,7 @@ html,body{background:var(--bg)}
 
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 
-html,body{margin:0;height:100%;height:100dvh;background:#e4e9ee;font-family:system-ui,-apple-system,"Segoe UI","Noto Sans Thai","Sukhumvit Set",Tahoma,sans-serif;color:var(--ink);font-size:var(--fs3);-webkit-text-size-adjust:100%;touch-action:manipulation}
+html,body{margin:0;height:100%;height:100dvh;background:#e4e9ee;font-family:system-ui,-apple-system,"Segoe UI","Noto Sans Thai","Sukhumvit Set",Tahoma,sans-serif;color:var(--ink);-webkit-text-size-adjust:100%;touch-action:manipulation}
 
 a{color:inherit;text-decoration:none}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -31,18 +31,18 @@ button,input,select,textarea{font:inherit;color:inherit}
 .hd{flex:none;background:var(--hd);color:#fff;padding:max(10px,env(safe-area-inset-top)) 14px 9px}
 
 .hd .row{align-items:center}
-.brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:var(--fs5);letter-spacing:1px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:800;letter-spacing:1px}
 .brand i{width:8px;height:20px;background:#fff;border-radius:3px}
 
-.brand small{font-size:var(--fs1);font-weight:600;letter-spacing:0;background:rgba(255,255,255,.18);border-radius:12px;padding:2px 8px}
+.brand small{font-weight:600;letter-spacing:0;background:rgba(255,255,255,.18);border-radius:12px;padding:2px 8px}
 
 .hi{display:flex;gap:2px}
 .hi a{position:relative;width:40px;height:40px;margin:-6px 0;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .hi .ic{width:23px;height:23px}
 
-.bdg{position:absolute;top:2px;right:0;background:#d32f2f;color:#fff;border-radius:9px;font-size:var(--fs1);font-weight:700;font-style:normal;padding:0 5px;line-height:16px}
+.bdg{position:absolute;top:2px;right:0;background:#d32f2f;color:#fff;border-radius:9px;font-weight:700;font-style:normal;padding:0 5px;line-height:16px}
 
-.st{font-size:var(--fs2);opacity:.92;margin-top:2px;display:flex;align-items:center;gap:6px}
+.st{opacity:.92;margin-top:2px;display:flex;align-items:center;gap:6px}
 .dot{width:8px;height:8px;border-radius:50%;background:#3ccf86;display:inline-block}
 .dot.w{background:#f5b942}
 .dot.x{background:#9aa3b5}
@@ -52,7 +52,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .bd::-webkit-scrollbar{display:none}
 
 .top{display:flex;align-items:center;gap:8px;min-height:36px}
-.top h1{font-size:var(--fs4);margin:0;flex:1;min-width:0}
+.top h1{margin:0;flex:1;min-width:0}
 .top .t{flex:none}
 
 .bk{display:inline-flex;align-items:center;gap:2px;background:var(--card);border:1px solid var(--ln);border-radius:10px;padding:6px 10px 6px 6px;font-weight:700;color:var(--n);flex:none;max-width:55%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-height:40px}
@@ -62,7 +62,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 
 .nv{flex:none;position:relative;z-index:5;background:var(--card);border-top:1px solid var(--ln);display:flex;align-items:flex-end;padding-bottom:max(4px,env(safe-area-inset-bottom));border-top-color:var(--ln)}
 
-.nv a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:var(--fs1);color:var(--mu);padding:8px 0 4px;min-height:54px;position:relative;cursor:pointer}
+.nv a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--mu);padding:8px 0 4px;min-height:54px;position:relative;cursor:pointer}
 .nv a .ic{width:22px;height:22px}
 
 .nv a.on{color:var(--acc);font-weight:600}
@@ -77,19 +77,19 @@ button,input,select,textarea{font:inherit;color:inherit}
 
 .sec{background:var(--card);border-radius:var(--r);padding:0 14px 4px}
 
-.sh{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:36px;font-weight:700;font-size:13px;border-bottom:1px solid var(--ln)}
+.sh{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:36px;font-weight:700;border-bottom:1px solid var(--ln)}
 .sh a,.sh button{font-weight:700;color:var(--n)}
 
-.kv{display:flex;justify-content:space-between;align-items:center;gap:10px;height:auto;padding:6px 0;border-bottom:1px solid var(--ln2);font-size:var(--fs3);cursor:default;min-height:40px}
+.kv{display:flex;justify-content:space-between;align-items:center;gap:10px;height:auto;padding:6px 0;border-bottom:1px solid var(--ln2);cursor:default;min-height:40px}
 .kv.open{height:auto;min-height:40px;padding:6px 0}
 .kv:last-child{border-bottom:0}
 .kv>span{color:var(--mu);flex:none;max-width:58%;white-space:normal;overflow:hidden;text-overflow:ellipsis;line-height:1.35}
 .kv>b{text-align:right;font-weight:600;min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kv.open>b{white-space:normal;overflow:visible}
 
-.t{font-size:var(--fs2);color:var(--mu)}
-.tl{font-size:var(--fs3);font-weight:700}
-.big{font-size:var(--fs6);font-weight:800;color:var(--n)}
+.t{color:var(--mu)}
+.tl{font-weight:700}
+.big{font-weight:800;color:var(--n)}
 .rd{color:var(--red)}
 
 .row{display:flex;justify-content:space-between;align-items:center;gap:8px}
@@ -101,7 +101,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .lk{color:var(--n);font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:3px;padding:8px 2px;margin:-8px 0;min-width:36px;min-height:36px;justify-content:center}
 .lk .ic{width:16px;height:16px}
 
-.pill{display:inline-block;padding:3px 9px;border-radius:12px;font-size:var(--fs1);font-weight:700;white-space:nowrap}
+.pill{display:inline-block;padding:3px 9px;border-radius:12px;font-weight:700;white-space:nowrap}
 
 .p-red{background:#FDE2E2;color:var(--red)}
 .p-amb{background:#FBF0D6;color:var(--amb)}
@@ -109,29 +109,29 @@ button,input,select,textarea{font:inherit;color:inherit}
 .p-grn{background:#E3F4EA;color:var(--grn)}
 .p-gry{background:#ECEEF2;color:var(--mu)}
 
-.note{border-radius:12px;padding:9px 12px;font-size:var(--fs3)}
+.note{border-radius:12px;padding:9px 12px;}
 .note.w{background:#FBF0D6;color:var(--amb)}
 .note.ok{background:#E3F4EA;color:var(--grn)}
 .note.i{background:var(--soft);color:var(--n2);border-left:3px solid var(--acc);border-radius:10px}
 
-.empty{color:var(--mu);font-size:var(--fs3);padding:12px 0;text-align:center}
+.empty{color:var(--mu);padding:12px 0;text-align:center}
 
 /* ===== ปุ่ม ===== */
 .b{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:46px;padding:10px 12px;border:0;border-radius:10px;background:var(--pri);color:var(--onpri);font-weight:700;cursor:pointer;text-align:center}
 
 .b.o{background:var(--card);color:var(--navtxt);border:1px solid var(--ln);border-color:var(--ln)}
 .b.d{background:var(--card);color:var(--red);border:1px solid #f0c4bf}
-.b.sm{width:auto;min-height:44px;padding:7px 12px;font-size:var(--fs3);white-space:nowrap}
+.b.sm{width:auto;min-height:44px;padding:7px 12px;white-space:nowrap}
 
 .b.off,.b:disabled{opacity:.45;pointer-events:none}
 .b .ic{width:19px;height:19px}
 
 .tb td:last-child:not(:first-child){width:44px;padding-left:6px}
 .tb td:first-child{word-break:break-word}
-.ch .nm{font-size:var(--fs4);font-weight:700;line-height:1.3;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.ch .nm{font-weight:700;line-height:1.3;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 
 .ha{display:flex;border-top:1px solid var(--ln);margin-top:10px}
-.ha a{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px 2px;color:var(--n);font-size:10.5px;font-weight:700;text-align:center;line-height:1.2}
+.ha a{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px 2px;color:var(--n);font-weight:700;text-align:center;line-height:1.2}
 .ha a+a{border-left:1px solid var(--ln)}
 .ha .ic{width:22px;height:22px}
 .ha a.off{opacity:.35}
@@ -145,10 +145,10 @@ button,input,select,textarea{font:inherit;color:inherit}
 
 
 
-.kp{background:var(--card);border-radius:var(--r);padding:6px 2px;display:flex;flex-direction:column;gap:2px;min-width:0;border:1px solid var(--ln);min-height:48px;text-align:center;font-size:var(--fs2);color:var(--mu);cursor:pointer}
-.kp span{font-size:var(--fs1);color:var(--mu)}
-.kp b{font-size:var(--fs5);color:var(--n);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;line-height:1.25}
-.kp em{font-style:normal;font-size:var(--fs1);color:var(--mu)}
+.kp{background:var(--card);border-radius:var(--r);padding:6px 2px;display:flex;flex-direction:column;gap:2px;min-width:0;border:1px solid var(--ln);min-height:48px;text-align:center;color:var(--mu);cursor:pointer}
+.kp span{color:var(--mu)}
+.kp b{color:var(--n);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;line-height:1.25}
+.kp em{font-style:normal;color:var(--mu)}
 
 .cb{height:8px;border-radius:6px;background:var(--ln2);overflow:hidden;margin:10px 0 6px}
 .cb i{display:block;height:100%;border-radius:6px}
@@ -156,8 +156,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 .mb{display:flex;align-items:flex-end;gap:6px;padding:10px 0 6px}
 .mb>div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px}
 .mb i{display:block;width:100%;max-width:26px;background:var(--hd);border-radius:5px 5px 0 0;opacity:.85}
-.mb span{font-size:var(--fs1);color:var(--mu)}
-.mb em{font-style:normal;font-size:10px;color:var(--mu)}
+.mb span{color:var(--mu)}
+.mb em{font-style:normal;color:var(--mu)}
 
 
 
@@ -168,22 +168,22 @@ button,input,select,textarea{font:inherit;color:inherit}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
 .chips.sc{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
 
-.chip{flex:none;border:1px solid var(--ln);background:var(--card);border-radius:10px;padding:8px 13px;min-height:44px;font-size:var(--fs3);font-weight:600;color:var(--mu);cursor:pointer;white-space:nowrap}
+.chip{flex:none;border:1px solid var(--ln);background:var(--card);border-radius:10px;padding:8px 13px;min-height:44px;font-weight:600;color:var(--mu);cursor:pointer;white-space:nowrap}
 .chip.on{background:var(--pri);border-color:var(--pri);color:var(--onpri)}
 
 .seg{display:flex;background:var(--soft);border-radius:10px;padding:3px;gap:2px;border-bottom:0}
-.seg a{flex:1;text-align:center;padding:6px 8px;border-radius:8px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;background:none;box-shadow:none;white-space:nowrap}
+.seg a{flex:1;text-align:center;padding:6px 8px;border-radius:8px;font-weight:600;color:var(--ink);cursor:pointer;background:none;box-shadow:none;white-space:nowrap}
 .seg a.on{background:var(--card);color:var(--acc);font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.08)}
 
 .kp.on{background:var(--pri);border-color:var(--pri);color:var(--onpri)}
 .kp.on b{color:var(--onpri)}
 
 /* ===== ฟอร์ม ===== */
-input,select,textarea{width:100%;min-height:44px;font-size:var(--fs4);border:1px solid var(--ln);border-radius:10px;padding:8px 11px;background:var(--card)}
+input,select,textarea{width:100%;min-height:44px;border:1px solid var(--ln);border-radius:10px;padding:8px 11px;background:var(--card)}
 textarea{resize:vertical}
 
-label.l{display:block;font-size:13px;color:var(--n);margin:12px 0 4px;font-weight:600}
-.er{color:#A11D1D;font-size:var(--fs2);margin-top:3px}
+label.l{display:block;color:var(--n);margin:12px 0 4px;font-weight:600}
+.er{color:#A11D1D;margin-top:3px}
 .er:empty{display:none}
 
 .xw{position:relative;display:block}
@@ -197,12 +197,11 @@ label.l{display:block;font-size:13px;color:var(--n);margin:12px 0 4px;font-weigh
 .sr input{padding-left:38px}
 
 /* ===== ตาราง / รายการ ===== */
-.tb{width:100%;border-collapse:collapse;font-size:var(--fs3)}
+.tb{width:100%;border-collapse:collapse;}
 .tb th{color:var(--mu);font-weight:500;text-align:left;padding:7px 4px 5px;border-bottom:1px solid var(--ln)}
 .tb td{padding:6px 4px;border-bottom:1px solid var(--ln2);vertical-align:middle}
 .tb tr:last-child td{border-bottom:0}
 .tb .r{text-align:right;white-space:nowrap}
-.tb td .t{font-size:var(--fs1)}
 
 .grow>b,.grow>.t{display:block}
 
@@ -216,19 +215,19 @@ label.l{display:block;font-size:13px;color:var(--n);margin:12px 0 4px;font-weigh
 
 .cr .acts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
 
-.ab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:64px;border-radius:12px;background:var(--card);border:1px solid var(--ln);font-size:var(--fs2);font-weight:700;color:var(--n);cursor:pointer}
+.ab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:64px;border-radius:12px;background:var(--card);border:1px solid var(--ln);font-weight:700;color:var(--n);cursor:pointer}
 .ab .ic{width:22px;height:22px}
 .ab.p{background:var(--pri);color:var(--onpri);border-color:var(--pri)}
 
 /* ===== การ์ดเอกสาร (บิล/ออเดอร์) ===== */
 .dc{background:var(--card);border-radius:var(--r);padding:0 12px}
-.dh{display:flex;justify-content:space-between;gap:8px;min-height:40px;align-items:center;border-bottom:1px solid var(--ln);font-weight:700;font-size:var(--fs3);cursor:pointer}
+.dh{display:flex;justify-content:space-between;gap:8px;min-height:40px;align-items:center;border-bottom:1px solid var(--ln);font-weight:700;cursor:pointer}
 .dh b{white-space:nowrap}
-.ds{font-size:var(--fs3);font-weight:600;padding:7px 0 0}
+.ds{font-weight:600;padding:7px 0 0}
 
 .ba{display:flex;justify-content:space-between;align-items:center;gap:4px;min-height:42px;border-top:1px solid var(--ln2)}
 .ba>span{display:flex}
-.ba a{display:inline-flex;align-items:center;gap:3px;padding:10px 6px;font-size:var(--fs2);font-weight:700;color:var(--n);cursor:pointer}
+.ba a{display:inline-flex;align-items:center;gap:3px;padding:10px 6px;font-weight:700;color:var(--n);cursor:pointer}
 .ba .ic{width:15px;height:15px}
 .dc{padding:0;border:1px solid var(--ln);border-radius:var(--r)}
 .dh{background:var(--soft);border-bottom:1px solid var(--ln);padding:10px 12px;min-height:0;margin:0}
@@ -237,53 +236,51 @@ label.l{display:block;font-size:13px;color:var(--n);margin:12px 0 4px;font-weigh
 .ba .ic{display:none}
 .ds{padding:8px 12px 0}
 .dc{border:1px solid #c5cfe2;border-radius:14px}
-.dh{font-size:var(--fs3);padding:10px 12px;color:var(--n)}
-.dh b{font-size:var(--fs3)}
-.ds{font-size:var(--fs2);padding:8px 12px 0}
-.dc .tb{font-size:var(--fs2);width:100%}
-.dc .tb th{font-size:var(--fs1);padding:6px 6px}
+.dh{padding:10px 12px;color:var(--n)}
+.ds{padding:8px 12px 0}
+.dc .tb{width:100%}
+.dc .tb th{padding:6px 6px}
 .dc .tb td{padding:8px 6px;border-bottom:1px solid var(--ln);overflow-wrap:anywhere}
 .ba{padding:0 12px}
-.ba a{font-size:var(--fs2);padding:10px 0 10px 12px}
+.ba a{padding:10px 0 10px 12px}
 
 /* ===== รูป ===== */
 .ph{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
 .ph div{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:#dde3ee}
 .ph img{width:100%;height:100%;object-fit:cover;display:block;cursor:pointer}
-.ph button{position:absolute;top:3px;right:3px;width:30px;height:30px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:var(--fs5)}
+.ph button{position:absolute;top:3px;right:3px;width:30px;height:30px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;}
 
 .cap{display:flex;align-items:center;gap:12px;min-height:72px;padding:12px;border:2px dashed #b9c6dc;border-radius:12px;background:#f7f9fd;color:var(--n);font-weight:800;cursor:pointer;width:100%;text-align:left}
 .cap .ic{width:30px;height:30px}
-.cap small{display:block;font-weight:500;color:var(--mu);font-size:var(--fs2)}
+.cap small{display:block;font-weight:500;color:var(--mu);}
 
 /* ===== เอกสาร ===== */
-.slip{container-type:inline-size;background:#fff;border:1px solid var(--ln);border-radius:12px;padding:3.6cqw;font-size:2.7cqw;color:#111}
+.slip{container-type:inline-size;background:#fff;border:1px solid var(--ln);border-radius:12px;padding:3.6cqw;color:#111}
 .slip b{color:#172F57}
 
 .slh{display:flex;justify-content:space-between;align-items:flex-start;gap:3cqw}
 .slk{display:grid;grid-template-columns:auto 1fr;gap:1.2cqw 3cqw;align-items:baseline}
 .slk span{color:#6b7a90}
-.slk b{font-size:3.1cqw}
 
 .sln{background:#f0f3f9;border:1px solid var(--ln);border-radius:2.4cqw;padding:1.6cqw 2.4cqw;text-align:right;white-space:nowrap}
 .sln span{color:#6b7a90;margin-right:2cqw}
 
 .slt{width:100%;border-collapse:collapse;margin:3cqw 0}
-.slt th{background:var(--hd);color:#fff;padding:1.8cqw 1.6cqw;font-size:2.5cqw}
-.slt td{border:1px solid #dfe4ee;padding:0 1.6cqw;height:6cqw;font-size:2.5cqw}
+.slt th{background:var(--hd);color:#fff;padding:1.8cqw 1.6cqw;}
+.slt td{border:1px solid #dfe4ee;padding:0 1.6cqw;height:6cqw;}
 
-.slf{display:flex;justify-content:space-between;gap:3cqw;font-size:2.6cqw;line-height:1.9}
+.slf{display:flex;justify-content:space-between;gap:3cqw;line-height:1.9}
 .slf>div:last-child{min-width:44%}
 .slf p{display:flex;justify-content:space-between;margin:0;color:#6b7a90}
-.slf p.tt{border-top:1px solid #dfe4ee;margin-top:1cqw;padding-top:1cqw;border-bottom:.6cqw solid #172F57;font-size:3.1cqw}
+.slf p.tt{border-top:1px solid #dfe4ee;margin-top:1cqw;padding-top:1cqw;border-bottom:.6cqw solid #172F57;}
 
 .sheetbox{background:var(--card);border:1px solid var(--ln);border-radius:8px;overflow:hidden;cursor:pointer}
 .sheet{container-type:inline-size;position:relative}
 .sheet img{display:block;width:100%}
 
-.sf{font-family:system-ui,-apple-system,"Segoe UI","Noto Sans Thai","Sukhumvit Set",Tahoma,sans-serif;position:absolute;color:#111;line-height:1;transform:translateY(-50%);white-space:nowrap;font-size:1.838cqw}
+.sf{font-family:system-ui,-apple-system,"Segoe UI","Noto Sans Thai","Sukhumvit Set",Tahoma,sans-serif;position:absolute;color:#111;line-height:1;transform:translateY(-50%);white-space:nowrap;}
 
-.pre{white-space:pre-wrap;background:var(--card);border-radius:var(--r);padding:12px;font-size:var(--fs3);line-height:1.6}
+.pre{white-space:pre-wrap;background:var(--card);border-radius:var(--r);padding:12px;line-height:1.6}
 
 /* ===== ป๊อปอัป ===== */
 .mod{position:absolute;inset:0;z-index:20;background:rgba(15,22,38,.5);display:flex;align-items:flex-end}
@@ -292,17 +289,17 @@ label.l{display:block;font-size:13px;color:var(--n);margin:12px 0 4px;font-weigh
 .mod.full{align-items:flex-start;background:#fff;overflow:auto}
 .mod.full>div{border-radius:0;padding:0;width:900px;max-width:none;max-height:none}
 
-#toast{position:absolute;left:12px;right:12px;bottom:86px;z-index:30;background:#1f2533;color:#fff;border-radius:12px;padding:12px 14px;font-size:var(--fs3);display:none}
+#toast{position:absolute;left:12px;right:12px;bottom:86px;z-index:30;background:#1f2533;color:#fff;border-radius:12px;padding:12px 14px;display:none}
 
 .ctw{padding:0}
-.ctl{font-size:var(--fs2);font-weight:600;color:var(--n);background:var(--soft);padding:5px 14px}
+.ctl{font-weight:600;color:var(--n);background:var(--soft);padding:5px 14px}
 .ctr{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--ln)}
 .ctr>a.row{flex:1;min-width:0;align-items:center;gap:10px}
 .ctr .grow{min-width:0}
 .ctr .nm,.ctr .t{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nb{background:#f3f5fa;border-radius:8px;padding:8px 10px;margin:6px 0;white-space:pre-wrap}
 .nb .t{display:block}
-.cav{width:40px;height:40px;border-radius:50%;background:var(--soft);color:var(--n);display:flex;align-items:center;justify-content:center;font-size:var(--fs3);font-weight:600;flex:none}
+.cav{width:40px;height:40px;border-radius:50%;background:var(--soft);color:var(--n);display:flex;align-items:center;justify-content:center;font-weight:600;flex:none}
 .cl{width:44px;height:44px;border-radius:50%;background:var(--hd);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
 .cl.off{background:#d5dbe8}
 .cl .ic{width:20px;height:20px}
@@ -314,13 +311,13 @@ label.l{display:block;font-size:13px;color:var(--n);margin:12px 0 4px;font-weigh
 
 .ch .ha a svg{display:none}
 
-.ch .ha a span{font-size:13px;line-height:1.1;font-weight:500}
+.ch .ha a span{line-height:1.1;font-weight:500}
 
 .ch .ha a.off{opacity:.45}
 .ch .ha{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;border-top:0;margin-top:12px}
-.ch .ha a{border:1px solid var(--ln);border-radius:12px;background:var(--card);flex-direction:column;align-items:center;gap:4px;min-height:0;padding:9px 2px;font-size:11px;font-weight:600;color:var(--n)}
+.ch .ha a{border:1px solid var(--ln);border-radius:12px;background:var(--card);flex-direction:column;align-items:center;gap:4px;min-height:0;padding:9px 2px;font-weight:600;color:var(--n)}
 .ch .ha a svg{display:block;width:18px;height:18px;color:var(--acc)}
-.ch .ha a span{font-size:11px;font-weight:600;white-space:nowrap}
+.ch .ha a span{font-weight:600;white-space:nowrap}
 .ch .ha a:first-child{background:var(--hd);border-color:var(--hd);color:#fff}
 .ch .ha a:first-child svg{color:#fff}
 
@@ -627,7 +624,7 @@ function custCard(c,y,extra){y=y||cyc(c.id);return '<div class="cr" style="borde
 function toast(m){var t=document.getElementById('toast');if(!t)return;t.textContent=m;t.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(function(){t.style.display='none'},2600)}
 function closeModal(){var m=document.querySelector('.mod');if(m)m.remove()}
 function modal(html,full){closeModal();var m=document.createElement('div');m.className='mod'+(full?' full':'');m.innerHTML='<div>'+html+'</div>';m.addEventListener('click',function(e){if(e.target===m)m.remove()});document.getElementById('app').appendChild(m);addClear(m);return m}
-function ask(title,body,yes,fn,danger){modal('<div class="tl" style="font-size:var(--fs4)">'+title+'</div>'+(body?'<div style="margin-top:6px">'+body+'</div>':'')+'<div class="g2" style="margin-top:14px">'+btn('ยกเลิก',null,'close',null,'o')+btn(yes,null,'askOk',null,danger?'d':'')+'</div>');PA.askOk=function(){if(fn()!==false)closeModal()}}
+function ask(title,body,yes,fn,danger){modal('<div class="tl">'+title+'</div>'+(body?'<div style="margin-top:6px">'+body+'</div>':'')+'<div class="g2" style="margin-top:14px">'+btn('ยกเลิก',null,'close',null,'o')+btn(yes,null,'askOk',null,danger?'d':'')+'</div>');PA.askOk=function(){if(fn()!==false)closeModal()}}
 function editText(title,cur,opt,fn){ask(title,'<textarea id="ev" '+(opt||'')+'>'+E(cur||'')+'</textarea>','บันทึก',function(){return fn(document.getElementById('ev').value.trim())})}
 function showImg(src,title){modal((title?'<div class="tl">'+E(title)+'</div><div class="t">กดค้างที่รูปเพื่อบันทึกหรือแชร์</div>':'')+'<img src="'+src+'" alt="" style="width:100%;border-radius:10px;margin-top:8px">'+btn('ปิด',null,'close',null,'o'))}
 function copyTxt(t){var ok=function(){toast('คัดลอกแล้ว · วางในไลน์ได้เลย')},fb=function(){modal('<div class="tl">คัดลอกข้อความ</div><textarea id="cpt" rows="9">'+E(t)+'</textarea>'+btn('ปิด',null,'close',null,'o'));var x=document.getElementById('cpt');x.select();try{if(document.execCommand('copy')){closeModal();ok()}}catch(e){}};
@@ -816,7 +813,7 @@ function photos(list,rm){return list.length?'<div class="ph">'+list.map(function
 // =====================================================================
 // 14) เข้าสู่ระบบ
 // =====================================================================
-R.login=function(){page({body:'<div style="text-align:center;padding:36px 0 8px"><div class="brand" style="justify-content:center;color:var(--n);font-size:var(--fs6)"><i style="background:var(--hd)"></i>ART</div><div class="t">ระบบลูกค้าสำหรับทีมขาย · เชื่อมชีต A</div></div>'
+R.login=function(){page({body:'<div style="text-align:center;padding:36px 0 8px"><div class="brand" style="justify-content:center;color:var(--n);"><i style="background:var(--hd)"></i>ART</div><div class="t">ระบบลูกค้าสำหรับทีมขาย · เชื่อมชีต A</div></div>'
  +'<div class="c">'+field('em','อีเมลที่ได้รับสิทธิ์ (แท็บ ACCESS ในชีต A)',{v:DB.cfg.lastEmail||'',at:'type="email" inputmode="email" autocomplete="email"'})+'<div style="margin-top:12px"><button type="button" class="b" id="ok" data-a="login">เข้าสู่ระบบ</button></div></div>'
  +'<div class="t" style="text-align:center">ตรวจสิทธิ์กับชีต A · เข้าแล้วใช้ต่อได้แม้ไม่มีสัญญาณ</div>',
  on:{login:function(){var em=val('em').toLowerCase(),er=function(t){document.getElementById('e_em').textContent=t};if(!/@/.test(em))return er('กรอกอีเมล');
@@ -885,12 +882,12 @@ R.home=function(){var L=ranked(),need=L.filter(function(x){return x.y.rank<=2}),
  due=DB.tasks.filter(function(t){return !t.done&&t.due<=TD}).length,wait=DB.orders.filter(function(o){return o.st==='รอส่ง'}).length,
  away=DB.customers.filter(function(c){return c.status!=='closed'&&cyc(c.id).st==='LOST'}).length,
  n=function(st){return need.filter(function(x){return x.y.st===st}).length};
- var row=function(n,cls,t,s,h){return '<a class="li" href="#'+h+'"><span class="pill '+cls+'" style="min-width:40px;text-align:center;font-size:var(--fs4)">'+n+'</span><span class="grow"><b>'+t+'</b><span class="t">'+s+'</span></span>'+ic('chev')+'</a>'};
+ var row=function(n,cls,t,s,h){return '<a class="li" href="#'+h+'"><span class="pill '+cls+'" style="min-width:40px;text-align:center;">'+n+'</span><span class="grow"><b>'+t+'</b><span class="t">'+s+'</span></span>'+ic('chev')+'</a>'};
  var todo=(due||wait)?(due?row(due,'p-amb','งานถึงกำหนด','โทรกลับ · นัดหมาย · ติดตาม','tasks'):'')+(wait?row(wait,'p-blu','ออเดอร์รอส่ง','แตะเพื่อดูรายการ','orders'):''):'<div class="t" style="padding:8px 0">ไม่มีงานค้างวันนี้</div>';
  page({body:srch('ชื่อ รหัส เบอร์ ป้าย เลขบิล')+'<div id="hs"></div>'
   +sec('ต้องทำวันนี้','',todo)
   +'<div class="g4"><a class="ab p" href="#order">'+ic('cart')+'รับออเดอร์</a><a class="ab" href="#cycle">'+ic('clock')+'รอบลูกค้า</a><a class="ab" href="#map">'+ic('map')+'แผนที่</a><a class="ab" href="#cform/new">'+ic('plus')+'ร้านใหม่</a></div>'
-  +'<a class="c row" href="#sales" style="background:var(--hd);color:#fff"><span><span class="t" style="color:#c9d4ea">ยอดขาย '+ymLabel(cm)+' · ถึงวันที่ '+dn+'</span><br><b style="font-size:var(--fs6)">'+money(cur)+'</b></span><span class="t" style="color:#c9d4ea;text-align:right">เทียบ 1–'+dn+' '+MTH[+pm.slice(5,7)-1]+'<br>'+money(prev)+' ('+(pc>0?'+':'')+pc+'%)</span></a>'
+  +'<a class="c row" href="#sales" style="background:var(--hd);color:#fff"><span><span class="t" style="color:#c9d4ea">ยอดขาย '+ymLabel(cm)+' · ถึงวันที่ '+dn+'</span><br><b>'+money(cur)+'</b></span><span class="t" style="color:#c9d4ea;text-align:right">เทียบ 1–'+dn+' '+MTH[+pm.slice(5,7)-1]+'<br>'+money(prev)+' ('+(pc>0?'+':'')+pc+'%)</span></a>'
   +'<div class="row"><b>ร้านที่ถึงเวลาติดต่อ <span class="t">('+need.length+')</span></b><a class="lk" href="#cycle">ดูทั้งหมด'+ic('chev')+'</a></div>'
   +'<div class="t">เลยรอบ '+n('OVER')+' · ถึงรอบ '+n('DUE')+' · ใกล้ถึง '+n('NEAR')+'</div>'
   +(need.slice(0,5).map(function(x){return custCard(x.c,x.y)}).join('')||'<div class="c">'+empty('ไม่มีร้านถึงเวลาติดต่อ')+'</div>'),
@@ -1153,7 +1150,7 @@ R.sales=function(){var yr=TD.slice(0,4),m=[],SM=R.sales.m||'all';for(var i=0;i<1
 // =====================================================================
 function addMon(ym,d){var t=new Date(+ym.slice(0,4),+ym.slice(5,7)-1+d,1);return t.getFullYear()+'-'+p2(t.getMonth()+1)}
 function monShops(ym,maxDay){var sh={};DB.bills.forEach(function(b){if(b.d.slice(0,7)!==ym||(maxDay&&+b.d.slice(8,10)>maxDay))return;var o=sh[b.cid]=sh[b.cid]||{id:b.cid,v:0,n:0,last:''};o.v+=bt(b);o.n++;if(b.d>o.last)o.last=b.d});return sh}
-function monList(title,html){modal('<div class="row" style="align-items:center;padding:4px 0 10px"><b class="grow" style="font-size:var(--fs5)">'+title+'</b><button type="button" class="b o sm" data-a="close">ปิด</button></div>'+html,true)}
+function monList(title,html){modal('<div class="row" style="align-items:center;padding:4px 0 10px"><b class="grow">'+title+'</b><button type="button" class="b o sm" data-a="close">ปิด</button></div>'+html,true)}
 R.month=function(a){var lb=DB.bills.map(function(b){return b.d}).sort().pop()||TD,ym=/^\d{4}-\d\d$/.test(a[0]||'')?a[0]:lb.slice(0,7),pm=addMon(ym,-1),nm=addMon(ym,1),
  partial=ym===lb.slice(0,7)&&+lb.slice(8,10)<new Date(+ym.slice(0,4),+ym.slice(5,7),0).getDate(),dn=partial?+lb.slice(8,10):0,
  cur=monShops(ym),prv=monShops(pm),prvTo=partial?monShops(pm,dn):prv,
@@ -1165,10 +1162,10 @@ R.month=function(a){var lb=DB.bills.map(function(b){return b.d}).sort().pop()||T
  six=[];for(var i=5;i>=0;i--){var k=addMon(ym,-i);six.push({k:k,v:salesOf(k)})}var mx=Math.max.apply(null,six.map(function(x){return x.v}))||1,
  row=function(l,n,u,attr){return '<a class="kv" '+attr+' style="cursor:pointer"><span>'+l+'</span><b>'+n+' '+u+'</b></a>'},
  shopRows=function(L){return L.map(function(x){var c=cust(x.id);return '<a class="li" href="#cust/'+x.id+'" onclick="closeModal()"><span class="grow"><b>'+x.id+' · '+E(c?c.name:x.id)+'</b><span class="t">'+(x.n?x.n+' บิล · ล่าสุด '+dt(x.last):'ลดลงจาก '+money(x.was)+' เหลือ '+money(x.now))+'</span></span><b>'+money(x.v!=null?x.v:x.now)+'</b></a>'}).join('')};
- page({title:'รายงานรายเดือน',back:'back',bl:'หลังบ้าน',body:'<div class="row" style="align-items:center;margin-bottom:8px"><a class="b o sm" href="#month/'+pm+'">‹ '+MTH[+pm.slice(5)-1]+'</a><b class="grow" style="text-align:center;font-size:var(--fs4)">'+ymLabel(ym)+'</b><a class="b o sm" href="#month/'+nm+'">'+MTH[+nm.slice(5)-1]+' ›</a></div>'
+ page({title:'รายงานรายเดือน',back:'back',bl:'หลังบ้าน',body:'<div class="row" style="align-items:center;margin-bottom:8px"><a class="b o sm" href="#month/'+pm+'">‹ '+MTH[+pm.slice(5)-1]+'</a><b class="grow" style="text-align:center;">'+ymLabel(ym)+'</b><a class="b o sm" href="#month/'+nm+'">'+MTH[+nm.slice(5)-1]+' ›</a></div>'
   +'<div class="g2"><a class="c" data-a="mb" style="text-align:center;cursor:pointer"><b class="big">฿'+fm(Math.round(tot))+'</b><div class="t">ยอดขายเดือนนี้ · '+bs.length+' บิล</div></a><a class="c" data-a="ms" style="text-align:center;cursor:pointer"><b class="big">'+SL.length+'</b><div class="t">ร้านที่ซื้อ · ประจำ '+reg+'</div></a></div>'
-  +'<div class="c" style="border-left:3px solid var(--amb)"><b style="font-size:var(--fs4)">วันนี้ควรทำ 3 อย่าง</b>'+row('โทรตามร้านที่เลยรอบซื้อ',over,'ร้าน','href="#cycle"')+row('ติดตามร้านที่ยอดลดลงเกิน 50%',drop.length,'ร้าน','data-a="md"')+row('ส่งออเดอร์ที่รอส่ง',wait,'รายการ','href="#orders"')+'</div>'
-  +'<div class="c"><b style="font-size:var(--fs4)">ยอดขาย 6 เดือน</b>'+six.map(function(x){var last=x.k===ym;return '<a class="kv" href="#month/'+x.k+'"><span style="width:44px;color:var(--mu)">'+MTH[+x.k.slice(5)-1]+'</span><span style="flex:1;height:12px;background:var(--ln2);border-radius:6px;overflow:hidden;margin:0 8px"><i style="display:block;height:100%;width:'+Math.round(x.v/mx*100)+'%;background:var(--hd)"></i></span><b style="min-width:84px;text-align:right">฿'+fm(Math.round(x.v))+'</b></a>'}).join('')+(partial?'<div class="t" style="margin-top:6px">'+MTH[+ym.slice(5)-1]+' นับถึงวันที่ '+dn+' · ยังไม่เต็มเดือน</div>':'')+'</div>'
+  +'<div class="c" style="border-left:3px solid var(--amb)"><b>วันนี้ควรทำ 3 อย่าง</b>'+row('โทรตามร้านที่เลยรอบซื้อ',over,'ร้าน','href="#cycle"')+row('ติดตามร้านที่ยอดลดลงเกิน 50%',drop.length,'ร้าน','data-a="md"')+row('ส่งออเดอร์ที่รอส่ง',wait,'รายการ','href="#orders"')+'</div>'
+  +'<div class="c"><b>ยอดขาย 6 เดือน</b>'+six.map(function(x){var last=x.k===ym;return '<a class="kv" href="#month/'+x.k+'"><span style="width:44px;color:var(--mu)">'+MTH[+x.k.slice(5)-1]+'</span><span style="flex:1;height:12px;background:var(--ln2);border-radius:6px;overflow:hidden;margin:0 8px"><i style="display:block;height:100%;width:'+Math.round(x.v/mx*100)+'%;background:var(--hd)"></i></span><b style="min-width:84px;text-align:right">฿'+fm(Math.round(x.v))+'</b></a>'}).join('')+(partial?'<div class="t" style="margin-top:6px">'+MTH[+ym.slice(5)-1]+' นับถึงวันที่ '+dn+' · ยังไม่เต็มเดือน</div>':'')+'</div>'
   +'<div class="t">ประจำ = ร้านที่ซื้อทั้งเดือนนี้และเดือนก่อน · ยอดลดลง'+(partial?' เทียบเดือนก่อนช่วงวันที่ 1–'+dn:' เทียบเดือนก่อน')+' · นับเฉพาะบิลปกติ</div>',
  on:{mb:function(){monList('บิล · '+ymLabel(ym),'<div class="t">'+bs.length+' บิล · รวม ฿'+fm(Math.round(tot))+'</div>'+bs.slice(0,200).map(function(b){return billCard(b,true)}).join(''))},
   ms:function(){monList('ร้านที่ซื้อ · '+ymLabel(ym),'<div class="t">'+SL.length+' ร้าน</div><div class="sec">'+shopRows(SL.slice(0,300))+'</div>')},
@@ -1200,7 +1197,7 @@ R.contacts=function(){var n=DB.customers.filter(function(c){return c.status!=='c
  page({title:'สมุดโทร',back:'back',bl:'หลังบ้าน',body:'<div style="margin-bottom:8px">'+srch('ค้นหาชื่อร้าน · เบอร์ · ผู้ติดต่อ','')+'</div>'+chips([['all','ทั้งหมด '+n],['due','ถึงรอบ/เลยรอบ'],['ph','มีเบอร์']],CTF,'ctf')+'<div id="ctl">'+ctList('')+'</div>',
   after:function(){onInput('#q',function(){var l=document.getElementById('ctl');if(l)l.innerHTML=ctList(this.value)})},
   on:{ctf:function(v){CTF=v;route()},
-   ctpick:function(v){var c=cust(v);if(!c)return;modal('<div class="tl" style="font-size:var(--fs4)">โทรหา '+E(c.name)+'</div>'+(c.owner?'<div class="t">'+E(c.owner)+'</div>':'')+'<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">'+c.ph.map(function(p){return lnk(E(p),'phone','tel:'+digits(p),'')}).join('')+'</div><div style="margin-top:10px">'+btn('ปิด',null,'close',null,'o')+'</div>',false)}}})};
+   ctpick:function(v){var c=cust(v);if(!c)return;modal('<div class="tl">โทรหา '+E(c.name)+'</div>'+(c.owner?'<div class="t">'+E(c.owner)+'</div>':'')+'<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">'+c.ph.map(function(p){return lnk(E(p),'phone','tel:'+digits(p),'')}).join('')+'</div><div style="margin-top:10px">'+btn('ปิด',null,'close',null,'o')+'</div>',false)}}})};
 // ===== ตั้งค่า: ทั่วไป · ตัวเลือกในฟอร์ม =====
 var OPTF={'ประเภทธุรกิจ':'type','พื้นที่':'area','วิธีชำระ':'pay','เงื่อนไข VAT':'vat','ที่มาของร้าน':'src'};
 function optUse(k,v){var f=OPTF[k];if(k==='ป้ายกำกับ')return DB.customers.filter(function(c){return c.tags.indexOf(v)>-1}).length;return f?DB.customers.filter(function(c){return c[f]===v}).length:null}
@@ -1338,8 +1335,8 @@ function txRead(files){var list=Array.prototype.slice.call(files),ok=[],bad=[],i
 function txCounts(){var b=TX.bills,c=TX.custs;return{b:{n:b.length,new:b.filter(function(x){return x.st==='new'}).length,dup:b.filter(function(x){return x.st==='dup'||x.st==='dupf'}).length,can:b.filter(function(x){return x.st==='cancel'}).length,flag:b.filter(function(x){return x.flags.length&&x.st==='new'}).length,inc:b.filter(function(x){return x.inc}).length},
  c:{n:c.length,new:c.filter(function(x){return x.st==='new'}).length,nobuy:c.filter(function(x){return x.st==='nobuy'}).length,dup:c.filter(function(x){return x.st==='dup'||x.st==='dupf'}).length,flag:c.filter(function(x){return x.flags.length&&x.st==='new'}).length,inc:c.filter(function(x){return x.inc}).length}}}
 function txStat(x){return x.st==='new'?(x.flags.length?'<span class="pill p-amb">ต้องตรวจ</span>':'<span class="pill p-grn">พร้อม</span>'):x.st==='cancel'?'<span class="pill p-gry">ยกเลิก</span>':x.st==='nobuy'?'<span class="pill p-gry">ไม่เคยซื้อ</span>':'<span class="pill p-gry">มีแล้ว</span>'}
-function txBillRow(b,i){return '<div class="li" data-a="txb" data-v="'+i+'"><input type="checkbox" '+(b.inc?'checked ':'')+(b.st!=='new'?'disabled ':'')+'data-a="txbi" data-v="'+i+'" style="width:22px;height:22px;min-height:0;flex:none"><span class="grow"><b>'+E(b.no)+' · '+E(dt(b.d))+' · '+money(b.tot||0)+'</b><span class="t">'+E(b.cid)+' '+E(b.name)+' · '+b.items.length+' รายการ · '+E(b.pay||'เงินสด')+(b.by?'/'+E(b.by):'')+'</span>'+(b.flags.length?'<span class="t" style="color:var(--red)">'+b.flags.map(E).join(' · ')+'</span>':'')+'</span><span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">'+txStat(b)+'<span class="lk" style="font-size:var(--fs2)">แก้ไข</span></span></div>'}
-function txCustRow(c,i){return '<div class="li" data-a="txc" data-v="'+i+'"><input type="checkbox" '+(c.inc?'checked ':'')+(c.st!=='new'?'disabled ':'')+'data-a="txci" data-v="'+i+'" style="width:22px;height:22px;min-height:0;flex:none"><span class="grow"><b>'+E(c.id)+' · '+E(c.name)+'</b><span class="t">'+E(c.addrS||'-')+' · '+E(c.ph.join(', ')||'-')+(c.owner?' · '+E(c.owner):'')+'</span>'+(c.flags.length?'<span class="t" style="color:var(--red)">'+c.flags.map(E).join(' · ')+'</span>':'')+'</span><span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">'+txStat(c)+'<span class="lk" style="font-size:var(--fs2)">แก้ไข</span></span></div>'}
+function txBillRow(b,i){return '<div class="li" data-a="txb" data-v="'+i+'"><input type="checkbox" '+(b.inc?'checked ':'')+(b.st!=='new'?'disabled ':'')+'data-a="txbi" data-v="'+i+'" style="width:22px;height:22px;min-height:0;flex:none"><span class="grow"><b>'+E(b.no)+' · '+E(dt(b.d))+' · '+money(b.tot||0)+'</b><span class="t">'+E(b.cid)+' '+E(b.name)+' · '+b.items.length+' รายการ · '+E(b.pay||'เงินสด')+(b.by?'/'+E(b.by):'')+'</span>'+(b.flags.length?'<span class="t" style="color:var(--red)">'+b.flags.map(E).join(' · ')+'</span>':'')+'</span><span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">'+txStat(b)+'<span class="lk">แก้ไข</span></span></div>'}
+function txCustRow(c,i){return '<div class="li" data-a="txc" data-v="'+i+'"><input type="checkbox" '+(c.inc?'checked ':'')+(c.st!=='new'?'disabled ':'')+'data-a="txci" data-v="'+i+'" style="width:22px;height:22px;min-height:0;flex:none"><span class="grow"><b>'+E(c.id)+' · '+E(c.name)+'</b><span class="t">'+E(c.addrS||'-')+' · '+E(c.ph.join(', ')||'-')+(c.owner?' · '+E(c.owner):'')+'</span>'+(c.flags.length?'<span class="t" style="color:var(--red)">'+c.flags.map(E).join(' · ')+'</span>':'')+'</span><span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">'+txStat(c)+'<span class="lk">แก้ไข</span></span></div>'}
 function txVisible(){var T=TX.tab,L=T==='b'?TX.bills:TX.custs,flt=TX.flt,tk=String(TX.q||'').trim().split(/\s+/).filter(Boolean).map(function(r){return{t:nz(r),p:T==='b'?sxPred(r):null}}).filter(function(t){return t.t||t.p}),out=[];
  L.forEach(function(x,i){if(!(flt==='all'||(flt==='flag'&&x.flags.length&&x.st==='new')||(flt==='new'&&x.st==='new')||(flt==='skip'&&x.st!=='new')))return;
   if(tk.length){var h=nz(T==='b'?[x.no,x.d,dtFull(x.d),dt(x.d),x.cid,x.name,x.pay,x.by,x.ph,x.items.map(function(m){return m.c+' '+m.n}).join(' '),x.flags.join(' ')].join(' '):[x.id,x.name,x.addrS,x.ph.join(' '),x.owner,x.tel,x.flags.join(' ')].join(' '));
@@ -1380,8 +1377,8 @@ function txUndo(){if(!Sheet.api())return toast('ต้องเชื่อม�
   m.addEventListener('click',function(e){var b=e.target.closest('[data-u]');if(!b)return;var r=L[+b.dataset.u];b.disabled=true;b.textContent='กำลังลบ…';
    Sheet.rpc('undobatch',{batchId:r[0],stamp:r[1]}).then(function(j){var nos={};(j.nos||[]).forEach(function(n){nos[String(n)]=1});DB.bills=DB.bills.filter(function(x){return !nos[String(x.no)]});save();reindex();b.textContent='ลบแล้ว '+j.bills+' บิล';toast('ยกเลิกชุด '+r[0]+' · ลบ '+j.bills+' บิล '+j.items+' รายการ')},function(e){b.disabled=false;b.textContent='ยกเลิก';toast(e&&e.message==='unknown action'?'ต้องอัปเดต Code.gs ใน Apps Script แล้ว deploy ใหม่ก่อน':'ลบไม่สำเร็จ: '+(e&&e.message))})})},function(e){toast(Sheet.errText(e))})}
 function txEditBill(i){var b=TX.bills[i];
- var its=b.items.map(function(x,n){return '<div class="kv" style="gap:4px;align-items:center"><span style="width:44px;font-size:var(--fs2)">'+E(x.c)+'</span><span style="flex:1;font-size:var(--fs2)">'+E(x.n)+'</span><input id="tq'+n+'" value="'+x.q+'" inputmode="decimal" style="width:52px"><input id="tp'+n+'" value="'+x.p+'" inputmode="decimal" style="width:70px"><a class="lk" data-a="txdl" data-v="'+n+'">ลบ</a></div>'}).join('');
- modal('<div class="tl" style="font-size:var(--fs4)">แก้ไขบิล '+E(b.no)+'</div>'+(b.flags.length?'<div class="t" style="color:var(--red)">'+b.flags.map(E).join('<br>')+'</div>':'<div class="t">ข้อมูลครบ ไม่พบปัญหา</div>')
+ var its=b.items.map(function(x,n){return '<div class="kv" style="gap:4px;align-items:center"><span style="width:44px;">'+E(x.c)+'</span><span style="flex:1;">'+E(x.n)+'</span><input id="tq'+n+'" value="'+x.q+'" inputmode="decimal" style="width:52px"><input id="tp'+n+'" value="'+x.p+'" inputmode="decimal" style="width:70px"><a class="lk" data-a="txdl" data-v="'+n+'">ลบ</a></div>'}).join('');
+ modal('<div class="tl">แก้ไขบิล '+E(b.no)+'</div>'+(b.flags.length?'<div class="t" style="color:var(--red)">'+b.flags.map(E).join('<br>')+'</div>':'<div class="t">ข้อมูลครบ ไม่พบปัญหา</div>')
   +'<div class="g2">'+field('xd','วันที่ (ปี-เดือน-วัน ค.ศ.)',{v:b.d})+field('xc','รหัสลูกค้า',{v:b.cid})+'</div>'+field('xn','ชื่อร้าน',{v:b.name})
   +'<div class="g2">'+field('xp','วิธีชำระ',{v:b.pay})+field('xb','ผู้เปิดบิล',{v:b.by})+'</div>'
   +'<label class="l">VAT</label><select id="f_xv">'+['NONE','VAT_IN','VAT_OUT'].map(function(k){return '<option value="'+k+'"'+(b.vat===k?' selected':'')+'>'+E(VATMAP[k])+'</option>'}).join('')+'</select>'
@@ -1393,7 +1390,7 @@ function txEditBill(i){var b=TX.bills[i];
  PA.txdl=function(n){b.items.splice(+n,1);b._hx=1;txCheck(b);closeModal();txEditBill(i);rerender()};
  if(b.st!=='new'){var m=document.querySelector('.mod .tl');if(m)m.insertAdjacentHTML('afterend','<div class="t">บิลนี้'+(b.st==='cancel'?'อยู่ในรายการบิลยกเลิก':'มีอยู่ในระบบแล้ว')+' · จะไม่ถูกนำเข้า'+'</div>')}}
 function txEditCust(i){var c=TX.custs[i];
- modal('<div class="tl" style="font-size:var(--fs4)">แก้ไขลูกค้า '+E(c.id)+'</div>'+(c.flags.length?'<div class="t" style="color:var(--red)">'+c.flags.map(E).join(' · ')+'</div>':'')
+ modal('<div class="tl">แก้ไขลูกค้า '+E(c.id)+'</div>'+(c.flags.length?'<div class="t" style="color:var(--red)">'+c.flags.map(E).join(' · ')+'</div>':'')
   +field('xi','รหัสลูกค้า',{v:c.id})+field('xn','ชื่อร้าน',{v:c.name})+field('xa','ที่อยู่',{v:c.addrS,area:1})+field('xp','เบอร์โทร (คั่นด้วย , )',{v:c.ph.join(' , ')})+field('xo','ชื่อผู้ติดต่อ',{v:c.owner})
   +'<div class="g2" style="margin-top:12px">'+btn('ยกเลิก',null,'close',null,'o')+btn('บันทึก',null,'txsc',null,'')+'</div>',true);
  PA.txsc=function(){c.id=val('xi');c.name=val('xn');c.addrS=val('xa');c.ph=val('xp').split(/\s*[,/]\s*/).filter(Boolean);c.owner=val('xo');var was=c.inc;txCustStatus();if(c.st==='new')c.inc=true;closeModal();rerender();toast('บันทึกแล้ว')}}
@@ -1426,7 +1423,7 @@ function txGuess(n){n=String(n||'');var T=DB.opts['ประเภทธุร�
 function txTypeReview(L,go){var T=DB.opts['ประเภทธุรกิจ']||[],F='unk',st=0;L.forEach(function(x){if(x.type==null){x.type=txGuess(x.name);x.guess=x.type}});
  var opt=function(v,ph){return '<option value="">'+(ph||'เลือก...')+'</option>'+T.map(function(t){return '<option'+(t===v?' selected':'')+'>'+E(t)+'</option>'}).join('')};
  var unk=function(){return L.filter(function(x){return !x.type}).length},chg=function(){return L.filter(function(x){return x.type!==x.guess}).length};
- modal('<div style="background:var(--hd);color:#fff;margin:-16px -16px 10px;padding:12px 14px;font-weight:600;font-size:var(--fs4)">ตรวจประเภทร้านก่อนนำเข้า</div><div class="t" id="tyi"></div><div id="tyc" style="margin:8px 0"></div><div class="row" style="margin:6px 0"><span class="t grow">ตั้งทุกร้านที่ยังไม่เลือกเป็น</span><select id="tyb">'+opt('','เลือก...')+'</select></div><div id="tyl" style="max-height:48vh;overflow:auto"></div><div class="g2" style="margin-top:10px"><button type="button" class="b o" id="tyx">ยกเลิก</button><button type="button" class="b" id="tyg"></button></div>',true);
+ modal('<div style="background:var(--hd);color:#fff;margin:-16px -16px 10px;padding:12px 14px;font-weight:600;">ตรวจประเภทร้านก่อนนำเข้า</div><div class="t" id="tyi"></div><div id="tyc" style="margin:8px 0"></div><div class="row" style="margin:6px 0"><span class="t grow">ตั้งทุกร้านที่ยังไม่เลือกเป็น</span><select id="tyb">'+opt('','เลือก...')+'</select></div><div id="tyl" style="max-height:48vh;overflow:auto"></div><div class="g2" style="margin-top:10px"><button type="button" class="b o" id="tyx">ยกเลิก</button><button type="button" class="b" id="tyg"></button></div>',true);
  var m=document.querySelector('.mod'),$=function(i){return m.querySelector('#'+i)};
  function draw(){var u=unk(),show=F==='unk'?L.filter(function(x){return !x.type}):F==='chg'?L.filter(function(x){return x.type!==x.guess}):L;
   $('tyi').textContent='ระบบเสนอประเภทให้ '+L.length+' ร้าน · ร้านที่เดาไม่ได้ต้องเลือกเอง · แตะเพื่อแก้';
