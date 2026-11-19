@@ -393,7 +393,10 @@ table{max-width:100%;table-layout:auto}
 img,video,canvas,svg{max-width:100%;height:auto}
 .dc,.sec,.c,.card,.kv,.seg{box-sizing:border-box;max-width:100%}
 /* Type scale: one role per size, set once here */
-body,button,input,select,textarea,.b,.btn,.ab,.chip,.seg a,.kp,.lk,.kv,.li,.dh,.ba a,.nb,.note,.c,.sec,.pre,.tb th,.tb td,.ds,.sh,.tl{font-size:var(--fs3)}
+body,button,.b,.btn,.ab,.chip,.seg a,.kp,.lk,.kv,.li,.dh,.ba a,.nb,.note,.c,.sec,.pre,.tb th,.tb td,.ds,.sh,.tl{font-size:var(--fs3)}
+/* iOS Safari zooms the whole page when a field under 16px is focused; keep fields at 16px */
+input,select,textarea{font-size:16px}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .st,.t,.ctl,.er,label.l,.kv .t,.dc .tb,.dc .tb td,.ds small{font-size:var(--fs2)}
 .brand small,.bdg,.pill,.nv a,.kp span,.kp em,.mb span,.mb em,.ha a span,.ch .ha a span,.tb th,.dc .tb th,.cap small,.tb td .t,.dh small{font-size:var(--fs1)}
 .top h1,.ch .nm,.tl{font-size:var(--fs4)}
