@@ -144,6 +144,26 @@ a.st{position:relative}a.st::after{content:'';position:absolute;left:0;right:0;t
 .kp{border-radius:var(--r)}
 .lk{min-width:36px;min-height:36px;justify-content:center}
 span.grow[data-a]{display:inline-block;padding:9px 0;margin:-9px 0}
+.chead{background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:14px;margin-bottom:10px}
+.cname{font-size:17px;font-weight:700;line-height:1.3;overflow-wrap:anywhere}
+.cico{display:flex;gap:6px;flex:none}
+.cico .ico{width:40px;height:40px;border-radius:10px;border:1px solid var(--ln);display:grid;place-items:center;color:var(--mu);background:var(--card)}
+.cico .ico svg{width:16px;height:16px}
+.ctags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.ctag{font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;background:var(--soft);color:var(--n)}
+.ctag.g{background:var(--grn);color:#fff}
+.ctag.a{background:var(--amb);color:#fff}
+.ctag.rd{background:var(--red);color:#fff}
+.cacts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:12px}
+.cact{display:flex;flex-direction:column;align-items:center;gap:4px;padding:9px 2px;border-radius:12px;border:1px solid var(--ln);background:var(--card);font-weight:600;font-size:11px;line-height:1.2;font-family:inherit;color:var(--ink);min-width:0;text-decoration:none;cursor:pointer}
+.cact svg{width:18px;height:18px;color:var(--n)}
+.cact.pri{background:var(--n);border-color:var(--n);color:#fff}
+.cact.pri svg{color:#fff}
+.cact.off{opacity:.45}
+.cwrap{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin-top:10px}
+.tlr{padding:8px 0;border-bottom:1px solid var(--ln);font-size:13px}
+.cbtn{display:flex;gap:8px;align-items:center;justify-content:center;padding:10px;border-radius:12px;background:var(--n);color:#fff;text-decoration:none;font-weight:600;font-size:13px}
+.cbtn svg{width:16px;height:16px}
 </style></head><body><div id="app"></div>
 <script>
 'use strict';
@@ -675,31 +695,42 @@ function smartCard(c,y,bs,tk,open){var wait=DB.orders.filter(function(o){return 
  if(lv&&lv.end)rows+=kv('เข้าพบล่าสุด',dt(lv.end.slice(0,10))+' · '+since(lv.end.slice(0,10))+' วันก่อน');
  if(due||wait)rows+=kv('ค้างอยู่',(due?due+' งานถึงกำหนด':'')+(due&&wait?' · ':'')+(wait?wait+' ออเดอร์รอส่ง':''));
  return sec('สรุปอัจฉริยะ','',rows+reorderRow(lb))}
-R.cust=function(a){var c=cust(a[0]);if(!c)return go('customers',true);var T=R.cust.t||'ov',y=cyc(c.id),v=lastVisit(c.id),bs=billsOf(c.id),top=bought(c.id),yr=TD.slice(0,4),
- ys=bs.filter(function(b){return b.d.slice(0,4)===yr}).reduce(function(s,b){return s+bt(b)},0),avg=bs.length?bs.reduce(function(s,b){return s+bt(b)},0)/bs.length:0,
- tk=DB.tasks.filter(function(t){return t.cid===c.id&&!t.done}).sort(by('due')),nC=CART&&CART.cid===c.id?CART.items.length:0,open=one(DB.visits.filter(function(x){return x.cid===c.id}),'done',false),nbs=DB.acts.filter(function(x){return x.cid===c.id&&x.type==='โน้ต'}).sort(by('at',true));
- var plus=function(i){return '<button type="button" class="pl" data-a="add" data-v="'+i.c+'" aria-label="ใส่ในออเดอร์">'+ic('plus')+'</button>'},b='';
- if(T==='ov'){var sCt=sec('ติดต่อ',tlink('แก้','edit','go','cform/'+c.id),(c.ph.length?c.ph.map(function(p){return '<div class="kv"><span>'+E(p)+'</span><a class="lk ico" href="tel:'+digits(p)+'" aria-label="โทร">'+ic('phone')+'</a></div>'}).join(''):kv('เบอร์','<span class="t">ยังไม่มี</span>'))+kv('ID LINE',c.lineId?E(c.lineId):'<span class="t">ยังไม่มี</span>')+kv('วันเกิด',c.birthday?bdFmt(c.birthday):'<span class="t">ยังไม่มี</span>')+kv('ผู้ติดต่อ',c.owner?E(c.owner):'<span class="t">—</span>')+kv('ที่อยู่',c.addr?E(c.addr):'<span class="t">ยังไม่มี</span>')+kv('ป้ายกำกับ',c.tags.length?E(c.tags.join(', ')):'<span class="t">—</span>'));
-  var sDoc=sec('เอกสาร','',(c.vat!==VATMAP.VAT_IN&&!c.rcpt?kv('ใบกำกับภาษี / ใบเสร็จ','-'):kv('ใบกำกับภาษี',c.vat===VATMAP.VAT_IN?'ต้องการ':'-')+(c.vat===VATMAP.VAT_IN?kv('ชื่อ / ที่อยู่ออกใบ',E((c.taxName||'-')+' · '+(c.taxAddr||'-')))+kv('สาขา / เลขภาษี',E((c.taxBranch||'-')+' / '+(c.taxId||'-'))):'')+(c.vat===VATMAP.VAT_IN||c.rcpt?kv('ใบเสร็จรับเงิน',c.rcpt?'ต้องการ':'-'):'')+(c.docNote?kv('หมายเหตุเอกสาร',E(c.docNote)):'')));
-  var sSum=sec('สรุปร้าน','',kv('ยอดซื้อปี '+(+yr+543),money(ys))+kv('ซื้อล่าสุด',y.last?dt(y.last)+' <span class="t">· '+y.since+' วันก่อน</span>':'ยังไม่มี')+kv('เฉลี่ยต่อบิล',money(avg)+' <span class="t">· '+bs.length+' บิล</span>')
-   +kv('รอบซื้อ',y.m?'<span class="'+(y.rank<=1?'rd':'')+'">'+(y.since>=y.m?'เกินรอบ '+(y.since-y.m)+' วัน':'อีก '+(y.m-y.since)+' วัน')+'</span> <span class="t">· ทุก '+y.m+' วัน</span>':'ต้องมีบิลอย่างน้อย 3 วัน')
-   +kv('เข้าพบล่าสุด',v?dt(v.end):'ยังไม่มี')+kv('งานติดตาม',tk.length?E(tk[0].title)+' · '+dt(tk[0].due):tlink('ตั้งนัด','plus','go','act/'+c.id))
-   +kv('พิกัดร้าน',c.lat?'<a class="lk" href="'+mapUrl(c)+'" target="_blank" rel="noopener">'+ic('pin')+'ดูแผนที่</a>':tlink('ถ่ายรูป + พิกัด','cam','shopCap')));
-  var sTop=(top.length?sec('ซื้อประจำ',tlink('ทั้งหมด '+top.length,null,'tab','prod'),tbl([['สินค้า'],['ครั้ง','r'],['ล่าสุด','r'],['','r']],top.slice(0,3).map(function(i){return '<tr><td>'+E(i.n)+'</td><td class="r">'+i.t+'</td><td class="r">'+dt(i.d)+'</td><td class="r">'+plus(i)+'</td></tr>'}))):'');
-  var sNote=sec('หมายเหตุ / โน้ตก่อนเข้าพบ',tlink('แก้','edit','note'),'<div style="padding:8px 0;white-space:pre-wrap" class="'+(c.note?'':'t')+'">'+(c.note?E(c.note):'ยังไม่มีโน้ต')+'</div>');
-  var sNb=sec('สมุดโน้ต',tlink('เขียนโน้ต','plus','nb'),nbs.length?nbs.map(function(x){return '<div class="nb">'+E(x.note)+'<span class="t">'+dt(x.at.slice(0,10))+' '+x.at.slice(11,16)+'</span></div>'}).join(''):'<div class="t" style="padding:8px 0">เขียนอะไรก็ได้ ไม่ต้องจดลงสมุด</div>');
-  var sPh=sec('รูป + พิกัด','',(c.photo?'<img src="'+E(c.photo)+'" alt="" style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin-top:8px">':'')+kv('พิกัด',c.lat?'<a class="lk" href="'+mapUrl(c)+'" target="_blank" rel="noopener">'+ic('pin')+c.lat+', '+c.lng+'</a>':'<span class="t">ยังไม่มี</span>')+kv('ถ่ายใหม่',tlink('ถ่ายรูป + พิกัด','cam','shopCap')));
-  b=smartCard(c,y,bs,tk,open)+sCt+sDoc+sSum+sTop+sNote+sNb+sPh}
- if(T==='bill')b='<div class="row t"><span>'+bs.length+' บิล · ล่าสุดก่อน</span><span>ข้อมูลถึง '+dt(DB.bills.map(function(x){return x.d}).sort().pop())+'</span></div>'+(bs.map(function(x){return billCard(x,false)}).join('')||'<div class="c">'+empty('ยังไม่มีบิลของร้านนี้')+'</div>');
- if(T==='prod')b='<div class="sec" style="padding-top:10px">'+srch('ค้นหาสินค้า / รหัส')+'<div class="sh"><span>สินค้าที่เคยซื้อ</span><span class="t">'+top.length+' รายการ</span></div>'
-  +(top.length?tbl([['สินค้า'],['ครั้ง','r'],['ราคา','r'],['','r']],top.map(function(i){return '<tr data-k="'+E((i.c+' '+i.n).toLowerCase())+'"><td>'+E(i.n)+'<div class="t">'+i.c+' · ล่าสุด '+dt(i.d)+' · '+fm(i.q)+' '+unit(i.c)+'</div></td><td class="r">'+i.t+'</td><td class="r">'+fm(i.p)+'</td><td class="r">'+plus(i)+'</td></tr>'}),'pt'):empty('ยังไม่เคยซื้อ · กด "สร้างออเดอร์" เพื่อเลือกสินค้า'))+'</div>';
- if(T==='act'){var L=timeline(c.id);b=sec('ตั้งค่าร้าน','',kv('ป้ายกำกับ',(c.tags.length?E(c.tags.join(', '))+' ':'')+tlink(c.tags.length?'แก้':'เพิ่ม',c.tags.length?'edit':'plus','tags'))
-   +kv('คำเรียกพิเศษ',(c.alias?E(c.alias)+' ':'')+tlink(c.alias?'แก้':'เพิ่ม',c.alias?'edit':'plus','alias'))+kv('รอบเข้าพบ',(c.visitCycle?'ทุก '+c.visitCycle+' วัน ':'ยังไม่ตั้ง ')+tlink('ตั้ง','edit','vcyc'))
-   +kv('สถานะร้าน',(c.status==='closed'?'<span class="rd">เลิกกิจการ</span> ':'ปกติ ')+tlink('เปลี่ยน','edit','status'))+kv('ข้อมูลร้าน',tlink('แก้ไข','edit','go','cform/'+c.id)))
-  +sec('กิจกรรมล่าสุด',tlink('เพิ่ม','plus','go','act/'+c.id),L.length?tbl([['วันที่'],['ประเภท'],['รายละเอียด']],L.slice(0,30).map(function(x){return '<tr><td style="white-space:nowrap">'+dt(x.at)+'</td><td>'+pill(x.t,'p-gry')+'</td><td>'+E(x.s)+'</td></tr>'})):empty('ยังไม่มีกิจกรรม · บันทึกเข้าพบหรือโทรแล้วจะขึ้นที่นี่'))}
- page({back:'customers',bl:'ลูกค้า',body:custHead(c,y,open,nC)
-  +(open?'<a class="note w" href="#visit/'+c.id+'">'+ic('pin')+' กำลังเข้าพบร้านนี้อยู่ · แตะเพื่อกลับไปบันทึก</a>':'')
-  +seg([['ov','ภาพรวม'],['bill','บิล'],['prod','สินค้า'],['act','กิจกรรม']],T,'tab')+b,
+R.cust=function(a){var c=cust(a[0]);if(!c)return go('customers',true);var T=R.cust.t||'info';if(T==='ov')T='info';var y=cyc(c.id),v=lastVisit(c.id),bs=billsOf(c.id),top=bought(c.id),open=one(DB.visits.filter(function(x){return x.cid===c.id}),'done',false),nC=CART&&CART.cid===c.id?CART.items.length:0,tk=DB.tasks.filter(function(t){return t.cid===c.id&&!t.done}).sort(by('due')),
+ plus=function(i){return '<button type="button" class="pl" data-a="add" data-v="'+i.c+'" aria-label="ใส่ในออเดอร์">'+ic('plus')+'</button>'},b='';
+ var head='<header class="chead"><div class="row"><div style="min-width:0"><div class="cname">'+E(c.id)+' '+E(c.name)+(c.alias?' <span class="t">('+E(c.alias)+')</span>':'')+'</div><div class="t">รหัส '+E(c.id)+(v?' · เข้าพบล่าสุด '+dt(v.end):'')+'</div></div>'
+  +'<div class="cico"><a class="ico" href="#stmt/'+c.id+'" aria-label="แชร์ข้อมูลร้าน">'+ic('share')+'</a><a class="ico" href="#cform/'+c.id+'" aria-label="แก้ไขข้อมูลร้าน">'+ic('edit')+'</a></div></div>'
+  +'<div class="ctags">'+(c.type?'<span class="ctag">'+E(c.type)+'</span>':'')+'<span class="ctag '+(c.status==='closed'?'rd':'g')+'">'+(c.status==='closed'?'เลิกกิจการ':'ปกติ')+'</span>'+(tk.length?'<span class="ctag a">ติดตาม '+tk.length+' รายการ</span>':'')+'</div>'
+  +'<div class="cacts"><a class="cact pri" href="#order/'+c.id+'">'+ic('cart')+'<span>รับออเดอร์'+(nC?' ('+nC+')':'')+'</span></a>'
+  +(c.ph[0]?'<a class="cact" href="tel:'+digits(c.ph[0])+'">'+ic('phone')+'<span>โทร</span></a>':'<span class="cact off">'+ic('phone')+'<span>โทร</span></span>')
+  +(c.lat||c.addr?'<a class="cact" href="'+mapUrl(c)+'" target="_blank" rel="noopener">'+ic('nav')+'<span>นำทาง</span></a>':'<span class="cact off">'+ic('nav')+'<span>นำทาง</span></span>')
+  +'<button type="button" class="cact" data-a="shopCap">'+ic('cam')+'<span>ถ่ายรูป</span></button>'
+  +'<button type="button" class="cact" data-a="tab" data-v="act">'+ic('chat')+'<span>กิจกรรม</span></button></div></header>';
+ if(T==='info'){
+  var sInfo=sec('ข้อมูลร้าน',tlink('แก้ไข','edit','go','cform/'+c.id),
+   (c.ph.length?c.ph.map(function(p){return kv('โทร','<a class="lk" href="tel:'+digits(p)+'">'+E(p)+'</a>')}).join(''):kv('โทร','<span class="t">ยังไม่มี</span>'))
+   +kv('ผู้ติดต่อ',c.owner?E(c.owner):'<span class="t">—</span>')
+   +kv('ที่อยู่',c.addr?E(c.addr):'<span class="t">ยังไม่มี</span>')
+   +kv('พื้นที่',c.area?E(c.area):'<span class="t">—</span>')
+   +kv('วันหยุดร้าน',c.closed?E(c.closed):'<span class="t">ยังไม่ระบุ</span>')
+   +kv('ชำระเงิน',E(c.pay||'—'))
+   +kv('ใบกำกับภาษี',c.vat===VATMAP.VAT_IN?'ต้องการ':'ไม่ต้องการ')
+   +kv('ใบเสร็จรับเงิน',c.rcpt?'ต้องการ':'ไม่ต้องการ')
+   +(c.lineId?kv('ID LINE',E(c.lineId)):'')+(c.birthday?kv('วันเกิด',bdFmt(c.birthday)):'')
+   +(c.note?kv('หมายเหตุ',E(c.note)):''));
+  var sCoord=sec('พิกัดร้าน',tlink(c.lat?'ถ่ายใหม่':'ถ่ายรูป + พิกัด','cam','shopCap'),
+   (c.lat?'<div class="kv"><span>พิกัด</span><b><a class="lk" href="'+mapUrl(c)+'" target="_blank" rel="noopener">'+ic('pin')+c.lat+', '+c.lng+'</a></b></div>'+(c.photo?'<img src="'+E(c.photo)+'" alt="" style="width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin-top:8px">':''):'<div class="t" style="padding:4px 0">ยังไม่มีพิกัด</div>'));
+  var sSet=sec('ตั้งค่าร้าน','',kv('ป้ายกำกับ',(c.tags.length?E(c.tags.join(', '))+' ':'')+tlink(c.tags.length?'แก้':'เพิ่ม',c.tags.length?'edit':'plus','tags'))
+   +kv('คำเรียกพิเศษ',(c.alias?E(c.alias)+' ':'')+tlink(c.alias?'แก้':'เพิ่ม',c.alias?'edit':'plus','alias'))
+   +kv('รอบเข้าพบ',(c.visitCycle?'ทุก '+c.visitCycle+' วัน ':'ยังไม่ตั้ง ')+tlink('ตั้ง','edit','vcyc'))
+   +kv('สถานะร้าน',(c.status==='closed'?'<span class="rd">เลิกกิจการ</span> ':'ปกติ ')+tlink('เปลี่ยน','edit','status')));
+  b='<div class="cwrap">'+sInfo+sCoord+sSet+'</div>'}
+ if(T==='act'){var L=timeline(c.id);b='<div class="cwrap"><a class="cbtn" href="#act/'+c.id+'">'+ic('edit')+'<span>บันทึกกิจกรรม</span></a>'
+  +(tk.length?sec('นัดติดตามที่ค้าง','',tk.map(function(t){return kv(dt(t.due),E(t.title))}).join('')):'')
+  +sec('ไทม์ไลน์','',L.length?L.slice(0,30).map(function(x){return '<div class="tlr"><div class="t">'+dt(x.at)+' · '+E(x.t)+'</div><div>'+E(x.s)+'</div></div>'}).join(''):empty('ยังไม่มีกิจกรรม · บันทึกเข้าพบหรือโทรแล้วจะขึ้นที่นี่'))+'</div>'}
+ if(T==='bill')b='<div class="row t"><span>'+bs.length+' บิล · ล่าสุดก่อน</span></div>'+(bs.slice().sort(function(p,q){return p.d<q.d?1:-1}).map(function(x){return billCard(x,false)}).join('')||'<div class="c">'+empty('ยังไม่มีบิลของร้านนี้')+'</div>');
+ if(T==='prod')b='<div class="cwrap">'+srch('ค้นหาสินค้า / รหัส')+sec('สินค้าที่เคยสั่ง','<span class="t">'+top.length+' รายการ</span>',(top.length?tbl([['สินค้า'],['ครั้ง','r'],['ราคา','r'],['','r']],top.map(function(i){return '<tr data-k="'+E((i.c+' '+i.n).toLowerCase())+'"><td>'+E(i.n)+'<div class="t">'+i.c+' · ล่าสุด '+dt(i.d)+' · '+fm(i.q)+' '+unit(i.c)+'</div></td><td class="r">'+i.t+'</td><td class="r">'+fm(i.p)+'</td><td class="r">'+plus(i)+'</td></tr>'}),'pt'):empty('ยังไม่เคยซื้อ · กด "รับออเดอร์" เพื่อเลือกสินค้า')))+'</div>'
+ page({back:'customers',bl:'ลูกค้า',body:head+(open?'<a class="note w" href="#visit/'+c.id+'">'+ic('pin')+' กำลังเข้าพบร้านนี้อยู่ · แตะเพื่อกลับไปบันทึก</a>':'')
+  +seg([['info','ข้อมูล'],['act','กิจกรรม'],['bill','ประวัติสั่งซื้อ'],['prod','สินค้า']],T,'tab')+b,
  on:{tab:function(v){R.cust.t=v;route()},add:function(code){var i=one(top,'c',code);cartAdd(c.id,{c:i.c,n:i.n,q:i.q||1,p:i.p});rerender()},
   note:function(){editText('โน้ตก่อนเข้าพบ',c.note,'placeholder="เช่น เจ้าของอยู่ช่วงบ่าย ชอบโปรแถม"',function(t){c.note=t;saveCust(c,'แก้โน้ต · '+c.name);rerender()})},
   nb:function(){editText('โน้ตใหม่','','rows="6" placeholder="เขียนอะไรก็ได้ เช่น ของที่ลูกค้าบอก เรื่องที่ต้องจำ"',function(t){if(!t)return;var ac={id:'A-'+uid().toUpperCase(),cid:c.id,at:now(),type:'โน้ต',note:t};DB.acts.push(ac);track(ac,commit('กิจกรรม','โน้ต · '+c.name,c.id,[actRow(ac.id,c.id,'โน้ต',ac.at,t)]));toast('บันทึกโน้ตแล้ว');rerender()})},
