@@ -95,8 +95,8 @@ textarea{min-height:68px;resize:vertical}
 .tag{display:inline-block;font-size:11px;font-weight:600;border-radius:6px;padding:2px 6px;background:var(--blue);color:var(--navy);margin-right:4px}
 .tag.g{background:var(--green);color:var(--greenink)}
 /* bottom nav + sheet */
-.nav{position:fixed;left:0;right:0;bottom:0;height:72px;background:var(--card);box-shadow:0 -6px 20px rgba(20,30,55,.06);display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:0 4px env(safe-area-inset-bottom,0px)}
-.nav button{border:0;background:none;color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;padding:6px 0;cursor:pointer}
+.nav{position:fixed;left:0;right:0;bottom:0;height:72px;background:var(--card);box-shadow:0 -6px 20px rgba(20,30,55,.06);display:grid;grid-template-columns:repeat(5,1fr);align-items:center;padding:0 2px env(safe-area-inset-bottom,0px)}
+.nav button{border:0;background:none;color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;padding:6px 0;cursor:pointer}
 .nav button.on{color:var(--navy);font-weight:700}
 .sheet{position:fixed;inset:0;background:rgba(10,16,30,.45);display:none;align-items:flex-end;justify-content:center;z-index:9}
 .sheet.on{display:flex}
@@ -138,6 +138,7 @@ textarea{min-height:68px;resize:vertical}
   <section id="v-list">
     <div class="bar"><b>ลูกค้า</b><span class="sync" id="sync"></span></div>
     <input class="search" id="q" placeholder="ค้นหาชื่อ / รหัส / เบอร์" autocomplete="off">
+    <div class="btns"><button class="btn pri" onclick="openX('cform')">+ ลูกค้าใหม่</button><button class="btn" onclick="openX('map')">แผนที่ร้าน</button><button class="btn" onclick="openContacts()">สมุดโทร</button></div>
     <div class="count" id="count"></div>
     <div id="list"></div>
   </section>
@@ -171,29 +172,25 @@ textarea{min-height:68px;resize:vertical}
 </div>
 
 <nav class="nav">
+  <button data-v="home" onclick="openX('home')"><span id="ic-home"></span>หน้าหลัก</button>
   <button data-v="list" onclick="goList()"><span id="ic-users"></span>ลูกค้า</button>
+  <button data-v="checkin" onclick="openX('checkin')"><span id="ic-pin"></span>เช็คอิน</button>
+  <button data-v="orders" onclick="openX('orders')"><span id="ic-cart"></span>ออเดอร์</button>
   <button data-v="back" onclick="openBack()"><span id="ic-gear"></span>หลังบ้าน</button>
 </nav>
 
 <section id="v-back" hidden>
   <div class="bar"><b>หลังบ้าน</b></div>
   <div class="menu">
+  <div class="ctitle">รายงาน</div>
     <button class="crow" onclick="openMonth()"><div style="min-width:0"><div class="cn">รายงานรายเดือน</div><div class="cm">ยอดขาย · ร้านที่ซื้อ · ร้านที่ยอดลดลง</div></div></button>
     <button class="crow" onclick="openSales()"><div style="min-width:0"><div class="cn">ยอดขาย</div><div class="cm">ยอดรายเดือนของแต่ละปี</div></div></button>
     <button class="crow" onclick="openBills()"><div style="min-width:0"><div class="cn">บิลขาย</div><div class="cm">ค้นหาบิลตามเลขบิลหรือชื่อร้าน</div></div></button>
     <button class="crow" onclick="openProducts()"><div style="min-width:0"><div class="cn">สินค้า</div><div class="cm">รายการสินค้าทั้งหมด ค้นหาได้</div></div></button>
-    <button class="crow" onclick="openContacts()"><div style="min-width:0"><div class="cn">สมุดโทร</div><div class="cm">รายชื่อร้านเรียงตามตัวอักษร โทรได้ทันที</div></div></button>
-    <div class="btns" style="margin:0 0 8px"><button class="btn" onclick="openX('msgtpl')">ข้อความแจ้งยอด</button><button class="btn pri" onclick="openPick('stmt')">แจ้งยอดทาง LINE</button></div>
+  <div class="ctitle">นำเข้าและข้อความ</div>
     <button class="crow" onclick="openX('ttx')"><div style="min-width:0"><div class="cn">นำเข้า TTX บิล</div><div class="cm">อ่านไฟล์ .ttx จากโปรแกรมบัญชี ตรวจ แล้วนำเข้า</div></div></button>
-    <button class="crow" onclick="openX('cform')"><div style="min-width:0"><div class="cn">ลูกค้าใหม่</div><div class="cm">เพิ่มร้านใหม่ลงชีต customers</div></div></button>
-    <button class="crow" onclick="openX('home')"><div style="min-width:0"><div class="cn">หน้าหลัก</div><div class="cm">ร้านที่ถึงรอบและควรติดตามวันนี้</div></div></button>
-    <button class="crow" onclick="openX('tasks')"><div style="min-width:0"><div class="cn">งานติดตาม</div><div class="cm">นัดติดตามวันนี้ เลยกำหนด และที่เสร็จแล้ว</div></div></button>
-    <button class="crow" onclick="openX('cycle')"><div style="min-width:0"><div class="cn">รอบซื้อ</div><div class="cm">ร้านที่ถึงรอบ ใกล้ถึงรอบ และเลยรอบ</div></div></button>
-    <button class="crow" onclick="openX('checkin')"><div style="min-width:0"><div class="cn">เช็กอินใกล้ฉัน</div><div class="cm">ร้านที่อยู่ใกล้ตำแหน่งปัจจุบัน</div></div></button>
-    <button class="crow" onclick="openX('orders')"><div style="min-width:0"><div class="cn">ออเดอร์</div><div class="cm">รายการออเดอร์ รอส่ง ส่งแล้ว ยกเลิก</div></div></button>
-    <button class="crow" onclick="openPick('cart')"><div style="min-width:0"><div class="cn">รับออเดอร์</div><div class="cm">เลือกร้าน เลือกสินค้าจากราคาล่าสุด</div></div></button>
-    <button class="crow" onclick="openX('map')"><div style="min-width:0"><div class="cn">แผนที่ร้าน</div><div class="cm">ร้านที่มีพิกัด เลือกเส้นทางเปิดใน Google Maps</div></div></button>
-    <button class="crow" onclick="openPick('visit')"><div style="min-width:0"><div class="cn">เข้าพบ</div><div class="cm">ถ่ายรูปร้านและบันทึกพิกัด</div></div></button>
+    <button class="crow" onclick="openX('msgtpl')"><div style="min-width:0"><div class="cn">ข้อความแจ้งยอด</div><div class="cm">แก้ไขข้อความแจ้งยอดทาง LINE</div></div></button>
+  <div class="ctitle">ระบบ</div>
     <button class="crow" onclick="openSub('hub')"><div style="min-width:0"><div class="cn">ระบบและกติกา</div><div class="cm">กติกาตัวเลข ตัวเลือก ซิงก์ สำรอง ประวัติ ตรวจข้อมูล</div></div></button>
     <button class="crow" onclick="openSettings()"><div style="min-width:0"><div class="cn">ตั้งค่า</div><div class="cm">เชื่อมชีต A</div></div></button>
   </div>
@@ -240,7 +237,7 @@ textarea{min-height:68px;resize:vertical}
 <script>
 /* ---------- ตัวช่วย ---------- */
 var $=function(s){return document.querySelector(s)};
-var I={
+var I={home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',check:'<path d="M5 12l4 4 10-10"/>',
  phone:'<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
  pin:'<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
  edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
@@ -345,7 +342,8 @@ function renderList(){
 /* ---------- รายละเอียดลูกค้า ---------- */
 function show(v){
   ['list','detail','settings','back','month','contacts','sales','bills','products','sub','x'].forEach(function(x){$('#v-'+x).hidden=(x!==v)});
-  var tab={detail:'list',settings:'back',month:'back',contacts:'back',sales:'back',bills:'back',products:'back',sub:'back',x:'back'}[v]||v;
+  var tab={detail:'list',settings:'back',month:'back',sales:'back',bills:'back',products:'back',sub:'back',x:'back',contacts:'list'}[v]||v;
+  if(v==='x'){var XT={home:'home',tasks:'home',cycle:'home',checkin:'checkin',visit:'checkin',orders:'orders',odet:'orders',cart:'orders',pick:'orders',stmt:'orders',cform:'list',map:'list'};tab=XT[DB.xv]||'back'}
   document.querySelectorAll('.nav button').forEach(function(b){b.classList.toggle('on',b.dataset.v===tab)});
   window.scrollTo(0,0);
 }
@@ -824,8 +822,10 @@ function renderX(){
   else if(v==='cart')b=cartHtml(DB.xa);
   else if(v==='map')b=mapHtml();
   else if(v==='visit')b=visitHtml(DB.xa);
-  var heads={ttx:['นำเข้า TTX','openBack()','หลังบ้าน'],print:['พิมพ์บิล '+(DB.xa||''),"openX('bill',DB.xa)",'บิล'],stmt:['แจ้งยอดทาง LINE',"openPick('stmt')",'เลือกร้าน'],msgtpl:['ข้อความแจ้งยอด','openBack()','หลังบ้าน'],cform:['ลูกค้าใหม่','openBack()','หลังบ้าน'],home:['หน้าหลัก','openBack()','หลังบ้าน'],tasks:['งานติดตาม','openBack()','หลังบ้าน'],cycle:['รอบซื้อ','openBack()','หลังบ้าน'],checkin:['เช็กอินใกล้ฉัน','openBack()','หลังบ้าน'],bill:['บิล '+(DB.xa||''),"openBack()",'หลังบ้าน'],orders:['ออเดอร์','openBack()','หลังบ้าน'],odet:['ใบออเดอร์ '+(DB.xa||''),"openX('orders')",'ออเดอร์'],pick:[DB.xnext==='visit'?'เข้าพบ · เลือกร้าน':DB.xnext==='stmt'?'แจ้งยอด · เลือกร้าน':'รับออเดอร์ · เลือกร้าน','openBack()','หลังบ้าน'],cart:['รับออเดอร์',"openPick('cart')",'เลือกร้าน'],map:['แผนที่ร้าน','openBack()','หลังบ้าน'],visit:['เข้าพบ',"openPick('visit')",'เลือกร้าน']}[v];
-  $('#xBody').innerHTML=xHead(heads[0],heads[1],heads[2])+b;
+  var heads={ttx:['นำเข้า TTX','openBack()','หลังบ้าน'],print:['พิมพ์บิล '+(DB.xa||''),"openX('bill',DB.xa)",'บิล'],stmt:['แจ้งยอดทาง LINE',"openPick('stmt')",'เลือกร้าน'],msgtpl:['ข้อความแจ้งยอด','openBack()','หลังบ้าน'],cform:['ลูกค้าใหม่','goList()','ลูกค้า'],home:['หน้าหลัก','openBack()','หลังบ้าน'],tasks:['งานติดตาม',"openX('home')",'หน้าหลัก'],cycle:['รอบซื้อ',"openX('home')",'หน้าหลัก'],checkin:['เช็กอินใกล้ฉัน','openBack()','หลังบ้าน'],bill:['บิล '+(DB.xa||''),"openBack()",'หลังบ้าน'],orders:['ออเดอร์','openBack()','หลังบ้าน'],odet:['ใบออเดอร์ '+(DB.xa||''),"openX('orders')",'ออเดอร์'],pick:[DB.xnext==='visit'?'เข้าพบ · เลือกร้าน':DB.xnext==='stmt'?'แจ้งยอด · เลือกร้าน':'รับออเดอร์ · เลือกร้าน','openBack()','หลังบ้าน'],cart:['รับออเดอร์',"openPick('cart')",'เลือกร้าน'],map:['แผนที่ร้าน','goList()','ลูกค้า'],visit:['เข้าพบ',"openPick('visit')",'เลือกร้าน']}[v];
+  var MAIN={home:'หน้าหลัก',checkin:'เช็คอิน',orders:'ออเดอร์'};
+  if(MAIN[v])$('#xBody').innerHTML='<div class="bar" style="padding-top:8px"><b>'+MAIN[v]+'</b></div>'+b;
+  else $('#xBody').innerHTML=xHead(heads[0],heads[1],heads[2])+b;
 }
 function xSearch(q){DB.xq=q;renderX();var e=$('#xq');if(e){e.focus();e.setSelectionRange(q.length,q.length)}}
 function xSetF(f){DB.xf=f;renderX()}
@@ -843,7 +843,7 @@ function ordersHtml(){
   var cnt=function(s){return A.filter(function(o){return o.st===s}).length};
   var S=A.filter(function(o){return (F==='all'||o.st===F)&&(!q||(o.no+' '+o.cid+' '+o.name).toLowerCase().indexOf(q)>-1)}).reverse().slice(0,200);
   var chips=[['all','ทั้งหมด',A.length],['รอส่ง','รอส่ง',cnt('รอส่ง')],['ส่งแล้ว','ส่งแล้ว',cnt('ส่งแล้ว')],['ยกเลิก','ยกเลิก',cnt('ยกเลิก')]];
-  return '<div class="card" style="display:flex;gap:6px;flex-wrap:wrap">'+chips.map(function(x){return '<button class="btn'+(F===x[0]?' pri':'')+'" onclick="xSetF(\''+x[0]+'\')">'+x[1]+' '+x[2]+'</button>'}).join('')+'</div>'+
+  return '<div class="btns"><button class="btn pri" style="flex:1" onclick="openPick(\'cart\')">+ รับออเดอร์ใหม่</button><button class="btn" style="flex:1" onclick="openPick(\'stmt\')">แจ้งยอดทาง LINE</button></div><div class="card" style="display:flex;gap:6px;flex-wrap:wrap">'+chips.map(function(x){return '<button class="btn'+(F===x[0]?' pri':'')+'" onclick="xSetF(\''+x[0]+'\')">'+x[1]+' '+x[2]+'</button>'}).join('')+'</div>'+
     '<div class="card"><input id="xq" type="search" placeholder="ค้นหา เลขออเดอร์ / รหัส / ชื่อร้าน" value="'+esc(DB.xq)+'" oninput="xSearch(this.value)"></div>'+
     '<div class="count">แสดง '+S.length+' จาก '+A.length+' ออเดอร์ (ล่าสุดก่อน)</div>'+
     S.map(function(o){return '<button class="crow" onclick="openX(\'odet\',\''+esc(o.no)+'\')"><div style="min-width:0"><div class="cn">'+esc(o.no)+' · '+esc(o.name||o.cid)+'</div><div class="cm">'+fd(o.date)+' · '+esc(o.st)+'</div></div></button>'}).join('')||'<div class="empty">ไม่พบออเดอร์</div>';
@@ -981,11 +981,20 @@ function rowHtml(x){
   var y=x.y,lastTxt=y.last!=null?fd(new Date(y.last*DAY).toISOString()):'-';
   return '<button class="crow" onclick="openCust(\''+esc(x.c.id)+'\')"><div style="min-width:0"><div class="cn">'+esc(x.c.id)+' · '+esc(x.c.name)+'</div><div class="cm">'+esc(y.st)+' · ซื้อล่าสุด '+lastTxt+(y.cycle?' · รอบ '+Math.round(y.cycle)+' วัน':'')+'</div></div></button>';
 }
+var PP=[['day','วันนี้'],['week','7 วัน'],['month','เดือนนี้'],['year','ปีนี้'],['all','ทั้งหมด']];
+function periodSum(p){var t=todayNum(),now=new Date(),ym=now.getFullYear()+'-'+p2(now.getMonth()+1),yr=String(now.getFullYear()),n=0,s=0;
+  billRows().forEach(function(b){var d=dayNum(b.d);if(isNaN(d))return;var ok=p==='day'?d===t:p==='week'?(d>t-7&&d<=t):p==='month'?ymOf(b.d)===ym:p==='year'?String(b.d).slice(0,4)===yr:true;if(ok){n++;s+=Number(b.total)||0}});return{n:n,s:s}}
+function setHp(p){DB.hp=p;renderX()}
+function homeTop(){var hp=DB.hp||'month',ps=periodSum(hp);
+  return '<div class="card" style="display:flex;gap:6px;flex-wrap:wrap">'+PP.map(function(x){return '<button class="btn'+(hp===x[0]?' pri':'')+'" onclick="setHp(\''+x[0]+'\')">'+x[1]+'</button>'}).join('')+'</div>'+
+    '<div class="stats" style="grid-template-columns:1fr 1fr"><div class="stat"><span class="k">ยอดขาย</span><b>'+fm(ps.s)+'</b></div><div class="stat"><span class="k">จำนวนบิล</span><b>'+ps.n+'</b></div></div>'+
+    '<div class="btns"><button class="btn" onclick="openX(\'tasks\')">งานติดตาม</button><button class="btn" onclick="openX(\'cycle\')">รอบซื้อทั้งหมด</button></div>';
+}
 function homeHtml(){
   var L=custRows().sort(function(a,b){return STATE_RANK[a.y.st]-STATE_RANK[b.y.st]||b.y.ratio-a.y.ratio});
   var need=L.filter(function(x){return x.y.st==='เลยรอบ'||x.y.st==='ถึงรอบ'});
   var cnt=function(k){return L.filter(function(x){return x.y.st===k}).length};
-  return '<div class="stats" style="grid-template-columns:1fr 1fr 1fr"><div class="stat"><span class="k">เลยรอบ</span><b>'+cnt('เลยรอบ')+'</b></div><div class="stat"><span class="k">ถึงรอบ</span><b>'+cnt('ถึงรอบ')+'</b></div><div class="stat"><span class="k">ใกล้ถึงรอบ</span><b>'+cnt('ใกล้ถึงรอบ')+'</b></div></div>'+
+  return homeTop()+'<div class="stats" style="grid-template-columns:1fr 1fr 1fr"><div class="stat"><span class="k">เลยรอบ</span><b>'+cnt('เลยรอบ')+'</b></div><div class="stat"><span class="k">ถึงรอบ</span><b>'+cnt('ถึงรอบ')+'</b></div><div class="stat"><span class="k">ใกล้ถึงรอบ</span><b>'+cnt('ใกล้ถึงรอบ')+'</b></div></div>'+
     '<div class="count">ควรติดตาม '+need.length+' ร้าน (แสดง 60 ร้านแรก)</div>'+need.slice(0,60).map(rowHtml).join('')+'<div class="empty" style="display:'+(need.length?'none':'block')+'">ยังไม่มีร้านที่ถึงรอบ</div>';
 }
 function cycleHtml(){
@@ -1045,7 +1054,15 @@ function checkinHtml(){
   if(!c)return '<div class="btns"><button class="btn pri" style="width:100%" onclick="xLocate()">เปิดตำแหน่งปัจจุบัน</button></div><div class="count" id="x_loc"></div>';
   var L=DB.cust.filter(function(x){return x.gpsLat&&x.gpsLng&&isActive(x)}).map(function(x){return{c:x,d:dist(c.lat,c.lng,+x.gpsLat,+x.gpsLng)}}).sort(function(a,b){return a.d-b.d}).slice(0,30);
   return '<div class="count">ตำแหน่งปัจจุบัน ±'+c.acc+' ม. · แสดง 30 ร้านที่ใกล้ที่สุดซึ่งมีพิกัด</div><div class="btns"><button class="btn" onclick="xLocate()">อัปเดตตำแหน่ง</button></div>'+
-    (L.length?L.map(function(x){return '<button class="crow" onclick="openCust(\''+esc(x.c.id)+'\')"><div style="min-width:0"><div class="cn">'+esc(x.c.name)+'</div><div class="cm">'+(x.d<1?Math.round(x.d*1000)+' ม.':x.d.toFixed(1)+' กม.')+'</div></div></button>'}).join(''):'<div class="empty">ไม่มีร้านที่มีพิกัด</div>');
+    (L.length?L.map(function(x){return '<div style="display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--line)"><button class="crow" style="flex:1;border:0" onclick="openCust(\''+esc(x.c.id)+'\')"><div style="min-width:0"><div class="cn">'+esc(x.c.name)+'</div><div class="cm">'+(x.d<1?Math.round(x.d*1000)+' ม.':x.d.toFixed(1)+' กม.')+'</div></div></button><button class="btn sm" onclick="checkinVisit(\''+esc(x.c.id)+'\')">บันทึกเข้าพบ</button></div>'}).join(''):'<div class="empty">ไม่มีร้านที่มีพิกัด</div>');
+function checkinVisit(cid){
+  var p=DB.checkin;if(!p)return toast('เปิดตำแหน่งก่อน');
+  var c=cust(cid),id='A-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),now=new Date().toISOString();
+  call({action:'append',sheet:'activities',rows:[[id,cid,'เยี่ยม',now,'','','เช็คอินที่ร้าน','','',now,JSON.stringify({pin:false,lat:p.lat,lng:p.lng,acc:p.acc,source:'checkin'})]]})
+    .then(function(){toast('บันทึกเข้าพบ '+(c?c.name:cid)+' แล้ว');return pull()})
+    .then(function(){renderX()})
+    .catch(function(e){toast('บันทึกไม่สำเร็จ: '+e.message)});
+}
 }
 function dist(a,b,c,d){var R=6371,t=Math.PI/180,x=(c-a)*t,y=(d-b)*t,q=Math.sin(x/2)*Math.sin(x/2)+Math.cos(a*t)*Math.cos(c*t)*Math.sin(y/2)*Math.sin(y/2);return 2*R*Math.asin(Math.sqrt(q))}
 function xLocate(){
@@ -1284,6 +1301,9 @@ function mtReset(){return mtWrite({},'คืนค่าข้อความแ
 /* ---------- เริ่มทำงาน ---------- */
 $('#q').addEventListener('input',renderList);
 $('#ic-users').innerHTML=ic('users',22);
+$('#ic-home').innerHTML=ic('home',22);
+$('#ic-pin').innerHTML=ic('pin',22);
+$('#ic-cart').innerHTML=ic('cart',22);
 $('#ic-gear').innerHTML=ic('gear',22);
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
 if(!DB.api){openSettings()}
