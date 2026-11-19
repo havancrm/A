@@ -1198,7 +1198,7 @@ R.cust=function(a){var c=cust(a[0]);if(!c)return go('customers',true);var T=R.cu
  page({back:'customers',bl:'ลูกค้า',body:custHead(c,y,open,nC)
   +(open?'<a class="note w" href="#visit/'+c.id+'">'+ic('pin')+' กำลังเข้าพบร้านนี้อยู่ · แตะเพื่อกลับไปบันทึก</a>':'')
   +seg([['info','ภาพรวม'],['bill','ประวัติบิล'],['prod','สินค้า'],['act','ติดตาม']],T,'tab')+b,
- on:{tab:function(v){R.cust.t=v;route()},add:function(code){var i=one(top,'c',code);cartAdd(c.id,{c:i.c,n:i.n,q:i.q||1,p:i.p});rerender()},
+ foot:'<a class="b" href="#order/'+encodeURIComponent(c.id)+'">'+ic('cart')+' รับออเดอร์</a>'+(c.ph[0]?'<a class="b o" href="tel:'+digits(c.ph[0])+'">'+ic('phone')+' โทร</a>':'<span class="b o" style="opacity:.5">ยังไม่มีเบอร์</span>'),on:{tab:function(v){R.cust.t=v;route()},add:function(code){var i=one(top,'c',code);cartAdd(c.id,{c:i.c,n:i.n,q:i.q||1,p:i.p});rerender()},
   note:function(){editText('โน้ตก่อนเข้าพบ',c.note,'placeholder="เช่น เจ้าของอยู่ช่วงบ่าย ชอบโปรแถม"',function(t){c.note=t;saveCust(c,'แก้โน้ต · '+c.name);rerender()})},
   nb:function(){editText('โน้ตใหม่','','rows="6" placeholder="เขียนอะไรก็ได้ เช่น ของที่ลูกค้าบอก เรื่องที่ต้องจำ"',function(t){if(!t)return;var ac={id:'A-'+uid().toUpperCase(),cid:c.id,at:now(),type:'โน้ต',note:t};DB.acts.push(ac);track(ac,commit('กิจกรรม','โน้ต · '+c.name,c.id,[actRow(ac.id,c.id,'โน้ต',ac.at,t)]));toast('บันทึกโน้ตแล้ว');rerender()})},
   'edit-visit-note':function(id){
