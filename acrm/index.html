@@ -8,7 +8,7 @@
 /* ===== โทเคน ===== */
 :root{--n:#172F57;--n2:#1A2A4A;--bg:#f4f5f8;--card:#fff;--ink:#1b2233;--mu:#5b6578;--ln:#dcdfe8;--ln2:#eceef4;--soft:#eaf0fb;--acc:#3377DA;--red:#A11D1D;--grn:#17603A;--amb:#8A5A00;--r:13px;--fs1:11.5px;--fs2:12.5px;--fs3:15px;--fs4:17px;--fs5:21px;--fs6:22px}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;height:100dvh;background:#e4e9ee;font-family:"Sarabun","Noto Sans Thai",system-ui,sans-serif;color:var(--ink);font-size:var(--fs3);-webkit-text-size-adjust:100%;touch-action:manipulation}
+html,body{margin:0;height:100%;height:100dvh;background:#e4e9ee;font-family:system-ui,-apple-system,"Segoe UI","Noto Sans Thai","Sukhumvit Set",Tahoma,sans-serif;color:var(--ink);font-size:var(--fs3);-webkit-text-size-adjust:100%;touch-action:manipulation}
 a{color:inherit;text-decoration:none}button,input,select,textarea{font:inherit;color:inherit}
 #app{max-width:480px;height:100%;margin:0 auto;background:var(--bg);display:flex;flex-direction:column;position:relative;overflow:hidden}
 .ic{width:20px;height:20px;flex:none}
@@ -88,7 +88,7 @@ label.l{display:block;font-size:var(--fs2);color:var(--mu);margin:8px 0 3px}.er{
 .slt{width:100%;border-collapse:collapse;margin:3cqw 0}.slt th{background:var(--n);color:#fff;padding:1.8cqw 1.6cqw;font-size:2.5cqw}.slt td{border:1px solid #dfe4ee;padding:0 1.6cqw;height:6cqw;font-size:2.5cqw}
 .slf{display:flex;justify-content:space-between;gap:3cqw;font-size:2.6cqw;line-height:1.9}.slf>div:last-child{min-width:44%}.slf p{display:flex;justify-content:space-between;margin:0;color:#6b7a90}.slf p.tt{border-top:1px solid #dfe4ee;margin-top:1cqw;padding-top:1cqw;border-bottom:.6cqw solid #172F57;font-size:3.1cqw}
 .sheetbox{background:#fff;border:1px solid var(--ln);border-radius:8px;overflow:hidden;cursor:pointer}.sheet{container-type:inline-size;position:relative}.sheet img{display:block;width:100%}
-.sf{font-family:Sarabun,"Noto Sans Thai",sans-serif;position:absolute;color:#111;line-height:1;transform:translateY(-50%);white-space:nowrap;font-size:1.838cqw}
+.sf{font-family:system-ui,-apple-system,"Segoe UI","Noto Sans Thai","Sukhumvit Set",Tahoma,sans-serif;position:absolute;color:#111;line-height:1;transform:translateY(-50%);white-space:nowrap;font-size:1.838cqw}
 .pre{white-space:pre-wrap;background:#fff;border-radius:var(--r);padding:12px;font-size:var(--fs3);line-height:1.6}
 /* ===== ป๊อปอัป ===== */
 .mod{position:absolute;inset:0;z-index:20;background:rgba(15,22,38,.5);display:flex;align-items:flex-end}.mod>div{background:#fff;width:100%;max-height:88%;overflow:auto;border-radius:18px 18px 0 0;padding:16px 14px max(14px,env(safe-area-inset-bottom))}
@@ -314,7 +314,7 @@ function capture(cb){var gps,gpsDone=false,img=null,waiters=[];
  inp.onchange=function(){var f=inp.files&&inp.files[0];inp.remove();if(!f)return;toast('กำลังบันทึกรูปและพิกัด…');var r=new FileReader();
   r.onload=function(){var im=new Image();im.onload=function(){img=im;var fired=false,finish=function(){if(fired)return;fired=true;var at=now(),k=Math.min(1,1100/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=Math.round(im.width*k);cv.height=Math.round(im.height*k);
     var x=cv.getContext('2d');x.drawImage(img,0,0,cv.width,cv.height);var lines=[dtFull(at)+' '+hm(at),gps?gps.lat+', '+gps.lng+' ±'+gps.acc+'ม.':'ไม่มีพิกัด'],fs=Math.round(cv.width/30);
-    x.font='600 '+fs+'px Sarabun,"Noto Sans Thai",sans-serif';x.fillStyle='rgba(0,0,0,.55)';x.fillRect(0,cv.height-fs*2.9,cv.width,fs*2.9);x.fillStyle='#fff';x.textBaseline='middle';
+    x.font='600 '+fs+'px '+'system-ui,-apple-system,"Noto Sans Thai","Sukhumvit Set",Tahoma,sans-serif';x.fillStyle='rgba(0,0,0,.55)';x.fillRect(0,cv.height-fs*2.9,cv.width,fs*2.9);x.fillStyle='#fff';x.textBaseline='middle';
     lines.forEach(function(t,i){x.fillText(t,fs*0.6,cv.height-fs*(2.05-i*1.15))});
     cb({img:cv.toDataURL('image/jpeg',0.6),at:at,lat:gps?gps.lat:'',lng:gps?gps.lng:'',acc:gps?gps.acc:''});if(!gps)toast('บันทึกรูปแล้ว · ไม่ได้พิกัด (เปิด GPS แล้วถ่ายใหม่ได้)')};
    if(gpsDone)finish();else{var t=setTimeout(function(){gpsDone=true;finish()},8000);waiters.push(function(){clearTimeout(t);finish()})}};
@@ -413,7 +413,7 @@ function onInput(sel,fn){var e=document.querySelector(sel);if(e)e.addEventListen
 // =====================================================================
 // 12) เอกสาร: ใบส่งสินค้าชั่วคราว (แบบบิลฮาแวน) และใบออเดอร์ — ช่องเดียวใช้ทั้งบนจอและรูปที่แชร์
 // =====================================================================
-var FONT='Sarabun,"Noto Sans Thai","Sukhumvit Set",Tahoma,sans-serif';
+var FONT='system-ui,-apple-system,"Segoe UI","Noto Sans Thai","Sukhumvit Set",Tahoma,sans-serif';
 function bahtText(n){var D=['ศูนย์','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'],P=['','สิบ','ร้อย','พัน','หมื่น','แสน'];
  function grp(s){var o='',L=s.length;for(var i=0;i<L;i++){var d=+s[i],p=L-i-1;if(!d)continue;if(p===1&&d===1)o+='สิบ';else if(p===1&&d===2)o+='ยี่สิบ';else if(p===0&&d===1&&L>1)o+='เอ็ด';else o+=D[d]+P[p]}return o}
  function num(v){var s=String(v),o='';while(s.length>6){o+=grp(s.slice(0,s.length-6))+'ล้าน';s=s.slice(-6)}return o+grp(s)}
