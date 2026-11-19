@@ -68,8 +68,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 .nv a.on{color:var(--acc);font-weight:600}
 .nv a.on::before{content:none}
 
-.nv .fab{flex:none;width:74px;color:var(--n);font-weight:700}
-.nv .fab i{display:flex;width:50px;height:50px;margin:-24px auto 2px;border-radius:50%;background:var(--pri);color:var(--onpri);align-items:center;justify-content:center;box-shadow:0 0 0 4px var(--card)}
+.nv .fab{flex:none;width:68px;color:var(--n);font-weight:700}
+.nv .fab i{display:flex;width:46px;height:46px;margin:-22px auto 2px;border-radius:50%;background:var(--pri);color:var(--onpri);align-items:center;justify-content:center;box-shadow:0 0 0 4px var(--card)}
 .nv .fab .ic{width:24px;height:24px}
 
 /* ===== การ์ด / ข้อความ ===== */
@@ -616,7 +616,7 @@ document.addEventListener('click',function(e){var t=e.target.closest&&e.target.c
 
 // โครงหน้า: หัว ART · ปุ่มย้อน+ชื่อหน้า · เนื้อหา · ปุ่มติดล่าง · เมนูล่าง
 function header(){var s=Sync.state(),n=Sync.failed().length+DB.tasks.filter(function(t){return !t.done&&t.due<=TD}).length;
- return '<div class="hd"><div class="row"><span class="brand"><i></i>ART<small>ระบบใหม่</small></span><span class="hi"><a href="#tasks" aria-label="งานและแจ้งเตือน">'+ic('bell')+(n?'<i class="bdg">'+(n>99?'99+':n)+'</i>':'')+'</a><a href="#settings" aria-label="ตั้งค่า">'+ic('user')+'</a></span></div>'
+ return '<div class="hd"><div class="row"><span class="brand"><i></i>ART</span><span class="hi"><a href="#tasks" aria-label="งานและแจ้งเตือน">'+ic('bell')+(n?'<i class="bdg">'+(n>99?'99+':n)+'</i>':'')+'</a><a href="#settings" aria-label="ตั้งค่า">'+ic('user')+'</a></span></div>'
  +'<a class="st" data-a="syncNow" aria-label="ซิงก์ตอนนี้">'+dtFull(TD)+' · <i class="dot '+s.dot+'"></i><span id="sst">'+s.lbl+'</span></a></div>'}
 function refreshStatus(){var e=document.getElementById('sst');if(!e)return;var s=Sync.state();e.textContent=s.lbl;e.previousElementSibling.className='dot '+s.dot}
 function nav(on){return '<nav class="nv">'+[['home','หน้าหลัก','home'],['customers','ลูกค้า','people'],['checkin','เช็คอิน','pin'],['orders','ออเดอร์','receipt'],['back','หลังบ้าน','grid']].map(function(x){
@@ -856,7 +856,7 @@ R.home=function(){var L=ranked(),need=L.filter(function(x){return x.y.rank<=2}),
   +'<div class="g4"><a class="ab p" href="#order">'+ic('cart')+'รับออเดอร์</a><a class="ab" href="#cycle">'+ic('clock')+'รอบลูกค้า</a><a class="ab" href="#map">'+ic('map')+'แผนที่</a><a class="ab" href="#cform/new">'+ic('plus')+'ร้านใหม่</a></div>'
   +'<a class="c row" href="#sales" style="background:var(--hd);color:#fff"><span><span class="t" style="color:#c9d4ea">ยอดขาย '+ymLabel(cm)+' · ถึงวันที่ '+dn+'</span><br><b style="font-size:var(--fs6)">'+money(cur)+'</b></span><span class="t" style="color:#c9d4ea;text-align:right">เทียบ 1–'+dn+' '+MTH[+pm.slice(5,7)-1]+'<br>'+money(prev)+' ('+(pc>0?'+':'')+pc+'%)</span></a>'
   +'<div class="row"><b>ร้านที่ถึงเวลาติดต่อ <span class="t">('+need.length+')</span></b><a class="lk" href="#cycle">ดูทั้งหมด'+ic('chev')+'</a></div>'
-  +'<div class="t">เลยรอบ '+n('OVER')+' · ถึงรอบ '+n('DUE')+' · ใกล้ถึง '+n('NEAR')+' · เฉพาะร้านที่ซื้อภายใน 1 ปี และซื้อมาแล้วอย่างน้อย 3 ครั้ง · ร้านห่างหาย '+away+' ร้านดูที่ ลูกค้า</div>'
+  +'<div class="t">เลยรอบ '+n('OVER')+' · ถึงรอบ '+n('DUE')+' · ใกล้ถึง '+n('NEAR')+'</div>'
   +(need.slice(0,5).map(function(x){return custCard(x.c,x.y)}).join('')||'<div class="c">'+empty('ไม่มีร้านถึงเวลาติดต่อ')+'</div>'),
  after:function(){onInput('#q',function(){var q=this.value.trim();document.getElementById('hs').innerHTML=q?quickList(q):''})}})};
 
@@ -879,7 +879,7 @@ R.customers=function(){var F=R.customers.f||'all',all=DB.customers.map(function(
 function custHead(c,y,open,nC){var nm=E(c.id)+' '+E(c.name)+(c.alias?' <span class="t">('+E(c.alias)+')</span>':''),
  ed=tlink('แก้','edit','go','cform/'+c.id),
  A=[['โทร','phone',c.ph[0]?'tel:'+digits(c.ph[0]):'',0],[open?'เข้าพบต่อ':'เข้าพบ','pin','#visit/'+c.id,0],['ออเดอร์'+(nC?' ('+nC+')':''),'cart','#order/'+c.id,0],['แชร์','chat','#stmt/'+c.id,0],['นำทาง','nav',c.lat||c.addr?mapUrl(c):'',1]],
- acts=function(cls){return '<div class="ha '+cls+'">'+A.map(function(a){return '<a'+(a[2]?' href="'+a[2]+'"'+(a[3]?' target="_blank" rel="noopener"':''):' class="off"')+'>'+ic(a[1])+'<span>'+a[0]+'</span></a>'}).join('')+'</div>'};
+ acts=function(cls){return '<div class="ha '+cls+'">'+A.filter(function(a){return a[2]}).map(function(a){return '<a'+(a[2]?' href="'+a[2]+'"'+(a[3]?' target="_blank" rel="noopener"':''):' class="off"')+'>'+ic(a[1])+'<span>'+a[0]+'</span></a>'}).join('')+'</div>'};
  var pe='<span style="display:flex;align-items:center;gap:2px;flex:none">'+pill(y.lbl,y.cls)+ed+'</span>';
  return '<div class="c ch"><div class="row"><span class="nm">'+nm+'</span>'+pe+'</div>'+(c.type?'<div class="t" style="margin-top:2px">'+E(c.type)+'</div>':'')+acts('')+'</div>'}
 function adviceOf(y,open){if(open)return 'กำลังเข้าพบอยู่ · กดกลับไปบันทึก';if(y.st==='OVER')return 'เลยรอบซื้อ '+Math.max(0,y.since-y.m)+' วัน · ควรโทรหรือเข้าพบวันนี้';if(y.st==='DUE')return 'ถึงรอบซื้อแล้ว · ควรโทรถามออเดอร์';if(y.st==='NEAR')return 'ใกล้ถึงรอบ · คาดว่าซื้อ '+dt(y.next);if(y.st==='OK')return 'ยังไม่ถึงรอบ · คาดว่าซื้อ '+dt(y.next);if(y.st==='LOST')return 'ห่างหายเกิน 1 ปี · ลองโทรชวนกลับมา';if(y.st==='NONE')return 'ยังไม่เคยซื้อ · เข้าพบเพื่อเปิดการขาย';return 'ประวัติซื้อยังน้อย · ยังประเมินรอบไม่ได้'}
@@ -1008,8 +1008,8 @@ R.cycle=function(){var T=R.cycle.t||'buy',Y=R.cycle.y||+TD.slice(0,4),M=R.cycle.
  if(T==='buy'){var inM=function(x,m){var d=x.y.next;return +d.slice(0,4)===Y&&+d.slice(5,7)-1===m};
   // ร้านที่เลยรอบไปแล้วนับอยู่ในเดือนปัจจุบัน (เตือนจนกว่าจะสั่ง)
   var cmY=+TD.slice(0,4),cmM=+TD.slice(5,7)-1,eff=function(x,m){return x.y.next<TD?(Y===cmY&&m===cmM):inM(x,m)},cnt=MTH.map(function(_,m){return L.filter(function(x){return eff(x,m)}).length}),list=L.filter(function(x){return eff(x,M)});
-  b=chips([[cmY,cmY+543],[cmY+1,cmY+544]],Y,'yr')+'<div class="g4">'+MTH.map(function(n,m){return '<div class="kp'+(M===m?' on':'')+'" data-a="mon" data-v="'+m+'"><b>'+cnt[m]+'</b>'+n+'</div>'}).join('')+'</div>'
-   +'<div class="note i">เตือนเมื่อถึงรอบซื้อของร้าน · ร้านที่เลยรอบแล้วอยู่ในเดือนนี้จนกว่าจะสั่ง · สั่งแล้วเริ่มนับใหม่ทันที</div>'
+  b=chips([[cmY,cmY+543],[cmY+1,cmY+544]],Y,'yr')+'<div class="g4">'+MTH.map(function(n,m){if(!cnt[m]&&M!==m)return '';return '<div class="kp'+(M===m?' on':'')+'" data-a="mon" data-v="'+m+'"><b>'+cnt[m]+'</b>'+n+'</div>'}).join('')+'</div>'
+   +'<div class="note i">เตือนเมื่อถึงรอบซื้อ · สั่งแล้วเริ่มนับใหม่</div>'
    +'<div class="row"><b>'+MTH[M]+' '+(Y+543)+'</b><span class="t">'+list.length+' ร้าน</span></div>'+(list.map(function(x){return custCard(x.c,x.y,'ครบ '+dt(x.y.next))}).join('')||'<div class="c">'+empty('ไม่มีร้านถึงรอบในเดือนนี้')+'</div>')}
  if(T==='visit'){var V=DB.customers.filter(function(c){return c.visitCycle&&c.status!=='closed'}).map(function(c){var v=lastVisit(c.id),due=v?addDays(v.end.slice(0,10),c.visitCycle):TD;return{c:c,due:due,v:v}}).sort(by('due'));
   b='<div class="note i">ควรเข้าพบ = เข้าพบที่จบล่าสุด + จำนวนวันในรอบ · โทรและออเดอร์ไม่นับเป็นการเข้าพบ</div>'+(V.map(function(x){return custCard(x.c,null,(x.due<=TD?'<span class="rd">ควรเข้าพบแล้ว</span>':'เข้าพบ '+dt(x.due)))}).join('')||'<div class="c">'+empty('ยังไม่มีร้านที่ตั้งรอบเข้าพบ · ตั้งได้ที่หน้าร้าน › กิจกรรม')+'</div>')}
@@ -1078,7 +1078,7 @@ R.orders=function(){var F=R.orders.f||'all',A_=DB.orders,cnt=function(s){return 
   +srch('เลขออเดอร์ รหัส ชื่อร้าน')+'<div class="t" id="cn"></div><div id="ls" style="display:flex;flex-direction:column;gap:8px"></div>',
  on:{flt:function(v){R.orders.f=v;route()}},
  after:function(){function l(){var q=document.getElementById('q').value.trim().toLowerCase(),r=S.filter(function(o){var c=cust(o.cid);return !q||(o.no+' '+o.cid+' '+(c?c.name:'')).toLowerCase().indexOf(q)>-1});
-  document.getElementById('cn').textContent='แสดง '+r.length+' จาก '+A_.length+' ออเดอร์';document.getElementById('ls').innerHTML=r.map(orderCard).join('')||'<div class="c">'+empty('ไม่พบออเดอร์')+'</div>'}onInput('#q',l);l()}})};
+  document.getElementById('cn').textContent=A_.length?'แสดง '+r.length+' จาก '+A_.length+' ออเดอร์':'';document.getElementById('ls').innerHTML=r.map(orderCard).join('')||'<div class="c">'+empty('ไม่พบออเดอร์')+'</div>'}onInput('#q',l);l()}})};
 R.odet=function(a){var o=one(DB.orders,'no',a[0]);if(!o)return go('orders',true);
  page({back:'orders',bl:'ออเดอร์',title:'ใบออเดอร์ '+o.no,right:pill(o.st,ostCls(o.st)),body:slipHtml(o)
   +'<div class="g2">'+lnk('ส่งเป็นข้อความ','chat',lineUrl(orderText(o)),'o',true)+btn('สั่งซ้ำ','repeat','again',null,'o')+'</div>'
@@ -1140,7 +1140,7 @@ R.month=function(a){var lb=DB.bills.map(function(b){return b.d}).sort().pop()||T
   md:function(){monList('ยอดลดลงเกิน 50%','<div class="t">'+drop.length+' ร้าน</div><div class="sec">'+(drop.length?shopRows(drop.slice(0,300)):empty('ไม่มีร้านที่ยอดลดลง'))+'</div>')}}})};
 function menu(list){return '<div class="sec">'+list.map(function(x){return '<a class="li" href="#'+x[0]+'">'+ic(x[3])+'<span class="grow"><b>'+x[1]+'</b><span class="t">'+x[2]+'</span></span>'+ic('chev')+'</a>'}).join('')+'</div>'}
 R.back=function(){var s=Sync.state();
- page({body:'<div class="g4">'+[['ลูกค้า',DB.customers.length],['บิล',DB.bills.length],['ออเดอร์',DB.orders.length],['เข้าพบ',DB.visits.filter(function(v){return v.done}).length]].map(function(x){return '<div class="kp" style="cursor:default"><b>'+x[1]+'</b>'+x[0]+'</div>'}).join('')+'</div>'
+ page({body:''
   +'<div class="tl">ข้อมูล</div>'+menu([['month','รายงานรายเดือน','ยอดเดือน · ร้านที่ซื้อ · วันนี้ควรทำ · กราฟ 6 เดือน','chart'],['sales','ยอดขาย','ยอดปี · รายเดือน · คอม '+DB.rules.comm+'%','chart'],['bills','บิลขาย',DB.bills.length+' บิล','doc'],['products','สินค้า',DB.products.length+' รายการ · หน่วย · ราคา','box'],['contacts','สมุดโทร','รายชื่อ · เบอร์ · ผู้ติดต่อ · โทรทันที','phone'],['check','ตรวจข้อมูล','เบอร์ซ้ำ · ร้านไม่มีเบอร์/พิกัด · ยอดบิล','check'],['ttx','นำเข้า TTX','บิล · รายชื่อลูกค้า · ตรวจและแก้ไขก่อนนำเข้า','up']])
   +'<div class="tl">ระบบ</div>'+menu([['sync','ซิงก์','<i class="dot '+s.dot+'"></i> '+s.lbl+(DB.cfg.lastSync?' · ล่าสุด '+dt(DB.cfg.lastSync)+' '+hm(DB.cfg.lastSync):''),'cloud'],['backup','สำรอง / กู้คืน','ล่าสุด '+(DB.cfg.lastBackup?dt(DB.cfg.lastBackup)+' '+hm(DB.cfg.lastBackup):'ยังไม่มี'),'db'],['audit','ประวัติการแก้ไข',DB.audit.length+' รายการ','clock'],['settings','ตั้งค่า','ตัวเลือกในฟอร์ม · กติกา · บัญชี','gear']])})};
 
