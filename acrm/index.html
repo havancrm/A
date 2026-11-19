@@ -6,7 +6,7 @@
 <title>ART CRM — โปรเจกต์ a</title>
 <style>
 /* ===== โทเคน ===== */
-:root{--hd:#172F57;--n:#172F57;--n2:#10213f;--bg:#f3f5f9;--card:#fff;--ink:#141c2e;--mu:#5e6a82;--ln:#dde3ee;--ln2:#edf2f6;--soft:#e6ecf8;--acc:#3377DA;--red:#A11D1D;--grn:#1f7a4d;--amb:#9a6200;--pri:var(--n);--onpri:#fff;--navtxt:var(--n);--r:12px;--fs1:12px;--fs2:13px;--fs3:14px;--fs4:17px;--fs5:20px;--fs6:22px}
+:root{--navy9:#0E1F3D;--navy8:#172F57;--navy7:#22407A;--navy6:#2F5396;--navy5:#3E66B0;--navy3:#9DB3DB;--navy1:#DCE5F3;--navy0:#EEF3FA;--hd:#172F57;--n:#172F57;--n2:#10213f;--bg:#f3f5f9;--card:#fff;--ink:#141c2e;--mu:#5e6a82;--ln:#dde3ee;--ln2:#edf2f6;--soft:#e6ecf8;--acc:#3377DA;--red:#A11D1D;--grn:#1f7a4d;--amb:#9a6200;--pri:var(--n);--onpri:#fff;--navtxt:var(--n);--r:12px;--fs1:12px;--fs2:13px;--fs3:14px;--fs4:17px;--fs5:20px;--fs6:22px}
 /* โหมดมืด: ตามการตั้งค่าเครื่อง หรือ data-theme="dark" */
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--hd:#0f1a33;--n:#c9d8f5;--n2:#0c1222;--bg:#0c1222;--card:#141c31;--ink:#e6ebf5;--mu:#97a3bd;--ln:#26304a;--ln2:#1d2740;--soft:#1e2b4d;--acc:#8fb0ff;--red:#ff8a8a;--grn:#5fd39a;--amb:#f2b955;--pri:#8fb0ff;--onpri:#0c1222;--navtxt:#e6ebf5;color-scheme:dark}}
 :root[data-theme="dark"]{--hd:#0f1a33;--n:#c9d8f5;--n2:#0c1222;--bg:#0c1222;--card:#141c31;--ink:#e6ebf5;--mu:#97a3bd;--ln:#26304a;--ln2:#1d2740;--soft:#1e2b4d;--acc:#8fb0ff;--red:#ff8a8a;--grn:#5fd39a;--amb:#f2b955;--pri:#8fb0ff;--onpri:#0c1222;--navtxt:#e6ebf5;color-scheme:dark}
@@ -405,23 +405,26 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .dh b,.ds b,.sh b{font-size:var(--fs3)}
 /* ===== ชุดรูปแบบหลัก (navy) ตามภาพอ้างอิง: การ์ดบิล, แท็บ, ตัวเลขสรุป ===== */
 .dc{background:var(--card);border:1px solid #d5ddea;border-radius:14px;padding:0}
-.dc .dh{background:#e4ebf7;color:var(--n);padding:12px 14px;min-height:0;border-radius:14px 14px 0 0;border-bottom:0;font-weight:800}
+.dc .dh{background:var(--navy1);color:var(--n);padding:12px 14px;min-height:0;border-radius:14px 14px 0 0;border-bottom:0;font-weight:800}
 .dc .ds{padding:8px 14px 0;color:var(--mu);font-weight:600}
 .dc .tb{width:100%;border-collapse:collapse}
 .dc .tb th{background:var(--card);color:var(--mu);font-weight:500;text-align:left;padding:8px 8px;border-bottom:1px solid var(--ln)}
-.dc .tb td{padding:9px 8px;border-bottom:1px solid var(--ln2);color:var(--ink)}
+.dc .tb td{padding:9px 8px;border-bottom:1px solid var(--navy0);color:var(--ink)}
 .dc .tb th:last-child,.dc .tb td:last-child{text-align:right}
 .dc .ba{padding:10px 14px;border-top:1px solid var(--ln2);justify-content:flex-end;gap:14px}
 .dc .ba a{padding:0;color:var(--n);font-weight:700}
 .seg{background:transparent;padding:0;gap:8px}
 .seg a{border:1px solid var(--ln);border-radius:999px;background:var(--card);color:var(--mu);font-weight:600;padding:8px 14px}
-.seg a.on{background:var(--n);border-color:var(--n);color:#fff;box-shadow:none}
+.seg a.on{background:var(--navy8);border-color:var(--navy8);color:#fff;box-shadow:none}
 .kp{border-radius:12px;padding:12px 6px;min-height:0;gap:4px;border:1px solid var(--ln)}
 .kp b{font-size:var(--fs5);font-weight:800;color:var(--n)}
-.kp.on{background:var(--n);border-color:var(--n)}
+.kp.on{background:var(--navy8);border-color:var(--navy8)}
 .kp.on b,.kp.on span,.kp.on em{color:#fff}
-.cav{width:44px;height:44px;border-radius:12px;background:var(--soft);color:var(--n);font-weight:800}
+.cav{width:44px;height:44px;border-radius:12px;background:var(--navy0);color:var(--n);font-weight:800}
 .b{border-radius:12px;min-height:48px;font-weight:700}
+/* โหมดมืด: ไล่เฉด navy ให้เข้มตามพื้นหลัง */
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--navy1:#1e2b4d;--navy0:#172241}}
+:root[data-theme="dark"]{--navy1:#1e2b4d;--navy0:#172241}
 </style></head><body><div id="app"></div>
 <script>
 'use strict';
