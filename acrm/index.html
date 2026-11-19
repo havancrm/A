@@ -6,7 +6,7 @@
 <title>ART CRM — โปรเจกต์ a</title>
 <style>
 /* ===== โทเคน ===== */
-:root{--hd:#172F57;--n:#172F57;--n2:#10213f;--bg:#f3f5f9;--card:#fff;--ink:#141c2e;--mu:#5e6a82;--ln:#dde3ee;--ln2:#edf2f6;--soft:#e6ecf8;--acc:#3377DA;--red:#A11D1D;--grn:#1f7a4d;--amb:#9a6200;--pri:var(--n);--onpri:#fff;--navtxt:var(--n);--r:12px;--fs1:11.5px;--fs2:12.5px;--fs3:15px;--fs4:17px;--fs5:21px;--fs6:22px}
+:root{--hd:#172F57;--n:#172F57;--n2:#10213f;--bg:#f3f5f9;--card:#fff;--ink:#141c2e;--mu:#5e6a82;--ln:#dde3ee;--ln2:#edf2f6;--soft:#e6ecf8;--acc:#3377DA;--red:#A11D1D;--grn:#1f7a4d;--amb:#9a6200;--pri:var(--n);--onpri:#fff;--navtxt:var(--n);--r:12px;--fs1:12px;--fs2:13px;--fs3:14px;--fs4:17px;--fs5:20px;--fs6:22px}
 /* โหมดมืด: ตามการตั้งค่าเครื่อง หรือ data-theme="dark" */
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--hd:#0f1a33;--n:#c9d8f5;--n2:#0c1222;--bg:#0c1222;--card:#141c31;--ink:#e6ebf5;--mu:#97a3bd;--ln:#26304a;--ln2:#1d2740;--soft:#1e2b4d;--acc:#8fb0ff;--red:#ff8a8a;--grn:#5fd39a;--amb:#f2b955;--pri:#8fb0ff;--onpri:#0c1222;--navtxt:#e6ebf5;color-scheme:dark}}
 :root[data-theme="dark"]{--hd:#0f1a33;--n:#c9d8f5;--n2:#0c1222;--bg:#0c1222;--card:#141c31;--ink:#e6ebf5;--mu:#97a3bd;--ln:#26304a;--ln2:#1d2740;--soft:#1e2b4d;--acc:#8fb0ff;--red:#ff8a8a;--grn:#5fd39a;--amb:#f2b955;--pri:#8fb0ff;--onpri:#0c1222;--navtxt:#e6ebf5;color-scheme:dark}
@@ -381,9 +381,6 @@ span.grow[data-a]{display:inline-block;padding:9px 0;margin:-9px 0}
 .ch .row>span>.pill{padding:3px 7px}
 
 /* One text size for body text and every button, chip, tab and table cell */
-body,button,.b,.btn,.ab,.chip,.seg a,.kp,.ha a,.ba a,.lk,.kv,.li,.dh,.ds,.nb,.tb th,.tb td,.note,.c,.sec,input,textarea,select{font-size:var(--fs3)!important}
-.dc .tb td,.dc .tb th{font-size:var(--fs3)!important}
-*,*::before,*::after{font-size:var(--fs3)!important}
 /* Keep every screen inside the phone width so iOS does not zoom out */
 html,body{max-width:100%;overflow-x:hidden}
 /* At 15px the buttons and tiles were wider than the screen: let their labels wrap */
@@ -395,6 +392,14 @@ table{max-width:100%;table-layout:auto}
 .tb .r{white-space:normal}
 img,video,canvas,svg{max-width:100%;height:auto}
 .dc,.sec,.c,.card,.kv,.seg{box-sizing:border-box;max-width:100%}
+/* Type scale: one role per size, set once here */
+body,button,input,select,textarea,.b,.btn,.ab,.chip,.seg a,.kp,.lk,.kv,.li,.dh,.ba a,.nb,.note,.c,.sec,.pre,.tb th,.tb td,.ds,.sh,.tl{font-size:var(--fs3)}
+.st,.t,.ctl,.er,label.l,.kv .t,.dc .tb,.dc .tb td,.ds small{font-size:var(--fs2)}
+.brand small,.bdg,.pill,.nv a,.kp span,.kp em,.mb span,.mb em,.ha a span,.ch .ha a span,.tb th,.dc .tb th,.cap small,.tb td .t,.dh small{font-size:var(--fs1)}
+.top h1,.ch .nm,.tl{font-size:var(--fs4)}
+.brand,.kp b{font-size:var(--fs5)}
+.big{font-size:var(--fs6)}
+.dh b,.ds b,.sh b{font-size:var(--fs3)}
 </style></head><body><div id="app"></div>
 <script>
 'use strict';
